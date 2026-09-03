@@ -120,6 +120,110 @@ mkdir -p cmd/api cmd/worker \
          config docs
 ```
 
+```bash
+# 4. Khởi tạo git
+git init -b main
+```
+
+---
+
+## 3b. Git — tách danh tính cá nhân khỏi danh tính công ty
+
+### Vấn đề
+
+Trên máy này, cấu hình **global** đang là email công ty:
+
+```
+user.email = sy_duong@fastboy.net
+user.name  = Sy Duong
+```
+
+Và các repo công ty (`gci-payment-portal-backend`, `gci-payment-backend`)
+**không set local** — chúng ăn theo global.
+
+> ⚠️ **Vì vậy TUYỆT ĐỐI không sửa global.** Sửa global là commit ở repo công ty
+> sẽ mang email cá nhân. Global cứ để nguyên là email công ty.
+
+### Cách làm: set `--local` cho từng repo cá nhân
+
+```bash
+cd /d/portage
+git config --local user.email "duongsy1920@gmail.com"
+git config --local user.name  "Sy Duong"
+git config --local core.autocrlf input     # Go dùng LF, tránh CRLF của Windows
+```
+
+`--local` ghi vào `D:\portage\.git\config`, **chỉ có hiệu lực trong repo này**.
+Nó thắng global. Repo khác không bị ảnh hưởng.
+
+### Kiểm chứng — đừng tin, hãy kiểm tra
+
+```bash
+# Email git SẼ dùng trong repo hiện tại
+git config user.email
+
+# Email THẬT SỰ đã đi vào commit
+git log -1 --format='%an <%ae>'
+```
+
+Quét nhanh mọi repo trên ổ D để chắc không nhầm chỗ nào:
+
+```bash
+for r in /d/*/; do
+  if git -C "$r" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    printf "%-38s -> %s\n" "$(basename $r)" "$(git -C $r config user.email)"
+  fi
+done
+```
+
+Kết quả đúng phải là:
+
+```
+gci-payment-portal-backend  -> sy_duong@fastboy.net     (công ty)
+gci-payment-backend         -> sy_duong@fastboy.net     (công ty)
+portage                     -> duongsy1920@gmail.com    (cá nhân)
+```
+
+### Lỡ commit nhầm email rồi thì sao?
+
+```bash
+# Sửa commit gần nhất (CHƯA push)
+git config --local user.email "duongsy1920@gmail.com"
+git commit --amend --reset-author --no-edit
+
+# Kiểm tra lại
+git log -1 --format='%an <%ae>'
+```
+
+> Đã push rồi thì phải `git rebase` viết lại lịch sử — rắc rối và ảnh hưởng
+> người khác. Nên **luôn set local NGAY sau `git init`**, trước commit đầu tiên.
+
+### Nâng cao: tự động theo thư mục (`includeIf`)
+
+Nếu sau này bạn gom hết project cá nhân vào một thư mục, ví dụ `D:\personal\`,
+thì để git tự chọn danh tính, khỏi phải nhớ set tay mỗi lần.
+
+Tạo `~/.gitconfig-personal`:
+
+```ini
+[user]
+    email = duongsy1920@gmail.com
+    name  = Sy Duong
+```
+
+Rồi thêm vào cuối `~/.gitconfig`:
+
+```ini
+[includeIf "gitdir/i:D:/personal/"]
+    path = ~/.gitconfig-personal
+```
+
+Từ đó mọi repo nằm dưới `D:\personal\` tự dùng email cá nhân.
+Dấu `/i` là không phân biệt hoa thường (cần trên Windows), và **dấu `/` cuối
+đường dẫn là bắt buộc**.
+
+Hiện tại chưa dùng cách này vì project cá nhân đang nằm rải rác ở `D:\`.
+
 ---
 
 ## 4. Cấu trúc thư mục — và vì sao chia như vậy
