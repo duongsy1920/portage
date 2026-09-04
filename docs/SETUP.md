@@ -4,6 +4,9 @@
 > trên máy khác không phải mò lại từ đầu.
 >
 > Cập nhật: 2026-09-03
+>
+> 📚 **Học DDD:** xem [DDD.md](DDD.md) — toàn bộ khái niệm, kiến trúc, bẫy
+> thường gặp, giải thích bằng chính code của project này.
 
 ---
 
