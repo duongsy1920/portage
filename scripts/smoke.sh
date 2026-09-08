@@ -11,7 +11,11 @@
 set -euo pipefail
 
 DSN="${PORTAGE_DSN:-postgres://portage:portage@localhost:5432/portage?sslmode=disable}"
-BASE="${PORTAGE_BASE:-http://localhost:8080}"
+# PORTAGE_PORT lets the smoke run on a box where something already holds 8080,
+# the same reason smoke.ps1 takes -Port. BASE stays overridable on its own for
+# the case where the api is already running somewhere else.
+PORT="${PORTAGE_PORT:-8080}"
+BASE="${PORTAGE_BASE:-http://localhost:$PORT}"
 mkdir -p bin
 
 go build -o bin/api ./cmd/api
@@ -34,7 +38,7 @@ wipe_tokens() {
 wipe_tokens
 
 OPTOK="smoke-operator-$RANDOM$RANDOM"
-./bin/api -dsn "$DSN" -bootstrap-operator-token "$OPTOK" >bin/api.log 2>&1 &
+./bin/api -addr ":$PORT" -dsn "$DSN" -bootstrap-operator-token "$OPTOK" >bin/api.log 2>&1 &
 API=$!
 ./bin/worker -dsn "$DSN" -every 300ms >bin/worker.log 2>&1 &
 WORKER=$!
@@ -43,7 +47,11 @@ trap 'kill "$API" "$WORKER" 2>/dev/null || true; wait 2>/dev/null || true' EXIT
 # Wait for the port rather than sleeping a guess: a slow migration on a cold
 # database is the difference between a green run and a mystery failure.
 for _ in $(seq 1 50); do
-  curl -fsS -o /dev/null "$BASE/tokens" -H "Authorization: Bearer $OPTOK" && break
+  # -S dropped on purpose: the first probes fail while the api is still
+  # binding, and printing "Failed to connect" there makes a healthy run look
+  # broken. A real failure surfaces when the loop runs out and the next curl
+  # (which does use -S) reports it.
+  curl -fs -o /dev/null "$BASE/tokens" -H "Authorization: Bearer $OPTOK" && break
   sleep 0.2
 done
 
