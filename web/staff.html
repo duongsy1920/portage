@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Portage · Nhân viên</title>
+<!-- empty icon: the auth middleware wraps the whole API mux (fail-closed),
+     so an unasked-for /favicon.ico would answer 401 and litter the console -->
+<link rel="icon" href="data:," />
+<link rel="stylesheet" href="./app/screens.css" />
+<!-- React from the repository, not a CDN: the api binary serves these files,
+     so the screen works with no network and no npm install. See
+     docs/UI-GUIDE.md for why this project chose that over a bundler. -->
+<script src="./vendor/react.production.min.js"></script>
+<script src="./vendor/react-dom.production.min.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<noscript>Màn hình này cần JavaScript. Bản không cần JS là <a href="./flow.html">flow.html</a>.</noscript>
+<script type="module" src="./app/staff.js"></script>
+</body>
+</html>

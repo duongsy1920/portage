@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Portage Console</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- empty icon: the auth middleware wraps the whole API mux (fail-closed),
+     so an unasked-for /favicon.ico would answer 401 and litter the console -->
+<link rel="icon" href="data:," />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Serif:wght@600&display=swap">
 <link rel="stylesheet" href="./app/console.css">
 </head>

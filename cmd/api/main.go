@@ -124,10 +124,10 @@ func withConsole(api http.Handler, dir, addr string) http.Handler {
 	// "/{$}" matches the root and NOTHING else, so it cannot shadow an API
 	// route the way a bare "/" handler would.
 	mux.HandleFunc("GET /{$}", func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, "/ui/console.html", http.StatusFound)
+		http.Redirect(w, r, "/ui/", http.StatusFound)
 	})
 	mux.Handle("/", api)
-	log.Printf("portage api: console at http://localhost%s/ui/console.html (files from %s)", addr, dir)
+	log.Printf("portage api: screens at http://localhost%s/ui/ (files from %s)", addr, dir)
 	return mux
 }
 
