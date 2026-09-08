@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Portage Console</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Serif:wght@600&display=swap">
+<link rel="stylesheet" href="./app/console.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="top-in">
+    <div class="brand">Portage <small>console</small></div>
+    <nav class="tabs" id="tabs" role="tablist">
+      <button role="tab" data-tab="runner" aria-selected="true">Chạy luồng</button>
+      <button role="tab" data-tab="customer" aria-selected="false">Khách</button>
+      <button role="tab" data-tab="operator" aria-selected="false">Nhân viên</button>
+      <button role="tab" data-tab="keys" aria-selected="false">Chìa khoá</button>
+      <button role="tab" data-tab="log" aria-selected="false">Call log</button>
+    </nav>
+    <div class="top-right">
+      <span class="health" id="health"><span class="dot"></span>đang kiểm…</span>
+      <a class="btn btn-sm" href="./flow.html">Sơ đồ luồng</a>
+    </div>
+  </div>
+</header>
+
+<div class="tokenbar"><div class="tokenbar-in" id="tokenbar"></div></div>
+
+<main class="shell"><div id="view"></div></main>
+
+<footer>
+  <span>Console gọi API thật ở cùng origin — chạy <span class="mono">go run ./cmd/api -web ./web</span> rồi mở
+    <span class="mono">http://localhost:8080/ui/console.html</span>.</span>
+  <span>Hướng dẫn từng bước: <span class="mono">docs/UI-GUIDE.md</span></span>
+</footer>
+
+<script type="module" src="./app/main.js"></script>
+</body>
+</html>
