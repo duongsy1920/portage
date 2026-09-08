@@ -1,0 +1,24 @@
+# Postgres cho dev và cho test tích hợp. Chạy:  docker compose up -d
+#   app  : postgres://portage:portage@localhost:5432/portage?sslmode=disable
+#   test : postgres://portage:portage@localhost:5432/portage_test?sslmode=disable   (PORTAGE_TEST_DSN)
+services:
+  postgres:
+    image: postgres:16
+    container_name: portage-postgres
+    environment:
+      POSTGRES_USER: portage
+      POSTGRES_PASSWORD: portage
+      POSTGRES_DB: portage
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker/initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U portage -d portage"]
+      interval: 2s
+      timeout: 2s
+      retries: 15
+
+volumes:
+  pgdata:

@@ -1,0 +1,65 @@
+# CI chạy trên Linux (GitHub Actions). Hai việc máy Windows không làm được
+# nằm ở đây: `-race` (cần cgo) và kiểm tra domain không import gì lạ.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    # Postgres thật cho test tích hợp (internal/adapter/postgres, platform/wire).
+    # Không có PORTAGE_TEST_DSN thì các test đó tự skip — CI thì luôn có.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: portage
+          POSTGRES_PASSWORD: portage
+          POSTGRES_DB: portage_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U portage -d portage_test"
+          --health-interval 2s --health-timeout 2s --health-retries 15
+    env:
+      PORTAGE_TEST_DSN: postgres://portage:portage@localhost:5432/portage_test?sslmode=disable
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: gofmt
+        run: |
+          unformatted=$(gofmt -l .)
+          if [ -n "$unformatted" ]; then
+            echo "chưa format, chạy: gofmt -w ."; echo "$unformatted"; exit 1
+          fi
+
+      - name: go vet
+        run: go vet ./...
+
+      - name: go test (race detector, Postgres tích hợp)
+        run: go test -race -count=1 -cover ./...
+
+      # Smoke thật: hai BINARY, một Postgres thật, token bearer thật, relay
+      # thật giữa chúng. `go test` chứng minh các mảnh chạy khi TEST ráp lại;
+      # cái này chứng minh chúng chạy khi systemd ráp lại.
+      - name: smoke (binary thật + Postgres thật)
+        run: |
+          sudo apt-get install -y --no-install-recommends postgresql-client jq >/dev/null
+          chmod +x scripts/smoke.sh
+          PORTAGE_DSN="$PORTAGE_TEST_DSN" scripts/smoke.sh
+
+      # Dependency Rule (docs/DDD.md §21): internal/domain chỉ được import
+      # thư viện chuẩn của Go và những thư viện tiện ích trong allowlist.
+      - name: domain imports only stdlib + allowlist
+        run: |
+          allow='^github\.com/google/uuid$'
+          bad=$(go list -f '{{range .Imports}}{{println .}}{{end}}' ./internal/domain/... \
+                | sort -u | grep '\.' | grep -Ev "$allow" || true)
+          if [ -n "$bad" ]; then
+            echo "internal/domain đang import thứ ngoài allowlist:"; echo "$bad"; exit 1
+          fi
