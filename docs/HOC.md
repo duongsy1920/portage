@@ -131,7 +131,7 @@ Rule). Rồi WALKTHROUGH §4, §6.
    Portage   struct nghiệp vụ SẠCH; phần map xuống DB nằm riêng ở adapter/postgres
 ```
 
-Đổi lại được cái gì? **262 trên 291 test chạy dưới 2 giây, không cần Docker,
+Đổi lại được cái gì? **262 trên 292 test chạy dưới 2 giây, không cần Docker,
 không cần mạng, không cần API key.** Đó không phải khoe — đó là lý do anh sửa
 được code mà không sợ.
 
@@ -292,7 +292,7 @@ Nói **đúng** phần đã làm. Đoạn dưới là sự thật, kiểm chứn
 > service, **hai anti-corruption layer** (một cho API shop, một cho mô hình
 > ngôn ngữ đọc trang web), auth bằng bearer token với port ở tầng biên chứ
 > không ở domain, và một **read model dựng chỉ bằng event** cho màn hình khách.
-> **291 test**, trong đó 262 chạy dưới 2 giây không cần Docker vì domain không
+> **292 test**, trong đó 262 chạy dưới 2 giây không cần Docker vì domain không
 > import gì ngoài stdlib — và có **7 test canh kiến trúc** bằng `go/ast` khiến
 > vi phạm dependency rule là build đỏ. Vòng đời một đơn chạy hết trên **cả**
 > in-memory và Postgres bằng **cùng một test**, và trên **binary thật** bằng

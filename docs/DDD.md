@@ -1194,8 +1194,8 @@ Nhờ vậy:
 - Đổi từ OpenAI sang model khác = viết adapter mới, domain **không đổi một dòng**
 - Chạy song song nhiều adapter để so sánh chất lượng
 
-**Bằng chứng đã hoạt động trong Portage:** 262/291 test chạy **không cần gì cả**,
-không Docker, không mạng, không API key (29 test còn lại là tích hợp Postgres) — kể cả 32 test tầng app đi
+**Bằng chứng đã hoạt động trong Portage:** 262/292 test chạy **không cần gì cả**,
+không Docker, không mạng, không API key (30 test còn lại là tích hợp Postgres) — kể cả 32 test tầng app đi
 qua thật handler → domain → repository → outbox, vì repository và outbox là
 adapter in-memory cắm vào port.
 
@@ -2165,7 +2165,7 @@ scripts/smoke.ps1                cả flow trên binary thật + Postgres thật
 ```
 
 ```
-go test ./...   →  291 test (08/09, hết P9 + đợt variant/size) — 29 tích hợp chạy khi có PORTAGE_TEST_DSN; 262 còn lại < 2 giây không cần Docker
+go test ./...   →  292 test (08/09, hết P9 + variant/size + migrate race) — 30 tích hợp chạy khi có PORTAGE_TEST_DSN; 262 còn lại < 2 giây không cần Docker
 coverage        →  shared 91% · catalog 89% · pricing 74% · ordering 81% · procurement 81% · logistics 76% · app 71–82% · http 81% · codec 99% · postgres 80% · memory 81% · openai 81% · merchant 89% · auth 89% · wire 95% · worker 87%
 go run          →  cmd/api (in-memory hoặc -dsn) · cmd/worker -dsn · docker compose up -d · scripts/smoke.ps1
 gofmt / vet     →  sạch

@@ -839,9 +839,9 @@ internal/domain/
 ├── ../adapter/merchant/  3 test, 88,9% — manual.go (luôn ErrManualPurchase) + router.go (chọn ACL theo shop; không biết shop → giao cho người)
 ├── ../adapter/memory/    14 test, 80,8% — repo của CẢ 6 context + Outbox (Drain, Pending/MarkSent) + UnitOfWork; mỗi repo: miss trả sentinel của DOMAIN, Save thứ hai là upsert, list có thứ tự ổn định
 ├── ../adapter/eventcodec/ 5 test, 98,6% — Encode 36 event + Decode → V1 (21 tên) + guard go/ast quét domain/*/events.go
-├── ../adapter/postgres/  27 test tích hợp, 79,8% — round trip repo 6 context + reconciliations + api_tokens + order_summaries, rollback thật, outbox
+├── ../adapter/postgres/  28 test tích hợp, 79,8% — round trip repo 6 context + reconciliations + api_tokens + order_summaries, rollback thật, outbox
 │   ├── postgres.go       Connect, querier, txKey, db(ctx), UnitOfWork.InTx
-│   ├── migrate.go        embed migrations/*.sql, schema_migrations, pg_advisory_xact_lock
+│   ├── migrate.go        embed migrations/*.sql; MỌI thứ trong một tx sau pg_advisory_xact_lock — kể cả CREATE TABLE schema_migrations (đợt 18)
 │   ├── migrations/       0001_catalog.sql (merchants, categories, products, product_variants, outbox) · 0002_pricing.sql (lanes, fx_rates, listings, category_profiles, quotes) · 0003_ordering.sql (accepted_quotes, orders UNIQUE(quote)) · 0004_procurement.sql (purchase_tasks UNIQUE("order"), procurement_shops, procurement_items) · 0005_logistics.sql (lane_rules, parcels, batches + batch_items + batch_allocations, reconciliations) · 0006_auth.sql (api_tokens: token_hash PK, kind, subject, revoked_at) · 0007_reporting.sql (order_summaries, product_names) · 0008_variant_subject.sql (procurement_variants, ordering_variants, 4 cột Subject của purchase_tasks, procurement_items.source)
 │   ├── *_repo.go         upsert ON CONFLICT, scan → Snapshot → FromSnapshot
 │   ├── pricing_repos.go  LaneRepo, QuoteRepo (breakdown từng cột), ListingRepo, ProfileRepo, ExchangeRates
@@ -971,7 +971,7 @@ go test -cover ./...
 # ok  github.com/duongsy/portage/internal/platform/auth     coverage: 88.8%
 # ok  github.com/duongsy/portage/internal/platform/wire     coverage: 94.9%
 # ok  github.com/duongsy/portage/internal/worker            coverage: 87.3%
-# tổng 291 test (08/09, hết P9 + đợt variant/size) — 29 bỏ qua khi không có DSN (27 postgres + 1 wire + 1 rollback cố ý), 262 còn lại < 2 giây không cần gì
+# tổng 292 test (08/09, hết P9 + variant/size + migrate race) — 30 bỏ qua khi không có DSN (28 postgres + 1 wire + 1 rollback cố ý), 262 còn lại < 2 giây không cần gì
 ```
 
 ### 🛡️ Test canh quyết định — `internal/domain/decisions_test.go`
@@ -1668,3 +1668,37 @@ Với `PORTAGE_TEST_DSN`: **290 PASS + 1 SKIP**, 37 route, **31 dòng** `Subscri
 **Còn nợ** vẫn y nguyên như sau P9: bảng giá thật trong `config/`, một
 `adapter/merchant/<shop>.go` thật, cổng thanh toán, và `scripts/smoke.sh` chưa
 chạy thật lần nào ngoài CI (máy Windows không có `jq`/`psql`).
+
+### Đợt 18 (08/09) — clone sang Linux, và lần chạy thật đầu tiên của `smoke.sh`
+
+Anh clone repo về máy Linux để build và học. Máy đó không có Go nên tôi cài
+Go 1.27.1 vào `~/sdk/go` (tarball, không cần root), và **đúng lần chạy thật đầu
+tiên của `scripts/smoke.sh`** thì nó tìm ra một bug thật.
+
+| Quyết định / bug | Chỗ nó nằm |
+|---|---|
+| **Bug thật, tìm ra bởi smoke.sh:** `Migrate` tạo `schema_migrations` **ngoài** advisory lock. `CREATE TABLE IF NOT EXISTS` của PostgreSQL **không nguyên tử**: hai câu chạy song song đều thấy bảng chưa có, rồi một cái vỡ khi chèn row type — `duplicate key value violates unique constraint "pg_type_typname_nsp_index"`. `cmd/api` và `cmd/worker` khởi động cùng lúc, nên đây là đường đi thật lúc deploy đầu | `migrate.go` |
+| Sửa: đưa `CREATE TABLE` **vào trong** transaction đã giữ lock. Bốn dòng dịch chỗ, và comment cũ nói lock bảo vệ "cùng một file không áp hai lần" — đúng phần vòng lặp nhưng bỏ sót chính bảng sổ sách | `migrate.go` |
+| Vì sao Windows không bao giờ thấy: database ở đó đã migrate từ lâu, nên `CREATE TABLE IF NOT EXISTS` là no-op và không có gì để đua. Lỗi **chỉ** hiện trên database trống. Bài học: "chạy xanh nhiều lần" không chứng minh gì về lần chạy **đầu tiên** | — |
+| Test hồi quy tự tạo một database **dùng-một-lần** rồi cho 4 goroutine cùng gọi `Migrate` sau một barrier. Không dùng `portage_test` vì "cold" phải nghĩa là cold thật. Đua thì có tính xác suất, nên test có thể xanh oan trên code lỗi, nhưng **không bao giờ đỏ oan** trên code đúng — đó là chiều quan trọng | `TestMigrate_survivesTwoProcessesOnAColdDatabase` |
+| `smoke.sh` thêm `PORTAGE_PORT` và truyền `-addr` cho api, giống cờ `-Port` của `smoke.ps1`. Trên máy Linux này 8080 đã có người, và 5432 là Postgres dev của công ty nên Portage chạy ở 5433 bằng một `docker-compose.override.yml` chỉ tồn tại ở máy đó (`ports: !override`, vì Compose mặc định **cộng dồn** danh sách port chứ không thay) | `scripts/smoke.sh` |
+| `smoke.sh` bỏ `-S` ở vòng chờ api: mấy nhịp dò đầu chắc chắn trượt lúc api còn đang bind, in "Failed to connect" ở đó làm một lần chạy lành trông như hỏng | `scripts/smoke.sh` |
+
+**Kết quả trên Linux** (Go 1.27.1, Postgres 16 trong Docker, database trống):
+
+```
+smoke.sh EXIT=0 — 20 event, #9 → #28
+buy Air Trainer 90 / US 9 · black / ref EX-AT90-9-BLK / https://…/t/air-trainer-90/abc
+order at the end: delivered; quote vs actual: quoted 163.22+25.00, actual 163.22+27.50 → variance -2.50 USD
+```
+
+Và thứ máy Windows **không** làm được vì thiếu cgo: `go test ./... -race` xanh
+trên cả 22 package, không một data race nào.
+
+Tổng **292 test** (+1 so với đợt 17): `TestMigrate_survivesTwoProcessesOnAColdDatabase`.
+Với `PORTAGE_TEST_DSN`: **291 PASS + 1 SKIP**; không có DSN: 262 PASS + 30 SKIP.
+Con số giống nhau trên cả Windows và Linux.
+
+**Nợ đã trả:** `scripts/smoke.sh` từ đợt 16 tới giờ mới chỉ syntax-check trên
+Windows. Giờ nó đã chạy thật, trên Linux, trên database trống, và ngay lần đầu
+đã bắt được một bug mà 292 test không bắt.

@@ -77,11 +77,11 @@ và cấm mua để bán lại qua affiliate feed. Nên hệ thống **không t�
 shop**: khách/operator nhập tay, hoặc `adapter/openai` đọc từ URL. Đây là ràng
 buộc thiết kế, không phải chú thích.
 
-## Trạng thái (08/09/2026 — P9 xong, thêm đợt variant/size)
+## Trạng thái (08/09/2026 — P9 xong, đợt variant/size, đợt migrate race)
 
 ```
 5 bounded context + 1 tầng đọc · 36 domain event · 37 route · 31 dòng Subscribe
-291 test (290 PASS + 1 SKIP cố ý) · 262 test chạy < 2 giây không cần Docker
+292 test (291 PASS + 1 SKIP cố ý) · 262 test chạy < 2 giây không cần Docker
 7 test canh kiến trúc bằng go/ast
 ```
 
@@ -101,14 +101,21 @@ có thật? của sản phẩm nào?) và trả 409 `variant_unknown` / `variant
 procurement giữ bảng chiếu đủ chữ rồi **chép** vào `PurchaseTask.Subject` lúc mở
 việc (tên · size/màu · mã shop · link gốc). Chi tiết: `docs/SETUP.md` §9 đợt 17.
 
+**Vừa xong — migrate race (đợt 18):** `Migrate` tạo bảng `schema_migrations`
+**ngoài** advisory lock, và `CREATE TABLE IF NOT EXISTS` của PostgreSQL không
+nguyên tử: hai process khởi động cùng lúc trên database trống thì một cái vỡ ở
+`pg_type_typname_nsp_index`. Chỉ hiện khi database **cold**, nên Windows chưa
+bao giờ thấy. Tìm ra bằng lần chạy thật đầu tiên của `scripts/smoke.sh` trên
+Linux. Có test hồi quy dùng database dùng-một-lần.
+
 **Đang làm — P10:** operator đặt hộ có ghi tên (`docs/P10-PLAN.md`). Anh ấy đã
 chốt phương án này sau khi cân bốn lựa chọn; spec đã kiểm chứng với code thật,
 **đọc nó trước khi sửa** — mô tả ban đầu của phương án dựa trên một tiền lệ không
 tồn tại (`OnBehalfOf` là kiểm quyền sở hữu, không phải đặt hộ).
 
 **Còn nợ:** `config/ratecard.yaml` (bảng giá đang là hằng trong `wire.go`) ·
-một `adapter/merchant/<shop>.go` thật (chưa shop nào cho API) · cổng thanh toán
-· `scripts/smoke.sh` mới syntax-check trên Windows, lần chạy thật đầu là CI.
+một `adapter/merchant/<shop>.go` thật (chưa shop nào cho API) · cổng thanh toán.
+(`scripts/smoke.sh` đã hết nợ: chạy thật trên Linux 08/09, xem SETUP §9 đợt 18.)
 
 ---
 
@@ -117,7 +124,7 @@ một `adapter/merchant/<shop>.go` thật (chưa shop nào cho API) · cổng th
 | File | Trả lời |
 |---|---|
 | `docs/HOC.md` | **lộ trình học 8 buổi** + 15 câu tự kiểm tra + nói gì khi phỏng vấn |
-| `docs/SETUP.md` | môi trường, cây thư mục, lệnh hàng ngày, **§9 nhật ký 17 đợt review** |
+| `docs/SETUP.md` | môi trường, cây thư mục, lệnh hàng ngày, **§9 nhật ký 18 đợt review** |
 | `docs/WALKTHROUGH.md` | đọc code theo thứ tự — 97 file, §0–§22 (§22 = đợt variant/size) |
 | `docs/DDD.md` | sổ tay khái niệm, đối chiếu Symfony |
 | `docs/FLOW-ORDER.md` | một đơn từ đầu tới cuối: ai gọi, ai nghe, bảng nào đổi, hỏng thì sao |
@@ -127,7 +134,7 @@ một `adapter/merchant/<shop>.go` thật (chưa shop nào cho API) · cổng th
 | `docs/P9-PLAN.md` | plan gốc của P9 (đã xong hết) — giữ để thấy cách chốt quyết định |
 | `docs/UI-GUIDE.md` | **thao tác UI từng bước để chạy thử luồng**: dựng lên, token, 26 bước, 10 nhánh rẽ nên thử, bảng hỏng-thì-xem |
 
-**`docs/SETUP.md` §9 là chỗ quan trọng nhất khi tiếp tục việc**: 17 đợt review,
+**`docs/SETUP.md` §9 là chỗ quan trọng nhất khi tiếp tục việc**: 18 đợt review,
 mỗi đợt một bảng "quyết định / bug → chỗ nó nằm". Đọc 2–3 đợt cuối là nắm được
 vì sao code hiện tại trông như vậy.
 
