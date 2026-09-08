@@ -81,7 +81,7 @@ buộc thiết kế, không phải chú thích.
 
 ```
 5 bounded context + 1 tầng đọc · 36 domain event · 37 route · 31 dòng Subscribe
-292 test (291 PASS + 1 SKIP cố ý) · 262 test chạy < 2 giây không cần Docker
+293 test (292 PASS + 1 SKIP cố ý) · 263 test chạy < 2 giây không cần Docker
 7 test canh kiến trúc bằng go/ast
 ```
 
@@ -123,7 +123,7 @@ một `adapter/merchant/<shop>.go` thật (chưa shop nào cho API) · cổng th
 
 | File | Trả lời |
 |---|---|
-| `docs/HOC.md` | **lộ trình học 8 buổi** + 15 câu tự kiểm tra + nói gì khi phỏng vấn |
+| `docs/HOC.md` | **lộ trình học, buổi 0 tới buổi 9** (buổi 0 = bấm UI trước khi đọc code) + 17 câu tự kiểm tra + nói gì khi phỏng vấn |
 | `docs/SETUP.md` | môi trường, cây thư mục, lệnh hàng ngày, **§9 nhật ký 18 đợt review** |
 | `docs/WALKTHROUGH.md` | đọc code theo thứ tự — 97 file, §0–§22 (§22 = đợt variant/size) |
 | `docs/DDD.md` | sổ tay khái niệm, đối chiếu Symfony |
@@ -141,7 +141,7 @@ vì sao code hiện tại trông như vậy.
 ## Lệnh hay dùng
 
 ```bash
-go test ./...                     # 262 test, < 2 giây
+go test ./...                     # 263 test, < 2 giây
 gofmt -l . && go vet ./...        # phải sạch trước khi báo xong
 
 # Có Postgres (28 test tích hợp)

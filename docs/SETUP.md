@@ -817,7 +817,7 @@ internal/domain/
 │   ├── deps.go           Deps (Parcels, Batches, Lanes) + mutateParcel/mutateBatch
 │   ├── parcels.go        ExpectParcelHandler (OnPurchaseConfirmed, idempotent theo đơn), ReceiveParcelHandler, Projector (OnLaneDefined)
 │   └── batches.go        OpenBatch (từ chối lane không rule), AddParcel (2 aggregate/1 tx), CloseBatch, ShipBatch (allocator từ LaneRule)
-├── ../app/procurement/   package procurementapp — 3 test, coverage 81,5%
+├── ../app/procurement/   package procurementapp — 4 test, coverage 81,5%
 │   ├── deps.go           Deps (Tasks, Shops, Items, Variants, ACL) + mutate
 │   ├── open_task.go      OpenTaskHandler: idempotent theo đơn, tra projection, dựng Subject, hỏi ACL (3 nhánh), OnDepositPaid
 │   ├── close_task.go     ConfirmTaskHandler, FailTaskHandler
@@ -971,7 +971,7 @@ go test -cover ./...
 # ok  github.com/duongsy/portage/internal/platform/auth     coverage: 88.8%
 # ok  github.com/duongsy/portage/internal/platform/wire     coverage: 94.9%
 # ok  github.com/duongsy/portage/internal/worker            coverage: 87.3%
-# tổng 292 test (08/09, hết P9 + variant/size + migrate race) — 30 bỏ qua khi không có DSN (28 postgres + 1 wire + 1 rollback cố ý), 262 còn lại < 2 giây không cần gì
+# tổng 293 test (08/09, hết P9 + variant/size + migrate race) — 30 bỏ qua khi không có DSN (28 postgres + 1 wire + 1 rollback cố ý), 263 còn lại < 2 giây không cần gì
 ```
 
 ### 🛡️ Test canh quyết định — `internal/domain/decisions_test.go`
@@ -1695,8 +1695,12 @@ order at the end: delivered; quote vs actual: quoted 163.22+25.00, actual 163.22
 Và thứ máy Windows **không** làm được vì thiếu cgo: `go test ./... -race` xanh
 trên cả 22 package, không một data race nào.
 
-Tổng **292 test** (+1 so với đợt 17): `TestMigrate_survivesTwoProcessesOnAColdDatabase`.
-Với `PORTAGE_TEST_DSN`: **291 PASS + 1 SKIP**; không có DSN: 262 PASS + 30 SKIP.
+| **Lỗ hổng test, tìm ra khi viết bài tập cho `HOC.md`:** hành vi "thiếu dòng variant thì task **vẫn** mở" hoàn toàn không có test. Đổi nhánh `ErrVariantNotFound` thành `return err` mà cả suite vẫn xanh — nghĩa là một quyết định có chủ đích đang không được canh. Thêm `TestOpenTask_opensEvenWhenTheVariantRowHasNotArrived`, và tách `seedShopAndItem` khỏi `seedCatalog` để dựng được đúng cảnh sai thứ tự | `procurement_test.go` |
+| Bài học: viết tài liệu hướng dẫn *"sửa dòng này thì test đỏ"* là một cách kiểm thử độ phủ. Nếu phá mà không đỏ thì hoặc code không quan trọng, hoặc test đang thiếu | `HOC.md` buổi 9 |
+
+Tổng **293 test** (+2 so với đợt 17): `TestMigrate_survivesTwoProcessesOnAColdDatabase`
+và `TestOpenTask_opensEvenWhenTheVariantRowHasNotArrived`.
+Với `PORTAGE_TEST_DSN`: **292 PASS + 1 SKIP**; không có DSN: 263 PASS + 30 SKIP.
 Con số giống nhau trên cả Windows và Linux.
 
 **Nợ đã trả:** `scripts/smoke.sh` từ đợt 16 tới giờ mới chỉ syntax-check trên

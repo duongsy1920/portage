@@ -15,7 +15,7 @@ Viết bằng **Go**, kiến trúc **DDD**. Vừa là sản phẩm thật, vừa
 | [docs/CATALOG.md](docs/CATALOG.md) | thiết kế bounded context `catalog`: nguồn dữ liệu, affiliate, các quyết định đã gỡ/thêm; `pricing` nghe gì từ nó |
 | [docs/GO-CHO-PHP.md](docs/GO-CHO-PHP.md) | cú pháp Go tra nhanh cho người viết PHP; comment `// [PHP]` trong code |
 | [docs/WALKTHROUGH.md](docs/WALKTHROUGH.md) | **đọc code theo thứ tự**: §0–§13 một request đi hết 5 tầng; §14 `pricing`; §15 `ordering` — cọc 50 %, điểm không thể quay đầu; §16 `procurement` — ACL, saga; §17 `logistics` — cân thật, chia cước, Quote vs Actual; §18 auth · §19 sweep (việc không ai gọi) · §20 read model (một bảng, năm nguồn) · §21 ACL cho AI; thứ tự đọc 93 file; hành trình ba ngày |
-| [docs/HOC.md](docs/HOC.md) | **lộ trình học**: 8 buổi, mỗi buổi đọc gì → sửa gì cho test đỏ → biết là hiểu khi nào; 15 câu tự kiểm tra; nói gì (và **không** nói gì) khi phỏng vấn |
+| [docs/HOC.md](docs/HOC.md) | **lộ trình học**: buổi 0 tới buổi 9, mỗi buổi đọc gì → sửa gì cho test đỏ → biết là hiểu khi nào; 17 câu tự kiểm tra; nói gì (và **không** nói gì) khi phỏng vấn |
 | [docs/FLOW-ORDER.md](docs/FLOW-ORDER.md) | **một đơn từ đầu tới cuối**: mỗi bước ai gọi, ai nghe, bảng nào đổi, mã lỗi nào gặp; nhánh rẽ (huỷ, hết size, event tới hai lần); bảng "trạng thái → làm được gì" cho 5 aggregate |
 | [web/console.html](web/console.html) | **console thật**: `go run ./cmd/api -web ./web` rồi mở `localhost:8080/ui/` — bấm 26 bước gọi API thật, hoặc thao tác tay như khách/nhân viên |
 | [docs/UI-GUIDE.md](docs/UI-GUIDE.md) | **hướng dẫn thao tác UI từng bước** để chạy thử luồng, kèm 10 nhánh rẽ nên thử và bảng chẩn lỗi |
@@ -33,7 +33,7 @@ go run ./cmd/api    -dsn "postgres://portage:portage@localhost:5432/portage?sslm
 go run ./cmd/worker -dsn "postgres://portage:portage@localhost:5432/portage?sslmode=disable"
 go run ./cmd/api -web ./web          # + console trong trình duyệt tại http://localhost:8080/ui/   # + sweep quote hết hạn mỗi phút (-sweep)
 powershell -ExecutionPolicy Bypass -File scripts\smoke.ps1   # cả flow trên binary thật: paste → publish → relay → quote → accept
-go test ./...                       # 262 test < 2 giây; set PORTAGE_TEST_DSN để chạy cả 30 test tích hợp
+go test ./...                       # 263 test < 2 giây; set PORTAGE_TEST_DSN để chạy cả 30 test tích hợp
 go test -cover ./...   # kèm độ phủ
 go vet ./...           # soi lỗi tĩnh
 gofmt -l .             # liệt kê file chưa format (rỗng = sạch)
@@ -132,7 +132,7 @@ Mọi route đều ở sau một cửa: `Authorization: Bearer <token>`. Không 
   Payload event là hợp đồng viết tay (`internal/adapter/eventcodec`, Encode + Decode).
 - **7 test canh quyết định** (`internal/domain/decisions_test.go`) — kiến trúc
   được kiểm tra bằng `go/ast`, vi phạm là build đỏ.
-- 292 test; 262 unit < 2 giây, 30 test tích hợp cần `PORTAGE_TEST_DSN`; một test vàng chạy **cả vòng đời**
+- 293 test; 263 unit < 2 giây, 30 test tích hợp cần `PORTAGE_TEST_DSN`; một test vàng chạy **cả vòng đời**
   (paste → publish → quote `5 393 720 ₫` → accept → order → cọc → task mua → confirm `163.22 USD` → `purchased`
   → cân thật → gom lô → ship `27.50 USD` → `in_transit` → trả nốt → `delivered` → đối soát `variance −2.50 USD`)
   trên **cả** memory và Postgres; `scripts/smoke.ps1` (Windows) và `scripts/smoke.sh` (CI, Linux) chạy đúng flow đó trên

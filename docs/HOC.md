@@ -13,7 +13,7 @@ Symfony là gì, và vì sao ở đây nó khác"* — không phải học lại
 
 ---
 
-## Bốn file, bốn câu hỏi khác nhau
+## Sáu chỗ đọc, sáu câu hỏi khác nhau
 
 | File | Trả lời | Đọc khi nào |
 |---|---|---|
@@ -22,9 +22,50 @@ Symfony là gì, và vì sao ở đây nó khác"* — không phải học lại
 | [WALKTHROUGH.md](WALKTHROUGH.md) | *"code chạy ra sao"* — file nào, dòng nào | xương sống của lộ trình dưới |
 | [DDD.md](DDD.md) | *"vì sao lại thiết kế thế"* — khái niệm | đọc **sau** khi đã thấy code |
 | [FLOW-ORDER.md](FLOW-ORDER.md) | *"một đơn hàng đi qua những đâu"* | đọc trước buổi 5, và trước khi phỏng vấn |
+| [UI-GUIDE.md](UI-GUIDE.md) | *"bấm cái gì để thấy nó chạy"* | buổi 0, trước khi đọc dòng code nào |
+| [SETUP.md](SETUP.md) §9 | *"vì sao code lại trông như thế này"* | khi vướng một quyết định lạ; đọc 2–3 đợt cuối |
 
 Thứ tự sai hay gặp nhất: đọc DDD.md trước. Đừng. Khái niệm không có code đi kèm
 thì đọc xong quên ngay. Ở đây **luôn xem code trước, đọc lý do sau**.
+
+`SETUP.md` xuất hiện hai lần trong bảng vì nó là hai file khác nhau đóng chung
+một bìa: phần đầu là môi trường và quy ước, còn **§9 là nhật ký 18 đợt review**
+— mỗi đợt một bảng *"quyết định hoặc bug → chỗ nó nằm"*. Khi một dòng code trông
+vô lý, §9 thường là chỗ giải thích thẳng nhất, hơn cả DDD.md.
+
+---
+
+## Buổi 0 — Bấm trước, đọc sau
+
+Nửa tiếng này tiết kiệm cho anh vài buổi. Đọc code mà chưa có bản đồ trong đầu
+thì mỗi file là một hòn đảo; bấm qua UI trước thì mọi thứ đọc sau đó có chỗ để
+gắn vào.
+
+**Bấm, theo đúng thứ tự này:**
+
+1. **`web/flow.html`** — mở bằng double-click, không cần build, **không gọi API**.
+   26 bước của một đơn, mỗi bước hiện màn hình người dùng thật sự thấy, request,
+   event ghi vào outbox, và ai nghe event đó. Bấm hỏng cũng không sao, nó là mô
+   phỏng.
+2. **Console thật** — `go run ./cmd/api -web ./web` rồi mở
+   `http://localhost:8080/ui/`. Tab **Runner** chạy đúng 26 bước đó nhưng bằng
+   request thật. Xem cột **Nhật ký gọi** để thấy từng request và từng mã lỗi.
+3. **[UI-GUIDE.md](UI-GUIDE.md)** — bảng 26 bước kèm kết quả đúng, 10 nhánh rẽ
+   nên thử bằng tay, và bảng triệu chứng suy ra nguyên nhân khi có gì đó không
+   chạy.
+
+**Ba thứ chỉ bấm mới thấy, đọc code rất khó nhận ra:**
+
+```
+   1. Worker là một BƯỚC RIÊNG. Không phải hàm được gọi — là một process khác,
+      chạy sau. Sáu lượt relay của một đơn ra đúng 5/2/2/2/6/3 event.
+   2. Bảng đọc TRỐNG cho tới khi relay chạy. Nên `POST /quotes` ngay sau publish
+      trả 404, và đó là thiết kế, không phải lỗi.
+   3. Một event có NHIỀU người nghe. `purchase_confirmed` có bốn.
+```
+
+**Biết là hiểu khi:** chỉ được trên màn hình chỗ nào là *"đã ghi nhưng chưa ai
+biết"*, và chỗ nào là *"đã có người nghe rồi"*.
 
 ---
 
@@ -131,7 +172,7 @@ Rule). Rồi WALKTHROUGH §4, §6.
    Portage   struct nghiệp vụ SẠCH; phần map xuống DB nằm riêng ở adapter/postgres
 ```
 
-Đổi lại được cái gì? **262 trên 292 test chạy dưới 2 giây, không cần Docker,
+Đổi lại được cái gì? **263 trên 293 test chạy dưới 2 giây, không cần Docker,
 không cần mạng, không cần API key.** Đó không phải khoe — đó là lý do anh sửa
 được code mà không sợ.
 
@@ -153,8 +194,14 @@ không cần mạng, không cần API key.** Đó không phải khoe — đó l�
 **Làm trước khi đọc code:**
 
 ```powershell
-docker compose up -d
+docker compose up -d                                        # Windows
 powershell -ExecutionPolicy Bypass -File scripts\smoke.ps1
+```
+
+```bash
+docker compose up -d                                        # Linux
+PORTAGE_DSN=postgres://portage:portage@localhost:5433/portage?sslmode=disable \
+  PORTAGE_PORT=8081 bash scripts/smoke.sh
 ```
 
 Nhìn 20 event chạy qua 5 context trên màn hình. Rồi mở
@@ -175,6 +222,10 @@ Nhìn 20 event chạy qua 5 context trên màn hình. Rồi mở
    mã trạng thái.
 2. Mở `internal/app/pricing/projector.go`. Chỉ ra chỗ nào làm cho nó gọi hai
    lần cũng như một lần.
+
+**Đọc thêm, ngay sau buổi này:** WALKTHROUGH **§22**. Đó là ví dụ mới nhất và
+cụ thể nhất của đúng bài học trên: một chữ của shop, chữ `size`, phải đi qua ba
+context mà không context nào được đọc bảng của context kia. Buổi 9 mổ kỹ nó.
 
 ---
 
@@ -235,8 +286,8 @@ Ba câu, mỗi câu đáng nhớ hơn cả đoạn code sinh ra nó:
 
 ## Buổi 8 — Đọc hết repo
 
-WALKTHROUGH §10: **93 file, theo thứ tự**, mỗi dòng ghi rõ file → khái niệm →
-đọc thêm ở đâu. Khoảng 12 000 dòng kể cả comment.
+WALKTHROUGH §10: **97 file, theo thứ tự**, mỗi dòng ghi rõ file → khái niệm →
+đọc thêm ở đâu. Khoảng 12 400 dòng kể cả comment.
 
 Đừng đọc một mạch. Chia:
 
@@ -245,13 +296,92 @@ WALKTHROUGH §10: **93 file, theo thứ tự**, mỗi dòng ghi rõ file → kh�
    file 36–56   ngày 2: context thứ hai, báo giá
    file 57–86   ngày 3: ba context còn lại, chia cước, đối soát
    file 87–93   P9: cửa auth, sweep, read model, ACL cho AI
+   file 94–97   variant/size: một chữ của shop đi qua ba context (§22)
 ```
+
+---
+
+## Buổi 9 — Hai thứ chỉ học được khi CHẠY THẬT
+
+Bảy buổi trên học từ code đang có. Buổi này học từ hai lần code đang có **hoá ra
+sai**, và cả hai đều chỉ lộ ra khi bấm thật hoặc chạy thật, không phải khi đọc.
+
+### (a) Thêm một event vào hệ thống đang chạy — WALKTHROUGH §22
+
+**Đọc:** WALKTHROUGH §22 cả tám mục, rồi CATALOG.md phần *"`size` là chữ của shop"*.
+
+Bắt đầu từ một câu hỏi rất thường: *khách nhập size kiểu `M 8 / W 9.5` thì có
+đỡ được không?* Trả lời được phần dễ ngay, `size` là string tự do. Nhưng lần
+theo nó thì lộ ra hai lỗ hở lớn hơn nhiều:
+
+```
+   POST /orders      nhận BẤT KỲ uuid làm variant_id → khách trả cọc xong,
+                     người đi mua nhận một task không thể thực hiện
+   màn hình đi mua   bốn cái uuid và một mã tiền tệ, không ai cầm vào shop được
+```
+
+Cùng một nguyên nhân: `size` chưa bao giờ ra khỏi catalog. Và không sửa bằng một
+câu `JOIN`: guard 7 chặn được việc context này **import** context kia, còn việc
+đọc bảng của nhau thì không guard nào bắt được — nó chỉ sai vì cùng một lý do,
+và dùng chung một database hôm nay là chuyện tiện, không phải chuyện được phép.
+Nên catalog phải **kể**: `catalog.variant_added`.
+
+Phần đáng học nhất là **hai người nghe chép khác nhau**:
+
+```
+   procurement   giữ 5 field (size, màu, mã shop…)   vì có NGƯỜI phải đọc
+   ordering      giữ 2 field (variant, product)      vì luật chỉ cần "có thật? của ai?"
+```
+
+Projection giữ dữ liệu **không ai đọc** sẽ mốc mà không test nào bắt. Đó là lý
+do ordering **cố tình** không giữ `size`.
+
+**Làm:**
+
+1. Mở `internal/domain/ordering/variant.go`. Thêm field `Size string` vào. Chạy
+   `go test ./...`. Nó **vẫn xanh** — và đó chính là vấn đề. Tự trả lời: sáu
+   tháng sau ai biết field đó còn đúng hay không?
+2. Trong `internal/app/procurement/open_task.go`, đổi nhánh
+   `ErrVariantNotFound` thành `return err`. Chạy test. Đọc kỹ test đỏ: nó đang
+   nói gì về việc huỷ một đơn **đã trả cọc** vì một cuộc đua vài trăm ms?
+3. Gọi `POST /orders` với một uuid tự bịa. Xem `409 variant_unknown`. Rồi tìm
+   trong `web/app/steps.js` chỗ mã đó được đưa vào danh sách `retryOn`, và tự
+   trả lời vì sao nó **thử lại được** mà `variant_not_for_product` thì không.
+
+### (b) Chạy xanh nhiều lần không chứng minh gì về lần đầu — SETUP §9 đợt 18
+
+**Đọc:** SETUP.md §9 đợt 18, rồi `internal/adapter/postgres/migrate.go`.
+
+`Migrate` tạo bảng sổ sách `schema_migrations` bằng `CREATE TABLE IF NOT EXISTS`,
+**ngoài** advisory lock. Câu đó **không nguyên tử** trong PostgreSQL: hai câu
+song song đều thấy bảng chưa có, rồi một cái vỡ khi chèn row type của bảng —
+`duplicate key value violates unique constraint "pg_type_typname_nsp_index"`.
+
+`cmd/api` và `cmd/worker` khởi động cùng lúc, nên đây là đường đi thật của một
+lần deploy đầu tiên. Bug này sống sót qua 291 test và qua rất nhiều lần smoke
+xanh, vì:
+
+```
+   database đã migrate  →  CREATE TABLE IF NOT EXISTS là no-op  →  không có gì để đua
+   database TRỐNG       →  hai process cùng tạo bảng            →  vỡ
+```
+
+Bài học đắt nhất của cả repo này gọn trong một câu: **"chạy xanh nhiều lần"
+không chứng minh được gì về lần chạy ĐẦU TIÊN.**
+
+**Làm:**
+
+1. Đọc `TestMigrate_survivesTwoProcessesOnAColdDatabase`. Trả lời: vì sao nó
+   phải tự tạo một database **dùng-một-lần** thay vì dùng `portage_test`?
+2. Dịch câu `CREATE TABLE` trong `migrate.go` trở lại ra ngoài transaction. Chạy
+   riêng test đó vài lần. Xem một test **xác suất** trông như thế nào, và tự trả
+   lời vì sao chiều "không bao giờ đỏ oan trên code đúng" mới là chiều quan trọng.
 
 ---
 
 ## Tự kiểm tra — trả lời không nhìn code
 
-Trả lời trôi chảy 15 câu này là đủ để nói về project trong phỏng vấn.
+Trả lời trôi chảy 17 câu này là đủ để nói về project trong phỏng vấn.
 
 **Go**
 
@@ -278,6 +408,10 @@ Trả lời trôi chảy 15 câu này là đủ để nói về project trong ph
     bảng giá?
 15. Tính năng AI tắt (không có API key) thì API trả gì, và vì sao **không**
     được rơi về Fake?
+16. Hai context nghe **cùng một event**: vì sao một bên chép 5 field mà bên kia
+    chỉ chép 2? Chép thừa thì hỏng chỗ nào?
+17. Hai `CREATE TABLE IF NOT EXISTS` chạy song song trong PostgreSQL thì ra gì,
+    và vì sao lỗi đó **chỉ** hiện trên database trống?
 
 ---
 
@@ -292,7 +426,7 @@ Nói **đúng** phần đã làm. Đoạn dưới là sự thật, kiểm chứn
 > service, **hai anti-corruption layer** (một cho API shop, một cho mô hình
 > ngôn ngữ đọc trang web), auth bằng bearer token với port ở tầng biên chứ
 > không ở domain, và một **read model dựng chỉ bằng event** cho màn hình khách.
-> **292 test**, trong đó 262 chạy dưới 2 giây không cần Docker vì domain không
+> **293 test**, trong đó 263 chạy dưới 2 giây không cần Docker vì domain không
 > import gì ngoài stdlib — và có **7 test canh kiến trúc** bằng `go/ast` khiến
 > vi phạm dependency rule là build đỏ. Vòng đời một đơn chạy hết trên **cả**
 > in-memory và Postgres bằng **cùng một test**, và trên **binary thật** bằng
