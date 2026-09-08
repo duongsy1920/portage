@@ -1,237 +1,113 @@
 # Portage — Sổ tay dựng môi trường & khởi tạo source
 
-> File ghi chép cá nhân. Ghi lại **đúng những gì đã làm**, để sau này dựng lại
-> trên máy khác không phải mò lại từ đầu.
+> Sổ tay **tra cứu**: máy chạy nó thế nào, code nằm ở đâu, quy ước gì.
+> Cập nhật: 2026-09-08 · Số liệu theo `HEAD` (P10 đang dở, chưa tính vào đây).
 >
-> Cập nhật: 2026-09-04
->
-> 📚 **Học DDD:** xem [DDD.md](DDD.md) — toàn bộ khái niệm, kiến trúc, bẫy
-> thường gặp, giải thích bằng chính code của project này.
->
-> 🔤 **Cú pháp Go:** xem [GO-CHO-PHP.md](GO-CHO-PHP.md) — bảng tra Go ↔ PHP.
-> Trong code còn có comment `// [PHP]` giải thích tại chỗ; cách xoá hàng loạt
-> nằm ở mục 9 của file đó.
+> | Muốn gì | Đọc file nào |
+> |---|---|
+> | học DDD theo khái niệm | [DDD.md](DDD.md) |
+> | tra cú pháp Go ↔ PHP | [GO-CHO-PHP.md](GO-CHO-PHP.md) |
+> | đọc code theo thứ tự | [WALKTHROUGH.md](WALKTHROUGH.md) |
+> | lộ trình học + câu tự kiểm | [HOC.md](HOC.md) |
+> | **vì sao code trông như vậy** | **§9 của file này** — 18 đợt review |
 
 ---
 
 ## 0. Project này là gì
 
-**Portage** — hệ thống đặt hàng hộ xuyên biên giới (Mỹ → Việt Nam).
-Khách đặt trên web của mình, mình mua hộ ở các web Mỹ (Nike, The North Face,
-Sony…), gom hàng, ship về tận nhà khách ở VN.
+**Portage** — đặt hàng hộ Mỹ → Việt Nam. Viết bằng **Go**, kiến trúc **DDD**.
+Vừa là sản phẩm thật, vừa là project học Go + DDD.
 
-Viết bằng **Go**, kiến trúc **DDD (Domain-Driven Design)**.
-
-Mục tiêu kép: vừa là sản phẩm thật, vừa là project học Go + DDD để đưa vào CV.
+Bối cảnh nghiệp vụ đầy đủ: `CLAUDE.md` và [CATALOG.md](CATALOG.md).
 
 ---
 
-## 1. Máy đang có gì (kiểm tra 03/09/2026)
+## 1. Máy cần có gì
 
-| Công cụ | Phiên bản | Ghi chú |
+| Công cụ | Bản đang dùng | Ghi chú |
 |---|---|---|
-| Go | **1.27.0** | mới cài hôm nay |
-| Git | 2.51.0.windows.1 | có sẵn |
-| Docker Desktop | 29.7.2 | chạy Postgres 16 (`docker compose up -d`). **Phải bật Docker Desktop** trước — daemon tắt thì `docker` báo `npipe … cannot find the file` |
-| winget | 1.29.290 | trình cài đặt của Windows |
-| Node.js | có sẵn ở `D:\NodeJs` | **không thuộc stack**; chỉ dùng chạy script tính giá nháp |
-
-> ⚠️ **Node KHÔNG cần cho project này.** Stack chính là Go + Postgres.
-> Node chỉ tình cờ được dùng để chạy mấy file tính chi phí lúc bàn nghiệp vụ.
-
-> ⚠️ **Máy không có `gcc`**, nên `go test -race` (race detector, cần cgo) **không
-> chạy được trên Windows**. Không cần cài — CI trên Linux chạy thay
-> (xem mục 5b). Trên máy chỉ cần `go test ./...`.
+| Go | 1.27.0 | bắt buộc |
+| Git | 2.51 | bắt buộc |
+| Docker | 29.7.2 | chỉ cần khi chạy Postgres (`docker compose up -d`) |
 
 ---
 
-## 2. Cài Go trên Windows
-
-### Cách đã dùng (nhanh nhất)
+## 2. Cài Go
 
 ```powershell
 winget install --id GoLang.Go -e --accept-source-agreements --accept-package-agreements
 ```
 
-### Cách thủ công (nếu không có winget)
+Không có winget thì tải `.msi` ở <https://go.dev/dl/>.
 
-Tải `.msi` ở <https://go.dev/dl/> rồi chạy. Bản đã dùng: `go1.27.0.windows-amd64.msi`
-
-### ⚠️ Bẫy hay gặp: cài xong gõ `go` báo "not found"
-
-Bộ cài **đã tự thêm** `C:\Program Files\Go\bin` vào PATH hệ thống,
-**nhưng terminal đang mở không tự cập nhật.**
-
-| Tình huống | Làm gì |
-|---|---|
-| Cách đúng (khuyến nghị) | **Đóng hẳn rồi mở lại** terminal |
-| Cần dùng ngay | set PATH tạm cho phiên hiện tại (bên dưới) |
-
-```powershell
-# PowerShell
-$env:Path += ";C:\Program Files\Go\bin"
-```
-
-```bash
-# Git Bash
-export PATH="$PATH:/c/Program Files/Go/bin"
-```
-
-Kiểm tra:
-
-```bash
-go version
-# go version go1.27.0 windows/amd64
-```
-
-### Biến môi trường Go — không phải set tay, nhưng nên biết
-
-| Biến | Giá trị trên máy này | Nghĩa |
-|---|---|---|
-| `GOROOT` | `C:\Program Files\Go` | nơi cài bản thân Go |
-| `GOPATH` | `C:\Users\tony_\go` | thư viện tải về + binary do `go install` sinh ra |
-| `GOBIN` | `%GOPATH%\bin` | nơi để file `.exe` sau `go install` |
-| `GOMODCACHE` | `%GOPATH%\pkg\mod` | cache thư viện đã tải |
-
-> **Khác Composer:** Go **không** có thư mục `vendor/` trong project.
-> Thư viện nằm chung ở `GOMODCACHE`, mọi project dùng chung.
-> Không có `vendor` nghĩa là repo nhẹ, không phải ignore hàng nghìn file.
-
-Xem toàn bộ cấu hình: `go env`
-
----
-
-## 3. Các lệnh đã chạy để khởi tạo source
-
-```bash
-# 1. Tạo thư mục project
-mkdir -p /d/portage
-cd /d/portage
-
-# 2. Khởi tạo Go module   (tương đương `composer init`)
-go mod init github.com/duongsy/portage
-```
-
-> **`go mod init` làm gì:** sinh file `go.mod` — vai trò như `composer.json`.
-> Tham số truyền vào là **module path**, đóng vai trò namespace gốc của project.
-> Quy ước đặt theo URL repo (`github.com/<user>/<repo>`) để sau này người khác
-> `go get` được.
+> ⚠️ **Bẫy: cài xong gõ `go` báo "not found".** Bộ cài *đã* thêm PATH, nhưng
+> **terminal đang mở không tự cập nhật**. Cách đúng: **đóng hẳn rồi mở lại**
+> terminal. Cần dùng ngay thì set tạm:
 >
-> ⚠️ Nếu username GitHub không phải `duongsy` thì sửa dòng đầu `go.mod`
-> và sửa import trong các file `_test.go`.
+> ```bash
+> export PATH="$PATH:/c/Program Files/Go/bin"     # Git Bash
+> $env:Path += ";C:\Program Files\Go\bin"         # PowerShell
+> ```
 
-```bash
-# 3. Tạo cấu trúc thư mục DDD
-mkdir -p cmd/api cmd/worker \
-         internal/domain/shared \
-         internal/domain/ordering internal/domain/catalog internal/domain/pricing \
-         internal/domain/procurement internal/domain/logistics \
-         internal/app internal/adapter/postgres internal/adapter/http \
-         internal/adapter/openai internal/adapter/merchant internal/platform \
-         config docs
-```
+Kiểm tra: `go version` → `go version go1.27.0 windows/amd64`
 
-```bash
-# 4. Khởi tạo git
-git init -b main
-```
-
-```bash
-# 5. Thư viện ngoài đầu tiên (04/09): sinh UUID v7 cho ID của entity
-go get github.com/google/uuid@v1.6.0
-```
-
-> **`go get` làm gì:** thêm dòng `require` vào `go.mod` (~ `composer.json`) và
-> ghi checksum vào `go.sum` (~ `composer.lock`). **Commit cả hai file.**
-> Thư viện được tải về `GOMODCACHE` dùng chung, không có `vendor/` trong repo.
-> Máy khác clone về chạy `go mod download` (~ `composer install`).
+**Khác Composer:** Go **không** có `vendor/` trong project. Thư viện nằm chung ở
+`GOMODCACHE` (`go env GOMODCACHE`), mọi project dùng chung → repo nhẹ.
 
 ---
 
-## 3c. VS Code — cài để Ctrl+Click nhảy vào hàm (như Intelephense)
-
-### Cần đúng hai thứ
-
-| Thứ | Vai trò | Tương đương bên PHP |
-|---|---|---|
-| Extension **`golang.go`** | cầu nối giữa VS Code và Go | extension Intelephense |
-| **`gopls`** | *language server* — thứ THẬT SỰ hiểu code | engine của Intelephense |
-
-Nhiều người cài mỗi extension rồi tưởng hỏng — thiếu `gopls` thì Ctrl+Click
-không chạy. Extension chỉ là vỏ.
+## 3. Khởi tạo source (đã chạy một lần, ghi lại để dựng lại được)
 
 ```bash
-# 1. Extension
-code --install-extension golang.go
+go mod init github.com/duongsy/portage   # ~ composer init; tham số là namespace gốc
+git init -b main
+go get github.com/google/uuid@v1.6.0     # thư viện ngoài DUY NHẤT của domain
+```
 
-# 2. Language server + debugger  (cần PATH có Go — xem mục 2)
+| Go | Symfony/PHP |
+|---|---|
+| `go.mod` | `composer.json` |
+| `go.sum` | `composer.lock` |
+| `go get` | `composer require` |
+| `go mod download` | `composer install` |
+| `go mod tidy` | `composer update` |
+
+Sau `go get` nhớ commit **cả `go.mod` và `go.sum`**.
+
+### 3b. VS Code — Ctrl+Click nhảy vào hàm
+
+Cần **đúng hai thứ**, thiếu cái thứ hai là Ctrl+Click không chạy:
+
+| Thứ | Vai trò | Bên PHP |
+|---|---|---|
+| extension `golang.go` | vỏ nối VS Code với Go | extension Intelephense |
+| **`gopls`** | language server — thứ THẬT SỰ hiểu code | engine của Intelephense |
+
+```bash
+code --install-extension golang.go
 go install golang.org/x/tools/gopls@latest
 go install github.com/go-delve/delve/cmd/dlv@latest
 ```
 
-Cài xong ở `C:\Users\tony_\go\bin` (tức `GOBIN`). Thư mục này **đã có sẵn trong
-PATH người dùng** nên VS Code tự tìm thấy, không phải set gì thêm.
-
-Kiểm tra:
-
-```bash
-gopls version      # golang.org/x/tools/gopls v0.23.0
-dlv version        # Delve Debugger  Version: 1.27.1
-```
-
-### Phím tắt hay dùng
-
-| Phím | Việc | Intelephense gọi là gì |
+| Phím | Việc | Intelephense gọi là |
 |---|---|---|
-| **Ctrl + Click** / `F12` | nhảy vào định nghĩa | Go to Definition |
-| `Alt + ←` | quay lại chỗ cũ | Go Back |
-| `Ctrl + Shift + F12` | tìm **mọi nơi đang gọi** hàm này | Find All References |
-| `Shift + F12` | như trên, xem ngay tại chỗ | Peek References |
-| `Ctrl + T` | tìm nhanh theo tên hàm/kiểu toàn project | Go to Symbol in Workspace |
-| `Ctrl + Shift + O` | nhảy tới symbol trong file đang mở | Go to Symbol in File |
-| `F2` | đổi tên **toàn project**, an toàn | Rename Symbol |
-| `Ctrl + .` | gợi ý sửa nhanh (thêm import, tách biến…) | Quick Fix |
-| `Ctrl + Space` | gợi ý code | Autocomplete |
-| `Ctrl + K, Ctrl + I` | xem tài liệu của thứ đang trỏ | Hover |
+| `Ctrl+Click` / `F12` | nhảy vào định nghĩa | Go to Definition |
+| `Alt+←` | quay lại chỗ cũ | Go Back |
+| `Ctrl+Shift+F12` | mọi nơi đang gọi hàm này | Find All References |
+| `Ctrl+T` | tìm theo tên hàm/kiểu toàn project | Go to Symbol in Workspace |
+| `F2` | đổi tên toàn project, an toàn | Rename Symbol |
+| `Ctrl+.` | sửa nhanh (thêm import, tách biến) | Quick Fix |
 
-> **Riêng của Go, không có bên PHP:** `Ctrl + Click` vào một **interface** sẽ
-> hỏi *"đi tới định nghĩa hay đi tới các cài đặt?"* — vì Go không có
-> `implements`, đây là cách duy nhất tìm ra struct nào thoả interface đó.
-
-### Việc `gopls` tự làm mỗi khi lưu file
-
-Cấu hình nằm ở `.vscode/settings.json` (đã tạo, và **`.gitignore` bỏ qua thư
-mục `.vscode/`** nên không lên repo):
-
-| Lưu file là nó tự | Tương đương gõ tay |
-|---|---|
-| format lại code | `gofmt -w .` |
-| sắp xếp + xoá import thừa | *(PHP không có)* |
-| chạy `go vet` cho package | `go vet ./…` |
-| chạy `staticcheck` | `phpstan` |
-| hiện lỗi biên dịch ngay khi gõ | — |
-
-Có bật thêm **inlay hints** — VS Code chèn chữ mờ hiển thị tên tham số và kiểu
-biến ngay trong dòng code. Rất hợp lúc mới học, vì thấy được `int64`, `Weight`,
-`Money` mà không phải hover. Muốn tắt: sửa `go.inlayHints.*` thành `false`.
-
-### Kiểm chứng không cần mở VS Code
-
-`gopls` chạy được từ terminal — chính là thứ Ctrl+Click gọi phía sau:
-
-```bash
-# "Ctrl+Click tại dòng 29, cột 23 của weight_test.go"
-gopls definition internal/domain/shared/weight_test.go:29:23
-# → D:\portage\internal\domain\shared\weight.go:154:6-22: defined here as
-#   func shared.ChargeableWeight(...) shared.Weight
-
-# quét lỗi cả package, như Intelephense quét project
-gopls check ./internal/domain/shared/*.go
-```
+> **Riêng Go, PHP không có:** `Ctrl+Click` vào một **interface** sẽ hỏi *"đi tới
+> định nghĩa hay đi tới các cài đặt?"* — Go không có `implements`, đây là cách
+> duy nhất tìm ra struct nào thoả interface đó.
 
 ---
-
 ## 3b. Git — tách danh tính cá nhân khỏi danh tính công ty
+
+> Mục này từng bị bỏ khi file được viết lại gọn hơn, và được **lấy lại nguyên văn**: nó là
+> thứ giữ cho commit cá nhân không mang email công ty, và cái cảnh báo "không sửa global"
+> dưới đây là lý do duy nhất nó không xảy ra.
 
 ### Vấn đề
 
@@ -330,57 +206,130 @@ Hiện tại chưa dùng cách này vì project cá nhân đang nằm rải rác
 
 ---
 
-## 4. Cấu trúc thư mục — và vì sao chia như vậy
+## 4. Cấu trúc thư mục — cây DUY NHẤT của repo
 
 ```
-D:\portage
-├── go.mod                      # ~ composer.json
-├── go.sum                      # ~ composer.lock  (checksum thư viện)
-├── README.md
-├── .editorconfig               # LF, tab cho Go — mọi editor đọc file này
-├── .github/workflows/ci.yml    # CI: gofmt, vet, test -race, kiểm tra import domain
-├── cmd/                        # nơi để hàm main() — mỗi thư mục 1 chương trình
-│   ├── api/                    #   ✅ web server: `go run ./cmd/api` (in-memory + relay trong process) hoặc `-dsn …` (Postgres)
-│   └── worker/                 #   ✅ relay outbox + mọi subscriber + sweep quote hết hạn: `go run ./cmd/worker -dsn …` (bắt buộc -dsn)
-├── internal/                   # Go CẤM module khác import thư mục tên `internal`
-│   ├── domain/                 # TRÁI TIM — nghiệp vụ thuần, KHÔNG import gì bên ngoài
-│   │   ├── shared/             #   Shared Kernel: Money, Weight, Rate, ID, Events
-│   │   ├── catalog/            #   ✅ Merchant, Product ⊃ Variant, CategoryPolicy, Provenance — 15 event
-│   │   ├── pricing/            #   ✅ ShippingLane, RateCard, DutyPolicy, QuotePolicy, Calculate, Quote — 3 event
-│   │   ├── ordering/           #   ✅ CustomerOrder (cọc 50 %, Cancel/Refund), AcceptedQuote — 8 event
-│   │   ├── procurement/        #   ✅ PurchaseTask, PurchaseReceipt, Shop/Item projection, PORT MerchantACL — 3 event
-│   │   └── logistics/          #   ✅ Parcel, ConsolidationBatch, FreightAllocator (Domain Service), LaneRule — 5 event
-│   ├── contracts/              # ✅ PUBLISHED LANGUAGE — DTO *V1 đi qua ranh giới context (không domain, không adapter)
-│   ├── app/                    # Use case / điều phối — gọi domain, gọi repository
-│   │   ├── ports.go            #   ✅ Clock, UnitOfWork, Outbox — cái tầng app CẦN
-│   │   ├── deps.go             #   ✅ MustHave — kiểm dây nối lúc khởi động
-│   │   └── <context>/          #   MỘT thư mục con cho MỖI bounded context
-│   │       ├── catalog/        #   ✅ package `catalogapp` — 7 use case (tên khác thư mục để không trùng domain)
-│   │       ├── pricing/        #   ✅ package `pricingapp` — IssueQuote, AcceptQuote, Projector (nghe catalog)
-│   │       ├── ordering/       #   ✅ package `orderingapp` — PlaceOrder, Pay*, Cancel, lifecycle, Projector (nghe pricing), Reactor (nghe procurement)
-│   │       ├── procurement/    #   ✅ package `procurementapp` — OpenTask (hỏi ACL), ConfirmTask, FailTask, Projector (nghe catalog)
-│   │       ├── logistics/      #   ✅ package `logisticsapp` — ExpectParcel (nghe procurement), Receive, Open/Add/Close/ShipBatch, Projector (nghe pricing.lane_defined)
-│   │       └── reporting/      #   ✅ package `reportingapp` — READ MODEL: order_summaries, KHÔNG có domain (không invariant nào)
-│   │                           #   không để phẳng — sẽ phình thành một package 50 file
-│   ├── adapter/                # THẾ GIỚI BÊN NGOÀI cắm vào đây
-│   │   ├── http/               #   ✅ package `httpapi` — 37 route (5 context + read model + /lanes + /fx + /tokens), CẢ mux sau middleware auth, decode + locale, bảng lỗi → status
-│   │   ├── memory/             #   ✅ repository (catalog + pricing) + outbox + unit-of-work in-memory (test & dev run)
-│   │   ├── eventcodec/         #   ✅ Encode: event → JSON viết tay (hợp đồng); Decode: JSON → contracts.*V1; guard go/ast mọi context
-│   │   ├── postgres/           #   ✅ pgx: repo qua Snapshot, UnitOfWork tx-trong-ctx, outbox, migrations/0001 … 0007 (0006 api_tokens, 0007 order_summaries)
-│   │   │   └── pgtest/         #   ✅ helper test tích hợp: DSN, advisory lock, truncate
-│   │   ├── merchant/           #   ✅ ACL cho shop: `Manual` (một con người) + `Router` chọn adapter theo shop — thêm shop = một dòng trong wire
-│   │   └── openai/             #   ✅ ACL thứ hai: đọc trang shop bằng model → ListingDraft; `Fake` (dev), `Unavailable` (không có key → 503)
-│   ├── worker/                 # ✅ Relay (đọc outbox → publish → MarkSent, at-least-once) + Bus + Sweeper (việc theo GIỜ, không theo event)
-│   └── platform/               # config, logger, connection pool
-│       ├── auth/               #   ✅ Principal + port Verifier/Issuer/Registry + Static (RAM); "ai đang gọi" là việc của BIÊN, không phải domain
-│       ├── clock/              #   ✅ System (time.Now) và Fixed (test) — cài đặt app.Clock
-│       └── wire/               #   ✅ Memory() / Postgres() → Graph{5 context + Reporting, Source, Auth/Tokens/Registry, Extractor}; Subscribe() = bảng định tuyến 31 dòng = vòng đời §31
-├── scripts/smoke.ps1           # ✅ cả flow trên binary thật + Postgres thật (api + worker nền, bearer token thật, 8 request)
-├── scripts/smoke.sh            # ✅ bản Linux của đúng script đó — CHẠY TRONG CI, và assert số vàng chứ không chỉ in ra
-├── config/                     # bảng giá, thuế suất — DỮ LIỆU, không phải code (hiện là hằng trong wire.quotePolicy)
-├── docker-compose.yml          # ✅ postgres:16, db `portage` (dev) + `portage_test` (test)
-├── docker/initdb/              # ✅ SQL chạy một lần khi volume trống: tạo portage_test
-└── docs/                       # SETUP (file này) · HOC (lộ trình học) · WALKTHROUGH (đọc code) · DDD (khái niệm) · FLOW-ORDER (một đơn) · CATALOG · GO-CHO-PHP · P9-PLAN
+portage/
+├── go.mod · go.sum             ~ composer.json / composer.lock
+├── .editorconfig               LF, tab cho Go — mọi editor đọc file này
+├── .github/workflows/ci.yml    gofmt · vet · test -race · luật import domain (§5b)
+├── docker-compose.yml          postgres:16 — db `portage` (dev) + `portage_test` (test)
+├── docker/initdb/              SQL chạy một lần khi volume trống: tạo portage_test
+├── config/                     bảng giá, thuế — DỮ LIỆU (còn là hằng trong wire.go)
+├── web/                        BỐN trang, không npm, không build
+│   ├── index.html              trang chọn; `/` cũng nhảy về đây
+│   ├── customer.html           trang khách  ─┐ React (thư viện trong web/vendor/)
+│   ├── staff.html              trang nhân viên ┘ dùng chung web/app/*.js
+│   ├── flow.html               mô phỏng 26 bước, MỘT file, không gọi API
+│   ├── console.html            bảng kiểm API (vanilla, cho lập trình viên)
+│   ├── vendor/                 React + ReactDOM + htm, kèm trong repo
+│   └── app/                    portage.js (chỗ DUY NHẤT gọi API) · words.js
+│                               (mã của máy → chữ người đọc) · ui.js · screens.css
+├── scripts/
+│   ├── smoke.ps1               cả flow trên binary thật + Postgres thật (Windows)
+│   └── smoke.sh                bản Linux — CHẠY TRONG CI, assert số vàng
+│
+├── cmd/                        nơi để hàm main() — mỗi thư mục một chương trình
+│   ├── api/main.go             -addr, -dsn, -web → wire.Memory | wire.Postgres → serve
+│   └── worker/main.go          -dsn bắt buộc → Relay.Run + Sweeper (-sweep)
+│
+└── internal/                   Go CẤM module khác import thư mục tên `internal`
+    │
+    ├── domain/                 TRÁI TIM — nghiệp vụ thuần, KHÔNG import gì bên ngoài
+    │   ├── decisions_test.go   7 test canh kiến trúc bằng go/ast (§6b)
+    │   │
+    │   ├── shared/             Shared Kernel — 46 test, 90,7 %
+    │   │   ├── money.go        Money — cộng/trừ/nhân tỷ lệ/đổi tiền
+    │   │   ├── decimal.go      parseDecimal, addExact/subExact/mulExact (private)
+    │   │   ├── allocate.go     Allocate — chia tiền floor + largest remainder
+    │   │   ├── currency.go     Currency, CurrencyFromCode
+    │   │   ├── rate.go         Rate (tỷ lệ %), ExchangeRate (12 số lẻ)
+    │   │   ├── weight.go       Weight, Dimensions, quy đổi thể tích
+    │   │   ├── parcelspec.go   ParcelSpec — cân + hộp (DỜI từ catalog: pricing cũng dùng)
+    │   │   ├── id.go           ID — UUID v7, sinh trong domain
+    │   │   ├── event.go        Event, Events — aggregate GHI event
+    │   │   └── operator.go     OperatorID — "ai làm", catalog và procurement cùng dùng
+    │   │
+    │   ├── catalog/            17 event — 47 test, 89,1 %
+    │   │   ├── merchant.go     Merchant (root), MerchantStatus, SourcingMode, Hostname
+    │   │   ├── product.go      Product (root) — draft → published → retired
+    │   │   ├── variant.go      Variant — entity con; khoá chống trùng bỏ MỌI khoảng trắng
+    │   │   ├── category.go     CategoryPolicy (VO khoá tự nhiên), Restriction
+    │   │   ├── provenance.go   Provenance — nguồn + thời điểm + ai xác nhận
+    │   │   ├── sourceurl.go    SourceURL — link tham chiếu, KHÔNG fetch (ràng buộc pháp lý)
+    │   │   ├── freeshipping.go FreeShipping — VO ba trạng thái
+    │   │   └── snapshot.go     MerchantSnapshot/ProductSnapshot ↔ FromSnapshot
+    │   │
+    │   ├── pricing/            4 event — 14 test, 73,6 %
+    │   │   ├── lane.go         LaneCode, GoodsClass, RateCard, DutyPolicy, ShippingLane
+    │   │   ├── policy.go       MarginPolicy (max %, sàn), QuotePolicy
+    │   │   ├── calc.go         QuoteInputs, Breakdown, Calculate — DOMAIN SERVICE thuần
+    │   │   ├── quote.go        Quote (root) — IssueQuote, Accept, Expire
+    │   │   └── listing.go      Listing, CategoryProfile — projection từ event catalog
+    │   │
+    │   ├── ordering/           8 event — 4 test, 81,4 %
+    │   │   ├── order.go        CustomerOrder (root) — cọc 50 %, Refund, 8 method
+    │   │   ├── acceptedquote.go AcceptedQuote — projection từ pricing.quote_accepted
+    │   │   └── variant.go      Variant{Variant, Product} — bản sao MỎNG nhất, không giữ size
+    │   │
+    │   ├── procurement/        3 event — 4 test, 80,6 %
+    │   │   ├── task.go         PurchaseTask (root), PurchaseReceipt (Actual đầu tiên),
+    │   │   │                   Subject (mua gì, bằng chữ — chép lúc mở việc)
+    │   │   └── repository.go   + PORT MerchantACL  ← Anti-Corruption Layer #1
+    │   │
+    │   └── logistics/          5 event — 2 test, 76,1 %
+    │       ├── parcel.go       Parcel — Receive/AssignToBatch/MarkShipped
+    │       ├── batch.go        ConsolidationBatch — AddParcel/Close/Ship
+    │       └── allocator.go    FreightAllocator (PORT + Domain Service), LaneRule
+    │
+    ├── contracts/              PUBLISHED LANGUAGE — DTO *V1 đi qua ranh giới context
+    │
+    ├── app/                    Use case — gọi domain, gọi repository
+    │   ├── ports.go            Clock, UnitOfWork, Outbox — cái tầng app CẦN
+    │   ├── deps.go             MustHave — kiểm dây nối lúc khởi động
+    │   ├── catalog/            catalogapp — 14 test, 77 % · 7 use case
+    │   ├── pricing/            pricingapp — 7 test, 72,9 % · IssueQuote, AcceptQuote,
+    │   │                       ExpireQuotes (không ai gọi), Reconciler, Projector
+    │   ├── ordering/           orderingapp — 4 test, 70,8 % · PlaceOrder, Pay*, Cancel,
+    │   │                       Projector (nghe pricing), Reactor (nghe procurement)
+    │   ├── procurement/        procurementapp — 4 test, 81,5 % · OpenTask (hỏi ACL)
+    │   ├── logistics/          logisticsapp — 1 test, 78,3 % · cả flow kho
+    │   └── reporting/          reportingapp — 8 test, 79,8 % · HAI read model, KHÔNG có domain
+    │                           order_summaries (đơn) + product_worklist (việc còn phải làm)
+    │                           12 handler nghe CẢ NĂM context
+    │
+    ├── adapter/                THẾ GIỚI BÊN NGOÀI cắm vào đây
+    │   ├── http/               httpapi — 43 test, 80,7 % · 41 route, auth bọc CẢ mux
+    │   │   ├── server.go       NewHandler(Deps{...}) → http.Handler
+    │   │   ├── auth.go         authenticate() fail-closed, requireOperator/Customer/Any
+    │   │   ├── errors.go       errorTable + writeError → 400/401/403/404/409/500/503
+    │   │   ├── decode.go       decodeJSON (DisallowUnknownFields), language(), amount
+    │   │   └── …               categories · merchants · products · quotes · orders ·
+    │   │                       purchase_tasks · logistics · lanes · fx · tokens · summaries
+    │   ├── postgres/           30 test tích hợp, 79,8 % · pgx, repo qua Snapshot
+    │   │   ├── migrate.go      MỌI thứ trong MỘT tx sau pg_advisory_xact_lock —
+    │   │   │                   kể cả CREATE TABLE schema_migrations (bug đợt 18)
+    │   │   ├── migrations/     0001 catalog · 0002 pricing · 0003 ordering ·
+    │   │   │                   0004 procurement · 0005 logistics · 0006 auth ·
+    │   │   │                   0007 reporting · 0008 variant_subject ·
+    │   │   │                   0009 product_requester · 0010 product_worklist ·
+    │   │   │                   0011 requested_variant
+    │   │   ├── outbox.go       Append (cùng tx) · Pending (FOR UPDATE SKIP LOCKED)
+    │   │   ├── token_repo.go   Verify dùng subtle.ConstantTimeCompare; Revoke ghi cột
+    │   │   └── pgtest/         Pool(t): skip nếu không DSN, advisory lock, truncate
+    │   ├── memory/             15 test, 80,8 % · repo CẢ 6 context + Outbox + UnitOfWork
+    │   ├── eventcodec/         5 test, 98,6 % · Encode 37 event viết tay = HỢP ĐỒNG
+    │   ├── merchant/           3 test, 88,9 % · Manual + Router  ← ACL #1
+    │   └── openai/             5 test, 80,9 % · Client · Fake · Unavailable  ← ACL #2
+    │
+    ├── worker/                 9 test, 87,3 % · Relay (at-least-once) + Bus + Sweeper
+    │
+    └── platform/
+        ├── auth/               10 test, 88,8 % · Principal, HashToken, Static
+        ├── clock/              System (time.Now) và Fixed (test)
+        └── wire/               4 test, 94,9 %
+            ├── wire.go         Memory() / Postgres() → Graph{...}; seed lane + fx
+            └── subscribe.go    31 dòng định tuyến = vòng đời đơn hàng
 ```
 
 ### Luật vàng: chiều mũi tên phụ thuộc
@@ -391,214 +340,208 @@ D:\portage
    adapter ─────┘         domain KHÔNG BAO GIỜ trỏ ra ngoài
 ```
 
-**`internal/domain/` không được import:**
+| | `internal/domain/` |
+|---|---|
+| **KHÔNG được import** | driver DB · framework HTTP · SDK OpenAI · bounded context khác |
+| **Được import** | stdlib + allowlist — hiện chỉ `github.com/google/uuid` |
+| **Ai canh** | CI (§5b) **và** `decisions_test.go` guard 6, 7 — vi phạm là build đỏ |
 
-- driver database
-- framework HTTP
-- SDK của OpenAI
-- bounded context khác
-
-**Được import:** thư viện chuẩn của Go, và thư viện *tiện ích thuần* trong
-allowlist — hiện chỉ có `github.com/google/uuid` (tương đương `symfony/uid`).
-Tiện ích ≠ framework: nó không biết DB, không biết HTTP, không có side effect.
-Allowlist nằm trong `.github/workflows/ci.yml`; thêm gì phải ghi rõ lý do.
-
-Lỡ import → test domain sẽ cần Docker, cần API key, chạy chậm.
+**Cái giá nếu lỡ import:** test domain sẽ cần Docker, cần API key, chạy chậm.
 Làm đúng → test domain chạy trong **vài mili-giây**, không cần gì cả.
-CI **tự fail** nếu domain import thứ ngoài allowlist (xem 5b).
 
-> **So với Symfony:** ở Symfony, `Entity` dính chặt Doctrine — `#[ORM\Column]`
-> nằm ngay trong class nghiệp vụ. Ở đây thì ngược lại: struct nghiệp vụ hoàn
-> toàn sạch, phần map xuống DB nằm riêng ở `adapter/postgres`.
+> **So với Symfony:** ở Symfony `Entity` dính chặt Doctrine — `#[ORM\Column]` nằm
+> ngay trong class nghiệp vụ. Ở đây ngược lại: struct nghiệp vụ hoàn toàn sạch,
+> phần map xuống DB nằm riêng ở `adapter/postgres`.
 
-### Vì sao tên là `internal/`?
-
-Đây là quy ước **được chính trình biên dịch Go ép buộc**: package nằm dưới thư
-mục tên `internal` chỉ import được bởi code trong cùng module. Không cần tài
-liệu nhắc, không cần reviewer canh — compiler chặn thẳng.
+**Vì sao tên là `internal/`?** Đây là quy ước **được chính compiler Go ép buộc**:
+package dưới thư mục tên `internal` chỉ import được bởi code cùng module. Không
+cần tài liệu nhắc, không cần reviewer canh — compiler chặn thẳng.
 
 ---
-
 ## 5. Lệnh dùng hàng ngày
 
-| Việc cần làm | Lệnh | Tương đương bên PHP |
+| Việc | Go | Symfony / PHP |
 |---|---|---|
-| Chạy toàn bộ test | `go test ./...` | `vendor/bin/phpunit` |
-| Test kèm chi tiết | `go test -v ./...` | `phpunit --testdox` |
-| Test một package | `go test ./internal/domain/shared` | `phpunit tests/Shared` |
-| Đo độ phủ test | `go test -cover ./...` | `phpunit --coverage-text` |
-| Soi lỗi tĩnh | `go vet ./...` | `phpstan analyse` |
-| Format code | `gofmt -w .` | `php-cs-fixer fix` |
-| Biên dịch ra .exe | `go build ./cmd/api` | (PHP không có) |
-| Chạy thẳng không build | `go run ./cmd/api` | `php bin/console …` |
-| Thêm thư viện | `go get <module>` | `composer require` |
-| Dọn go.mod cho gọn | `go mod tidy` | `composer update` |
-| Tải thư viện sau khi clone | `go mod download` | `composer install` |
-| Xem cấu hình | `go env` | `php -i` |
+| chạy toàn bộ test | `go test ./...` | `vendor/bin/phpunit` |
+| test kèm chi tiết | `go test -v ./...` | `phpunit --testdox` |
+| test một package | `go test ./internal/domain/shared` | `phpunit tests/Shared` |
+| đúng MỘT test | `go test -run TestMoney_convert ./...` | `phpunit --filter` |
+| bỏ qua cache, chạy thật | `go test -count=1 ./...` | *(PHP không cache)* |
+| đo độ phủ | `go test -cover ./...` | `phpunit --coverage-text` |
+| soi lỗi tĩnh | `go vet ./...` | `phpstan analyse` |
+| format | `gofmt -w .` | `php-cs-fixer fix` |
+| chạy thẳng | `go run ./cmd/api` | `php bin/console …` |
+| biên dịch ra binary | `go build ./cmd/api` | *(PHP không có)* |
 
-> `./...` nghĩa là "thư mục hiện tại và **mọi** thư mục con". Nhớ dấu ba chấm.
+> `./...` = "thư mục này **và mọi thư mục con**". Nhớ dấu ba chấm.
+>
+> ⚠️ Go **cache kết quả test**. Thấy `(cached)` là nó không chạy lại. Ép chạy
+> thật: `-count=1`.
+
+**Cổng chất lượng — gõ trước mỗi lần commit:**
+
+```bash
+gofmt -l . && go vet ./... && go test -count=1 ./...
+```
 
 ### 5b. CI — `.github/workflows/ci.yml`
 
-Mỗi lần push lên GitHub, máy Linux của GitHub chạy 4 bước theo thứ tự:
+Mỗi lần push, máy Linux của GitHub chạy 4 bước:
 
-| Bước | Lệnh | Bắt lỗi gì |
-|---|---|---|
-| gofmt | `gofmt -l .` phải rỗng | quên format |
-| vet | `go vet ./...` | lỗi tĩnh (printf sai kiểu, copy lock, …) |
-| test | `go test -race -count=1 -cover ./...` | test fail + **data race** (cái Windows không chạy được) |
-| dependency rule | `go list -f '{{range .Imports}}…' ./internal/domain/...` | domain import thứ ngoài allowlist |
+| Bước | Lệnh | Bắt lỗi gì | Symfony |
+|---|---|---|---|
+| gofmt | `gofmt -l .` phải rỗng | quên format | `php-cs-fixer --dry-run` |
+| vet | `go vet ./...` | printf sai kiểu, copy lock | `phpstan` |
+| test | `go test -race -count=1 -cover ./...` | test fail + **data race** | `phpunit` |
+| luật import | `go list -f '{{range .Imports}}…'` | domain import ngoài allowlist | `deptrac` |
 
-Bước cuối là **kiến trúc được kiểm tra bằng máy**: không ai phải nhớ luật
-"domain không import driver DB" — lỡ vi phạm là build đỏ.
+Bước cuối là **kiến trúc được kiểm bằng máy**: không ai phải nhớ luật "domain
+không import driver DB" — lỡ vi phạm là build đỏ.
 
-> **So với Symfony:** tương đương GitHub Actions chạy `php-cs-fixer --dry-run`,
-> `phpstan`, `phpunit`, và `deptrac` (deptrac chính là bước dependency rule).
+### 5c. Lệnh riêng của project này
+
+Cheatsheet `go` đầy đủ đã có ở `go help`. Đây là những lệnh **chỉ project này cần**:
+
+```bash
+# Domain có đang import thứ ngoài allowlist không?  (rỗng = sạch)
+go list -f '{{range .Imports}}{{println .}}{{end}}' ./internal/domain/... \
+  | sort -u | grep '\.' | grep -Ev '^github\.com/google/uuid$'
+
+# KIỂM CHỨNG email đã đi vào commit (§3b) — đừng tin config, hãy đọc commit
+git log -1 --format='%an <%ae>'
+
+# Chạy riêng 7 guard kiến trúc
+go test ./internal/domain/ -v
+```
+
+> ⚠️ Đừng dùng `go list -deps` — nó in cả dependency **gián tiếp** (`runtime`,
+> `os`, `syscall`… do `fmt` kéo theo) làm tưởng domain bẩn. `.Imports` mới là
+> import trực tiếp.
+
+| Cờ hay quên | Nghĩa |
+|---|---|
+| `-count=1` | bỏ qua cache, chạy thật |
+| `-race` | dò data race (**cần gcc — Windows không chạy**, CI lo) |
+| `-failfast` | dừng ở test fail đầu tiên |
+| `-timeout 90s` | **luôn truyền** với test tích hợp (§5e bài học 2) |
 
 ### 5d. Chạy API thật và bấm thử
 
 ```bash
 # In-memory — không cần gì, Ctrl+C là mất dữ liệu
 go run ./cmd/api                 # :8080
-go run ./cmd/api -addr :9090     # đổi cổng
+go run ./cmd/api -web ./web      # + console thật ở /ui/console.html
 
-# Postgres — cần Docker Desktop đang chạy
-docker compose up -d             # lần đầu kéo postgres:16 (~150 MB); có healthcheck
-go run ./cmd/api    -dsn "postgres://portage:portage@localhost:5432/portage?sslmode=disable"
-go run ./cmd/worker -dsn "postgres://portage:portage@localhost:5432/portage?sslmode=disable" -every 500ms
-# worker còn quét quote quá 48 h (-sweep, mặc định 1 phút; -sweep 0 để tắt, -sweep-batch đổi số quote mỗi lượt)
-go run ./cmd/worker -dsn "$DSN" -every 500ms -sweep 10s -sweep-batch 50
-# terminal 3: curl như dưới → worker in ra từng event kèm payload
+# Postgres — cần Docker đang chạy
+docker compose up -d
+DSN="postgres://portage:portage@localhost:5432/portage?sslmode=disable"
+go run ./cmd/api    -dsn "$DSN"
+go run ./cmd/worker -dsn "$DSN" -every 500ms -sweep 10s
 ```
 
-Xem dữ liệu thật: `docker compose exec postgres psql -U portage -d portage -c "select id, event_name, sent_at from outbox order by id;"`
-
-Nhanh nhất — cả flow trên binary thật, tự dọn: `powershell -ExecutionPolicy Bypass -File scripts\smoke.ps1`
-(cần Docker; build `bin\api.exe` + `bin\worker.exe`, chạy nền, 8 request, in quote + worker log, tắt).
-
-Bằng tay, theo đúng thứ tự nghiệp vụ (Git Bash / WSL; PowerShell dùng `curl.exe`
-và escape khác — xem transcript ở WALKTHROUGH.md §1a):
-
-**Từ 06/09 mọi route đều cần `Authorization: Bearer <token>`** (WALKTHROUGH §18).
-Chạy memory thì token cố định; chạy Postgres thì chìa đầu tiên do
-`-bootstrap-operator-token` cắt, chìa sau qua `POST /tokens`:
+**Nhanh nhất — cả flow trên binary thật, tự dọn:**
 
 ```bash
-# Memory (go run ./cmd/api) — hai token dev in sẵn trong wire.go
-OPTOK=dev-operator
-CUSTOK=dev-customer
-# khách thứ hai thì cắt thêm chìa (xem POST /tokens dưới) — memory hay Postgres đều vậy
+bash scripts/smoke.sh                                          # Linux (CI chạy cái này)
+powershell -ExecutionPolicy Bypass -File scripts\smoke.ps1     # Windows
+```
 
-# Postgres — chìa đầu tiên, CHỈ tạo được khi bảng api_tokens còn rỗng
+Bấm tay từng bước trên giao diện: [UI-GUIDE.md](UI-GUIDE.md).
+
+#### Chìa khoá — mọi route đều cần `Authorization: Bearer <token>`
+
+```bash
+# Memory: hai token dev in sẵn trong wire.go
+OPTOK=dev-operator ; CUSTOK=dev-customer
+
+# Postgres: chìa đầu tiên CHỈ tạo được khi bảng api_tokens còn rỗng
 OPTOK=$(openssl rand -hex 32)
 go run ./cmd/api -dsn "$DSN" -bootstrap-operator-token "$OPTOK"
-# rồi operator cắt chìa cho khách; token trả về MỘT LẦN, kho chỉ giữ hash
+# rồi operator cắt chìa cho khách — token trả về MỘT LẦN, kho chỉ giữ hash
 CUSTOK=$(curl -s -X POST localhost:8080/tokens -H "Authorization: Bearer $OPTOK" \
   -H 'Content-Type: application/json' -d '{"kind":"customer","label":"app"}' | jq -r .token)
-# một khách THỨ HAI, để thấy 404-chứ-không-403 ở bước 6
-CUSTOK2=$(curl -s -X POST localhost:8080/tokens -H "Authorization: Bearer $OPTOK" \
-  -H 'Content-Type: application/json' -d '{"kind":"customer","label":"khach-khac"}' | jq -r .token)
-
-# Không token → 401; đúng token sai loại → 403
-curl -s -o /dev/null -w '%{http_code}\n' -X POST localhost:8080/categories                              # → 401
-curl -s -o /dev/null -w '%{http_code}\n' -X POST localhost:8080/categories -H "Authorization: Bearer $CUSTOK"  # → 403
 ```
+
+#### Mười bước theo đúng thứ tự nghiệp vụ
+
+`OP="Authorization: Bearer $OPTOK"` · `CU="Authorization: Bearer $CUSTOK"`
 
 ```bash
-OP="Authorization: Bearer $OPTOK"
-CU="Authorization: Bearer $CUSTOK"
-CU2="Authorization: Bearer $CUSTOK2"
+# 1. Đăng ký shop — "50,00" là dấu THẬP PHÂN vì Accept-Language: vi
+curl -X POST localhost:8080/merchants -H "$OP" -H 'Accept-Language: vi' \
+  -d '{"name":"Example Sports","site":"www.example.com","currency":"USD",
+       "free_shipping":{"kind":"over","threshold":"50,00"},"sourcing":["operator"]}'   # 201 → M
 
-# 1. Đăng ký shop — dấu phẩy trong "50,00" là dấu THẬP PHÂN vì Accept-Language: vi
-curl -s -i -X POST localhost:8080/merchants -H "$OP" -H 'Content-Type: application/json' -H 'Accept-Language: vi'   -d '{"name":"Example Sports","site":"www.example.com","currency":"USD",
-       "free_shipping":{"kind":"over","threshold":"50,00"},"sourcing":["operator"]}'
-# → 201 {"id":"01a0…"}          ← chép id này
+# 2. Sản phẩm khách dán — KHÔNG có field sourced_by: provenance suy từ TOKEN
+curl -X POST localhost:8080/products -H "$CU" \
+  -d '{"name":"Air Trainer 90","merchant_id":"<M>","category":"footwear",
+       "source_url":"https://www.example.com/t/x","price":"150.00","currency":"USD"}'  # 201 → P
 
-# 2. Sản phẩm KHÁCH dán — không còn field "sourced_by": provenance suy từ TOKEN
-curl -s -i -X POST localhost:8080/products -H "$CU" -H 'Content-Type: application/json'   -d '{"name":"Air Trainer 90","merchant_id":"<ID Ở TRÊN>","category":"footwear",
-       "source_url":"https://www.example.com/t/air-trainer-90/abc","price":"150.00","currency":"USD"}'
-# → 201 {"id":"01a0…"}   (gọi bằng $OP thay $CU thì listing đã verified luôn)
+# 3. Publish sớm — chưa có variant, nghiệp vụ từ chối
+curl -X POST localhost:8080/products/<P>/publish -H "$OP"                    # 409 no_variants
 
-# 3. Publish — chưa có variant nên nghiệp vụ từ chối
-curl -s -i -X POST localhost:8080/products/<ID SẢN PHẨM>/publish -H "$OP"
-# → 409 {"error":{"code":"no_variants","message":"publish "Air Trainer 90": product has no variants"}}
+# 4. Ba bước operator — KHÔNG còn X-Operator-ID: operator LÀ chủ token
+curl -X POST localhost:8080/products/<P>/variants -H "$OP" -d '{"size":"US 9","color":"black"}'
+curl -X POST localhost:8080/products/<P>/confirm-listing -H "$OP"                          # 204
+curl -X POST localhost:8080/products/<P>/measure -H "$OP" \
+  -d '{"weight_g":1250,"length_mm":340,"width_mm":230,"height_mm":130}'                    # 204
+curl -X POST localhost:8080/products/<P>/publish -H "$OP"                                  # 204
 
-# 4. Ba bước operator — không còn X-Operator-ID: operator LÀ chủ token
-P=<ID SẢN PHẨM>
-curl -s -i -X POST localhost:8080/products/$P/variants -H "$OP" -H 'Content-Type: application/json' -d '{"size":"US 9","color":"black"}'   # → 201
-curl -s -i -X POST localhost:8080/products/$P/confirm-listing -H "$OP"                                                                      # → 204
-curl -s -i -X POST localhost:8080/products/$P/measure -H "$OP" -H 'Content-Type: application/json' \
-     -d '{"weight_g":1250,"length_mm":340,"width_mm":230,"height_mm":130}'                                                                       # → 204, outbox: product_measured
-curl -s -i -X POST localhost:8080/products/$P/publish -H "$OP"                                                                                    # → 204, outbox: product_published
+# 5. Báo giá — NGAY sau publish có thể 404: worker chưa relay (memory: đợi 200 ms)
+curl -X POST localhost:8080/quotes -H "$CU" -d '{"product_id":"<P>","lane":"us_forwarder"}' # 201 → Q
+curl localhost:8080/quotes/<Q> -H "$CU"          # total 5393720 VND, deposit 2696860
+curl -X POST localhost:8080/quotes/<Q>/accept -H "$CU"   # 204; operator gọi → 403
 
-# 5. Báo giá — NGAY LẬP TỨC sau publish có thể là 404 listing_not_found: worker chưa relay (in-memory: đợi 200 ms)
-curl -s -i -X POST localhost:8080/quotes -H "$CU" -H 'Content-Type: application/json' -d "{\"product_id\":\"$P\",\"lane\":\"us_forwarder\"}"
-# → 201 {"id":"01a0…"}          ← Q   (hỏi giá thì token nào cũng được: $OP hay $CU)
-curl -s localhost:8080/quotes/<Q> -H "$CU"
-# → {"status":"issued","class":"branded","chargeable_g":2500,"estimated":false,
-#    "lines":{"item":{"amount":"150.00","currency":"USD"},"sales_tax":{"amount":"13.22",…},"freight":{"amount":"25.00",…},…,"subtotal":{"amount":"188.22",…}},
-#    "fx":"26000","home":{"subtotal":{"amount":"4893720","currency":"VND"},"service_fee":{"amount":"500000",…},"total":{"amount":"5393720",…},"deposit":{"amount":"2696860",…}}}
-curl -s -i -X POST localhost:8080/quotes/<Q>/accept -H "$CU"                                                    # → 204; operator gọi → 403 (chấp giá là việc của KHÁCH); lần 2 → 409 quote_not_issued
+# 6. Đặt hàng — chủ đơn LÀ chủ token, không còn customer_id trong body
+curl -X POST localhost:8080/orders -H "$CU" -d '{"quote_id":"<Q>","variant_id":"<V>"}'      # 201 → O
+curl -X POST localhost:8080/orders/<O>/deposit -H "$OP" -H 'Accept-Language: vi' \
+  -d '{"amount":"2.696.860","currency":"VND"}'                            # 204; sai số → 409
 
-# 6. Đặt hàng (05/09, chiều) — ordering chỉ biết quote sau khi worker relay pricing.quote_accepted (in-memory: 200 ms)
-V=<ID VARIANT ở bước 4>   # không còn customer_id trong body: chủ đơn LÀ chủ token $CU
-curl -s -i -X POST localhost:8080/orders -H "$CU" -H 'Content-Type: application/json' -d "{\"quote_id\":\"<Q>\",\"variant_id\":\"$V\"}"   # → 201 {"id"} ← O  (sớm quá → 409 quote_not_accepted)
-curl -s -i -X POST localhost:8080/orders/<O>/deposit -H "$OP" -H 'Content-Type: application/json' -H 'Accept-Language: vi' -d '{"amount":"2.696.860","currency":"VND"}'   # → 204 (sai số → 409 wrong_amount)
-curl -s localhost:8080/orders/<O> -H "$CU"     # → {"status":"deposited","total":{"amount":"5393720",…},"deposit":…,"balance":{"amount":"2696860",…},"balance_paid":false,…}
-curl -s localhost:8080/orders/<O> -H "$CU2"    # → 404 order_not_found với token của khách KHÁC — không phải 403: 403 sẽ xác nhận đơn đó có thật (§18d)
-curl -s -i -X POST localhost:8080/orders/<O>/cancel -H "$CU" -H 'Content-Type: application/json' -d '{"reason":"đổi ý"}'                            # → 204; GET thấy "refund":{"amount":"2696860"} — chưa mua → hoàn đủ
+# 7. Đi mua — worker relay deposit_paid → procurement tự mở task
+curl localhost:8080/purchase-tasks -H "$OP"                          # rỗng = relay chưa chạy → T
+curl -X POST localhost:8080/purchase-tasks/<T>/confirm -H "$OP" \
+  -d '{"reference":"NK-20260905-001","paid":"163.22","currency":"USD"}'   # 204
+# → đơn về "purchased" = ĐIỂM KHÔNG THỂ QUAY ĐẦU; huỷ sau đây mất cọc
 
-# 7. Đi mua (05/09, chiều muộn) — KHÔNG huỷ ở bước 6 mà để worker relay deposit_paid → procurement mở task
-curl -s localhost:8080/purchase-tasks -H "$OP"                                                           # → [{"id":"<T>","order_id":"<O>","currency":"USD","status":"open",…}]  (rỗng = relay chưa chạy)
-curl -s -i -X POST localhost:8080/purchase-tasks/<T>/confirm -H "$OP" -H 'Content-Type: application/json' \
-     -d '{"reference":"NK-20260905-001","paid":"163.22","currency":"USD"}'                                # → 204 (khách gọi → 403; VND → 409 paid_currency)
-# hoặc: curl -s -i -X POST localhost:8080/purchase-tasks/<T>/fail -H "$OP" -d '{"reason":"hết size US 10"}'   # → 204 → đơn về purchase_failed, huỷ sẽ hoàn ĐỦ
-curl -s localhost:8080/orders/<O> -H "$CU"                                                               # → "status":"purchased" sau khi worker relay purchase_confirmed — ĐIỂM KHÔNG THỂ QUAY ĐẦU
-curl -s -i -X POST localhost:8080/orders/<O>/cancel -H "$CU" -H 'Content-Type: application/json' -d '{"reason":"đổi ý sau khi đã mua"}'             # → 204; GET: "refund":{"amount":"0"},"forfeited":true
+# 8. Kho — purchase_confirmed cũng bảo kho chờ một thùng
+curl localhost:8080/parcels -H "$OP"                                                 # → PA
+curl -X POST localhost:8080/parcels/<PA>/receive -H "$OP" \
+  -d '{"weight_g":1250,"length_mm":340,"width_mm":230,"height_mm":130}'   # 204 — CÂN THẬT
+curl -X POST localhost:8080/batches -H "$OP" -d '{"lane":"us_forwarder"}'            # 201 → B
+curl -X POST localhost:8080/batches/<B>/parcels -H "$OP" -d '{"parcel_id":"<PA>"}'   # 204
+curl -X POST localhost:8080/batches/<B>/close -H "$OP"                # 204; rỗng → 409
+curl -X POST localhost:8080/batches/<B>/ship  -H "$OP" -d '{"freight":"27.50","currency":"USD"}'
+curl -X POST localhost:8080/orders/<O>/balance -H "$OP" -d '{"amount":"2696860","currency":"VND"}'
+curl -X POST localhost:8080/orders/<O>/deliver -H "$OP"                              # 204
 
-# 8. Kho (06/09) — KHÔNG huỷ ở bước 7; purchase_confirmed cũng bảo kho chờ một thùng
-curl -s localhost:8080/parcels -H "$OP"                                                                   # → [{"id":"<P>","order_id":"<O>","reference":"NK-…","status":"expected"}]
-curl -s -i -X POST localhost:8080/parcels/<P>/receive -H "$OP" -H 'Content-Type: application/json' \
-     -d '{"weight_g":1250,"length_mm":340,"width_mm":230,"height_mm":130}'                                # → 204 — CÂN THẬT (Actual của §28)
-curl -s -i -X POST localhost:8080/batches -H "$OP" -H 'Content-Type: application/json' -d '{"lane":"us_forwarder"}'   # → 201 {"id"} ← B  (lane lạ → 404 lane_rule_not_found)
-curl -s -i -X POST localhost:8080/batches/<B>/parcels -H "$OP" -H 'Content-Type: application/json' -d '{"parcel_id":"<P>"}'   # → 204
-curl -s -i -X POST localhost:8080/batches/<B>/close -H "$OP"                                              # → 204 (rỗng → 409 batch_empty)
-curl -s -X POST localhost:8080/batches/<B>/ship -H "$OP" -H 'Content-Type: application/json' -d '{"freight":"27.50","currency":"USD"}'
-# → 200 [{"order_id":"<O>","chargeable_g":2500,"freight":{"amount":"27.50","currency":"USD"}}]   ← phần chia cước, đóng băng vào batch_shipped
-curl -s localhost:8080/orders/<O> -H "$CU"                                                               # → "status":"in_transit" sau khi worker relay batch_shipped
-curl -s -i -X POST localhost:8080/orders/<O>/balance -H "$OP" -H 'Content-Type: application/json' -d '{"amount":"2696860","currency":"VND"}'   # → 204
-curl -s -i -X POST localhost:8080/orders/<O>/deliver -H "$OP"                                            # → 204 → "delivered"
-curl -s localhost:8080/reconciliations/<O> -H "$OP"
+# 9. Đối soát Quote vs Actual — SỐ VÀNG
+curl localhost:8080/reconciliations/<O> -H "$OP"
+# → quoted 163.22 + 25.00 · actual 163.22 + 27.50 · variance -2.50 USD
 
-# 9. Màn hình (06/09, P9/T2) — MỘT bảng phẳng dựng từ event của năm context
-curl -s "localhost:8080/me/orders" -H "$CU"                    # khách: đơn của CHÍNH MÌNH, mới nhất trước; không có shop_reference
-curl -s "localhost:8080/orders?status=deposited" -H "$OP"      # operator: hàng đợi việc (gõ sai status → 400 invalid_order, KHÔNG phải list rỗng)
-
-# 10. Tỷ giá + AI + quản chìa (06/09, P9/T4-T5)
-curl -s -i -X POST localhost:8080/fx -H "$OP" -H 'Content-Type: application/json' -d '{"from":"USD","to":"VND","rate":"26000"}'   # → 204, KHÔNG phát event
-curl -s -i -X POST localhost:8080/products/from-url -H "$CU" -H 'Content-Type: application/json' \
-     -d "{\"merchant_id\":\"<ID SHOP>\",\"url\":\"https://www.example.com/t/x\",\"category\":\"footwear\"}"   # memory → Fake; Postgres không OPENAI_API_KEY → 503 extractor_unavailable
-curl -s localhost:8080/tokens -H "$OP"                          # danh sách chìa: hash + kind + label + active (KHÔNG BAO GIỜ có token)
-curl -s -i -X DELETE localhost:8080/tokens/<HASH> -H "$OP"      # → 204; chìa operator cuối cùng → 409 last_operator_key
-# → {"complete":true,"quoted":{"goods":{"amount":"163.22"},"freight":{"amount":"25.00"},"chargeable_g":2500},
-#    "actual":{"goods":{"amount":"163.22"},"freight":{"amount":"27.50"},"chargeable_g":2500},"variance":{"amount":"-2.50","currency":"USD"}}
+# 10. Màn hình + quản chìa
+curl "localhost:8080/me/orders" -H "$CU"                 # khách: đơn của CHÍNH MÌNH
+curl "localhost:8080/orders?status=deposited" -H "$OP"   # operator: hàng đợi việc
+curl localhost:8080/tokens -H "$OP"                      # hash + kind + label (KHÔNG có token)
+curl -X DELETE localhost:8080/tokens/<HASH> -H "$OP"     # chìa operator cuối → 409
 ```
 
-Toàn bộ đường đi, từng file: WALKTHROUGH.md §14 (pricing), §15 (ordering), §16 (procurement), §17 (logistics + Quote vs Actual).
+**Thử phá:** bỏ `Accept-Language` ở bước 1 → threshold thành **5000.00 USD** (`en`
+coi dấu phẩy là hàng nghìn). Gõ `"nmae"` thay `"name"` → 400 `bad_json`. Gửi lại
+đúng request 2 → 201 nhưng sản phẩm mới bị **cắm cờ nghi trùng**.
 
-Thử phá: bỏ `Accept-Language` ở bước 1 → threshold thành **5000.00 USD** (en:
-dấu phẩy là hàng nghìn). Gõ `"nmae"` thay `"name"` → 400 `bad_json`. Gửi lại
-đúng request 2 → 201 nhưng sản phẩm mới bị **cắm cờ nghi trùng** (không thấy qua
-API — chưa có GET; thấy trong test `TestAddProduct_flagsSuspectedDuplicate`).
+#### Bảng mã lỗi — bốn cuộc hội thoại khác nhau
 
 | Status | Nghĩa | Ví dụ `code` |
 |---|---|---|
-| 400 | request không hiểu được → sửa request | `bad_json`, `malformed_amount`, `invalid_id`, `invalid_hostname`, `unknown_principal_kind`, `invalid_lane_code`, `incomplete_parcel_spec`, `empty_reason`, `empty_reference` |
-| 401 / 403 | **ai đang gọi** → 401 tôi không biết anh; 403 tôi biết anh, cái này không phải của anh (§18d) | `unauthenticated`, `forbidden` |
-| 404 | trỏ vào thứ không tồn tại | `merchant_not_found`, `category_not_found`, `product_not_found`, `lane_not_found`, `quote_not_found`, `listing_not_found` (chưa publish **hoặc** relay chưa chạy), `order_not_found`, `purchase_task_not_found`, `parcel_not_found`, `batch_not_found`, `lane_rule_not_found`, `reconciliation_not_found` |
-| 409 | request đúng, **nghiệp vụ từ chối** → sửa trạng thái | `no_variants`, `unverified`, `not_draft`, `duplicate_variant`, `merchant_inactive`, `price_currency`, `no_exchange_rate`, `quote_expired`, `quote_not_issued`, `quote_not_accepted`, `quote_already_used`, `wrong_amount`, `not_awaiting_deposit`, `not_in_transit`, `balance_unpaid`, `already_delivered`, `order_cancelled`, `purchase_task_not_open`, `paid_currency`, `parcel_not_expected`, `parcel_not_received`, `batch_not_open`, `batch_not_closed`, `batch_empty`, `duplicate_parcel`, `invalid_freight` |
-| 503 | request đúng, **thứ giúp mình thì không có** → thử lại sau, hoặc gõ tay | `extractor_unavailable` |
-| 500 | bug hoặc sự cố; chi tiết chỉ ở log | `internal` |
+| **400** | không hiểu được → **sửa request** | `bad_json` · `malformed_amount` · `invalid_id` |
+| **401 / 403** | **ai đang gọi** → 401 không biết anh; 403 biết, nhưng không phải của anh | `unauthenticated` · `forbidden` |
+| **404** | trỏ vào thứ không tồn tại | `*_not_found` · `listing_not_found` = chưa publish **hoặc** relay chưa chạy |
+| **409** | request đúng, **nghiệp vụ từ chối** → **sửa trạng thái** | `no_variants` · `quote_expired` · `wrong_amount` · `batch_empty` |
+| **503** | request đúng, **thứ giúp mình không có** → thử lại sau | `extractor_unavailable` |
+| **500** | bug hoặc sự cố; chi tiết CHỈ ở log | `internal` |
+
+> **Vì sao khách hỏi đơn người khác trả 404 chứ không 403:** 403 sẽ **xác nhận
+> đơn đó có thật**. 404 không tiết lộ gì. (WALKTHROUGH §18d)
 
 Bảng đầy đủ: `internal/adapter/http/errors.go` — một `errorTable`, một `writeError`.
 
@@ -606,387 +549,63 @@ Bảng đầy đủ: `internal/adapter/http/errors.go` — một `errorTable`, m
 
 ```bash
 docker compose up -d
-export PORTAGE_TEST_DSN="postgres://portage:portage@localhost:5432/portage_test?sslmode=disable"   # Git Bash
-# PowerShell:  $env:PORTAGE_TEST_DSN = "postgres://portage:portage@localhost:5432/portage_test?sslmode=disable"
+export PORTAGE_TEST_DSN="postgres://portage:portage@localhost:5432/portage_test?sslmode=disable"
 go test -count=1 -timeout 90s ./...
 ```
 
 | Không có biến | Có biến |
 |---|---|
-| `internal/adapter/postgres`, `platform/wire` **tự skip** (`t.Skip`) — unit test không bao giờ cần Docker | chạy thật: connect → migrate → truncate → test |
+| `adapter/postgres` + `platform/wire` **tự `t.Skip`** | connect → migrate → truncate → chạy thật |
+| unit test không bao giờ cần Docker | 32 test tích hợp |
 
-Ba điều đã học bằng cách vấp:
+**Ba điều đã học bằng cách vấp:**
 
-1. **`go test ./...` chạy các package song song** — hai package cùng TRUNCATE một DB
-   thì đỏ 1/3 lần. Không dùng `-p 1` (che bệnh); `pgtest.Pool(t)` giữ **advisory lock**
-   của Postgres trên một connection riêng suốt test → package nào có khoá thì sở hữu DB,
-   package khác chờ. Một DB, song song tuỳ ý.
-2. **Luôn truyền `-timeout`.** Test treo mà không có timeout thì `go test` đợi 10 phút.
-3. **Giết ssh/terminal không giết `go test`.** Process `postgres.test.exe`, `wire.test.exe`
-   sống tiếp và **giữ khoá** → mọi lần chạy sau đều treo. Khi test tích hợp treo bất thường:
-   ```powershell
-   Get-Process | Where-Object { $_.ProcessName -match '\.test$' } | Stop-Process -Force
-   docker compose exec -T postgres psql -U portage -d portage_test -c "select pid, state, query from pg_stat_activity where datname='portage_test';"
+1. **`go test ./...` chạy các package SONG SONG.** Hai package cùng `TRUNCATE`
+   một DB thì đỏ 1/3 lần. Không dùng `-p 1` (che bệnh) — `pgtest.Pool(t)` giữ
+   **advisory lock** của Postgres trên một connection riêng suốt test: package
+   nào có khoá thì sở hữu DB, package khác chờ. Một DB, song song tuỳ ý.
+2. **Luôn truyền `-timeout`.** Test treo mà không có timeout thì `go test` đợi
+   10 phút.
+3. **Giết terminal KHÔNG giết `go test`.** Process `*.test` sống tiếp và **giữ
+   khoá** → mọi lần chạy sau đều treo. Khi test tích hợp treo bất thường:
+   ```bash
+   pkill -f '\.test$'
+   docker compose exec -T postgres psql -U portage -d portage_test \
+     -c "select pid, state, query from pg_stat_activity where datname='portage_test';"
    ```
 
-CI (`.github/workflows/ci.yml`) có `services: postgres` và set biến này → test tích hợp
-luôn chạy trên GitHub.
-
-### 5c. Bộ lệnh hay dùng — chép về dùng luôn
-
-Những lệnh thật sự gõ hàng ngày trong project này. Nhóm theo việc cần làm.
-
-#### Trước khi mở terminal mới
-
-```bash
-# Git Bash — nếu gõ `go` báo not found (xem mục 2)
-export PATH="$PATH:/c/Program Files/Go/bin"
-cd /d/portage
-```
-
-```powershell
-# PowerShell
-$env:Path += ";C:\Program Files\Go\bin"
-cd D:\portage
-```
-
-#### Chạy test
-
-```bash
-go test ./...                              # tất cả, im lặng nếu pass
-go test -v ./...                           # in tên từng test
-go test ./internal/domain/shared           # một package
-go test -run TestMoney_convertUSDtoVND ./...        # đúng MỘT test
-go test -run 'TestMoney_.*' ./...                   # theo mẫu regex
-go test -count=1 ./...                     # BỎ QUA cache, chạy lại thật
-go test -failfast ./...                    # dừng ngay ở test fail đầu tiên
-go test -list '.*' ./internal/domain/shared         # liệt kê tên test, không chạy
-```
-
-> ⚠️ Go **cache kết quả test**. Thấy `(cached)` nghĩa là nó không chạy lại vì
-> code không đổi. Muốn ép chạy thật: `-count=1`.
-
-#### Đo độ phủ test (coverage)
-
-```bash
-go test -cover ./...                       # số tổng
-go test -coverprofile=cover.out ./internal/domain/shared
-
-go tool cover -func=cover.out              # % theo TỪNG HÀM
-go tool cover -func=cover.out | awk '$3 != "100.0%"'   # chỉ hàm chưa đủ
-go tool cover -html=cover.out              # mở trình duyệt, tô màu dòng chưa test
-```
-
-`cover.out` đã nằm trong `.gitignore` (khớp `*.out`), không lo commit nhầm.
-
-#### Kiểm tra chất lượng — chạy đủ bộ trước khi commit
-
-```bash
-gofmt -l .                                 # LIỆT KÊ file chưa format (rỗng = sạch)
-gofmt -w .                                 # SỬA luôn
-go vet ./...                               # soi lỗi tĩnh
-go build ./...                             # compile hết, không tạo file
-go test ./...
-```
-
-Gộp một dòng, dừng ngay khi có lỗi — chạy trước mỗi lần commit:
-
-```bash
-gofmt -l . && go vet ./... && go test -count=1 ./...
-```
-
-#### Kiểm tra Dependency Rule (luật kiến trúc quan trọng nhất)
-
-```bash
-# Domain đang import những gì?
-go list -f '{{range .Imports}}{{println .}}{{end}}' ./internal/domain/... | sort -u
-
-# Có gì ngoài allowlist không?  (rỗng = sạch)
-go list -f '{{range .Imports}}{{println .}}{{end}}' ./internal/domain/... \
-  | sort -u | grep '\.' | grep -Ev '^github\.com/google/uuid$'
-```
-
-> Chạy lệnh này **mỗi khi thêm import vào domain**. CI cũng chạy đúng lệnh đó
-> (mục 5b) — chạy trước ở máy thì không phải chờ build đỏ mới biết.
->
-> ⚠️ Đừng dùng `go list -deps` — nó in cả dependency **gián tiếp** (`runtime`,
-> `os`, `syscall`… do `fmt` kéo theo) làm tưởng domain bẩn. `.Imports` mới là
-> import trực tiếp.
-
-#### Quản lý thư viện
-
-```bash
-go get github.com/xxx/yyy@v1.2.3           # thêm, ghim đúng phiên bản
-go get -u ./...                            # nâng cấp (cẩn thận)
-go mod tidy                                # dọn require thừa, bổ sung thiếu
-go mod download                            # tải về sau khi clone
-go list -m all                             # cây thư viện đang dùng
-go mod why github.com/google/uuid          # VÌ SAO thư viện này có mặt
-```
-
-Sau `go get` nhớ commit **cả `go.mod` và `go.sum`**.
-
-#### Đọc tài liệu ngay trong terminal
-
-```bash
-go doc ./internal/domain/shared                    # tất cả hàm exported
-go doc ./internal/domain/shared Money              # một kiểu
-go doc ./internal/domain/shared Money.Convert      # một method
-go doc -all ./internal/domain/shared | less        # kèm toàn bộ comment
-```
-
-Đây là lý do comment trong code viết cẩn thận: `go doc` biến chúng thành tài
-liệu, không cần công cụ ngoài.
-
-#### Dọn dẹp khi thấy lạ
-
-```bash
-go clean -testcache                        # xoá cache test (khi nghi test cũ)
-go clean -modcache                         # xoá cache thư viện (nặng, ít dùng)
-go env GOMODCACHE                          # xem thư viện tải về nằm đâu
-```
-
-#### Git — dùng hàng ngày
-
-```bash
-git status --short                         # gọn hơn `git status`
-git diff                                   # thay đổi chưa `add`
-git diff --staged                          # đã `add`, chưa commit
-git log --oneline | cat                    # lịch sử một dòng (| cat để khỏi kẹt pager)
-git log -1 --format='%an <%ae>'            # KIỂM CHỨNG email của commit cuối
-
-git add -A
-git commit -m "..."
-```
-
-> ⚠️ Trong Git Bash, `git log` mở pager và **treo terminal**. Thêm `| cat`
-> hoặc `--no-pager`: `git --no-pager log --oneline`.
-
-#### Kiểm tra danh tính git đúng repo (mục 3b)
-
-```bash
-git config user.email                      # email repo hiện tại sẽ dùng
-
-# quét mọi repo trên ổ D
-for r in /d/*/; do
-  if git -C "$r" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    printf "%-38s -> %s\n" "$(basename $r)" "$(git -C $r config user.email)"
-  fi
-done
-```
-
-#### Chạy chương trình (khi đã có `cmd/`)
-
-```bash
-go run ./cmd/api                           # chạy thẳng, không tạo file
-go build -o bin/api.exe ./cmd/api          # build ra .exe
-go build ./...                             # compile hết để kiểm tra
-```
-
-#### Bảng tra nhanh — cờ hay quên
-
-| Cờ | Nghĩa |
-|---|---|
-| `./...` | thư mục này **và mọi thư mục con** |
-| `-v` | in chi tiết |
-| `-run <regex>` | chỉ chạy test khớp tên |
-| `-count=1` | bỏ qua cache, chạy thật |
-| `-race` | dò data race (**cần gcc — Windows không chạy được**, CI lo) |
-| `-cover` | đo độ phủ |
-| `-failfast` | dừng ở lỗi đầu tiên |
-| `-short` | bỏ qua test dài (`testing.Short()`) |
+CI có `services: postgres` và set biến này → test tích hợp luôn chạy trên GitHub.
 
 ---
-
-## 6. Đã viết được gì (tính tới 08/09/2026)
+## 6. Đã viết được gì
 
 ```
-internal/domain/
-├── decisions_test.go     7 test canh quyết định (go/ast) — xem mục dưới
-│
-├── ../contracts/         catalog_v1.go — PUBLISHED LANGUAGE: MoneyV1, ParcelV1, ProductPublishedV1, …, CategoryDefinedV1
-├── ../app/ports.go       Clock, UnitOfWork, Outbox — PORT tầng app;  deps.go — MustHave
-├── ../app/catalog/       package catalogapp — 14 test, coverage 86%
-│   ├── deps.go           Deps (6 dependency) + mustHave; ErrMerchantInactive, ErrPriceCurrency
-│   ├── register_merchant.go   RegisterMerchantHandler — dạng đơn giản nhất
-│   ├── add_product.go         AddProductHandler — 2 luật liên aggregate + phát hiện trùng
-│   ├── publish_product.go     PublishProductHandler — load → Publish → Save → outbox
-│   ├── define_category.go     DefineCategoryHandler — Save + thông báo CategoryDefined (seed cũng đi đường này)
-│   └── add_variant.go · confirm_listing.go · measure_product.go — ba bước operator để tới publish (05/09)
-├── ../app/logistics/     package logisticsapp — 1 test (cả flow kho), coverage 78,3%
-│   ├── deps.go           Deps (Parcels, Batches, Lanes) + mutateParcel/mutateBatch
-│   ├── parcels.go        ExpectParcelHandler (OnPurchaseConfirmed, idempotent theo đơn), ReceiveParcelHandler, Projector (OnLaneDefined)
-│   └── batches.go        OpenBatch (từ chối lane không rule), AddParcel (2 aggregate/1 tx), CloseBatch, ShipBatch (allocator từ LaneRule)
-├── ../app/procurement/   package procurementapp — 4 test, coverage 81,5%
-│   ├── deps.go           Deps (Tasks, Shops, Items, Variants, ACL) + mutate
-│   ├── open_task.go      OpenTaskHandler: idempotent theo đơn, tra projection, dựng Subject, hỏi ACL (3 nhánh), OnDepositPaid
-│   ├── close_task.go     ConfirmTaskHandler, FailTaskHandler
-│   └── projector.go      OnMerchantRegistered (Currency), OnProductPublished (+ source), OnVariantAdded (từ điển size)
-├── ../app/ordering/      package orderingapp — 4 test, coverage 70,8%
-│   ├── deps.go           Deps + mutate (khuôn load → act → Save → outbox viết một lần)
-│   ├── place_order.go    ba luật liên aggregate: quote đã accept (projection), một quote một đơn (ByQuote), variant có thật và của đúng sản phẩm
-│   ├── payments.go · cancel_order.go · lifecycle.go   PayDeposit, PayBalance, Cancel (trả Refund), ConfirmPurchase, FailPurchase, Ship, Deliver
-│   ├── projector.go      OnQuoteAccepted → AcceptedQuote (upsert); OnVariantAdded → Variant (chỉ id + chủ)
-│   └── reactor.go        OnPurchaseConfirmed/OnPurchaseFailed → ConfirmPurchase/FailPurchase; nuốt "đã làm rồi"
-├── ../app/pricing/       package pricingapp — 7 test, coverage 72,9%
-│   ├── define_lane.go    DefineLaneHandler — Save + thông báo lane_defined (seed và POST /lanes đi đường này)
-│   ├── reconciler.go     Reconciler — OnOrderPlaced (copy phần quoted từ Quote), OnPurchaseConfirmed, OnBatchShipped
-│   ├── deps.go           Deps: 5 repo + Rates + Policy/Classification (CẤU HÌNH nghiệp vụ, không phải service)
-│   ├── issue_quote.go    gom listing/lane/profile/fx → pricing.IssueQuote → Save → outbox
-│   ├── accept_quote.go   Accept trễ: commit expiry rồi mới trả ErrQuoteExpired
-│   ├── expire_quotes.go  ExpireQuotesHandler — use case ĐẦU TIÊN không ai gọi, chỉ thời gian đẩy; MỖI quote một transaction
-│   └── projector.go      nghe catalog.* → Listing / CategoryProfile — idempotent, chịu sai thứ tự
-├── ../adapter/merchant/  3 test, 88,9% — manual.go (luôn ErrManualPurchase) + router.go (chọn ACL theo shop; không biết shop → giao cho người)
-├── ../adapter/memory/    14 test, 80,8% — repo của CẢ 6 context + Outbox (Drain, Pending/MarkSent) + UnitOfWork; mỗi repo: miss trả sentinel của DOMAIN, Save thứ hai là upsert, list có thứ tự ổn định
-├── ../adapter/eventcodec/ 5 test, 98,6% — Encode 36 event + Decode → V1 (21 tên) + guard go/ast quét domain/*/events.go
-├── ../adapter/postgres/  29 test tích hợp, 79,8% — round trip repo 6 context + reconciliations + api_tokens + order_summaries, rollback thật, outbox
-│   ├── postgres.go       Connect, querier, txKey, db(ctx), UnitOfWork.InTx
-│   ├── migrate.go        embed migrations/*.sql; MỌI thứ trong một tx sau pg_advisory_xact_lock — kể cả CREATE TABLE schema_migrations (đợt 18)
-│   ├── migrations/       0001_catalog.sql (merchants, categories, products, product_variants, outbox) · 0002_pricing.sql (lanes, fx_rates, listings, category_profiles, quotes) · 0003_ordering.sql (accepted_quotes, orders UNIQUE(quote)) · 0004_procurement.sql (purchase_tasks UNIQUE("order"), procurement_shops, procurement_items) · 0005_logistics.sql (lane_rules, parcels, batches + batch_items + batch_allocations, reconciliations) · 0006_auth.sql (api_tokens: token_hash PK, kind, subject, revoked_at) · 0007_reporting.sql (order_summaries, product_names) · 0008_variant_subject.sql (procurement_variants, ordering_variants, 4 cột Subject của purchase_tasks, procurement_items.source)
-│   ├── *_repo.go         upsert ON CONFLICT, scan → Snapshot → FromSnapshot
-│   ├── pricing_repos.go  LaneRepo, QuoteRepo (breakdown từng cột), ListingRepo, ProfileRepo, ExchangeRates
-│   ├── ordering_repos.go OrderRepo (ByID, ByQuote), AcceptedQuoteRepo, OrderingVariantRepo (tên có tiền tố vì hai package cùng có VariantRepo)
-│   ├── procurement_repos.go  TaskRepo (ByID, ByOrder, Open — 4 cột Subject), ShopRepo, ItemRepo (+ source), VariantRepo
-│   ├── logistics_repos.go    ParcelRepo (ByID, ByOrder, Pending), BatchRepo (bảng con ghi cùng cha), LaneRuleRepo
-│   ├── reconciliation_repo.go  ReconciliationRepo — mọi cột nullable, dòng lớn dần theo event
-│   ├── outbox.go         Append (cùng tx), Pending (FOR UPDATE SKIP LOCKED), MarkSent
-│   ├── token_repo.go     Verify/Issue/Revoke/IsEmpty — Verify so bằng subtle.ConstantTimeCompare, Revoke ghi revoked_at chứ không DELETE
-│   └── pgtest/           Pool(t): skip không DSN, advisory lock, migrate, truncate MỌI bảng — hỏi pg_tables chứ không đọc danh sách viết tay (đợt 14)
-├── ../platform/wire/     4 test, 94,9%
-│   ├── wire.go           Graph{Catalog, Pricing, Ordering, Procurement, Logistics, Source, Auth, Tokens}; DevTokens() cho memory, TokenRepo cho Postgres; quotePolicy(), goodsClasses(); seed categories + lane (qua DefineLane) + fx; ACL = merchant.Manual
-│   └── subscribe.go      Subscribe(bus, g) — 31 dòng định tuyến = vòng đời §31; purchase_confirmed có 4 listener; on[T] decode generic
-├── ../worker/            9 test, 87,3% — RunOnce thứ tự, retry at-least-once, batch, Run/cancel, Bus; Sweeper: pass lỗi vẫn chạy tiếp, chờ nhịp đầu, panic thiếu Pass
-├── ../adapter/http/      package httpapi — 39 test, coverage 80,7%   (taskView có product_name/variant_label/variant_ref/source)
-│   ├── server.go         NewHandler(Deps{6 context, Auth/Tokens/Registry, Extractor}) → http.Handler; 39 route, authenticate() bọc CẢ mux
-│   ├── decode.go         decodeJSON (DisallowUnknownFields), language(), normalizeAmount()
-│   ├── errors.go         errorTable (~58 dòng) + writeError → 400/401/403/404/409/500/503
-│   ├── auth.go           authenticate() bọc CẢ mux (fail-closed), requireOperator/Customer/Any, principalOf/operatorOf/customerOf/sourcingOf
-│   ├── tokens.go         POST /tokens — operator cắt chìa; token trả về ĐÚNG MỘT LẦN, kho chỉ giữ hash
-│   ├── categories.go · merchants.go · products.go · operator.go   POST catalog (tham chiếu, khách, operator)
-│   ├── quotes.go         POST /quotes, GET /quotes/{id} (read model quoteView), POST /quotes/{id}/accept
-│   ├── orders.go         POST /orders, GET /orders/{id} (orderView, refund chỉ khi huỷ), deposit/balance/cancel/deliver
-│   ├── purchase_tasks.go GET /purchase-tasks (danh sách việc), GET /purchase-tasks/{id}, confirm/fail — KHÔNG có POST tạo task
-│   ├── logistics.go      GET /parcels, receive, POST /batches, add/close/ship (ship trả [allocation])
-│   └── lanes.go          POST /lanes (operator), GET /reconciliations/{order} (Quote vs Actual)
-│   ├── fx.go             POST /fx — route DUY NHẤT không phát event (không ai giữ bản sao tỷ giá)
-│   ├── from_url.go       POST /products/from-url — AI đọc trang → nháp SourcedByFeed; không key → 503
-│   └── summaries.go      GET /me/orders (khách, "me" = token), GET /orders?status= (operator); shop_reference chỉ operator thấy
-├── ../platform/clock/    System, Fixed(Advance)
-├── ../app/reporting/     package reportingapp — 5 test, 79,8% — READ MODEL, không có domain: OrderSummary (struct phẳng, không method),
-│   ├── summary.go        OrderSummary + port OrderSummaryRepository (ByOrder/ByCustomer/ByStatus/ByProduct/All/Save) + ProductNames
-│   └── projector.go      12 handler nghe CẢ NĂM context; "khung": event nào cũng được TẠO dòng → chịu sai thứ tự
-├── ../adapter/openai/    5 test, 80,9% — Client (net/http thuần, json_schema strict, timeout), Fake (dev/test), Unavailable (không key → 503)
-├── ../platform/auth/     10 test, 88,8% — Principal (kind+id), HashToken (sha256, không salt), Static, NewToken (crypto/rand 32 byte)
-├── ../../cmd/api/main.go   -addr, -dsn → wire.Memory (+ relay trong process) | wire.Postgres → serve
-├── ../../cmd/worker/main.go -dsn bắt buộc → wire.Postgres → wire.Subscribe → Relay.Run + Sweeper quét quote hết hạn (-sweep)
-├── ../../scripts/smoke.ps1  cả flow trên binary thật + Postgres thật
-│
-├── shared/               Shared Kernel — 46 test, coverage 90,7%
-│   ├── allocate.go       Allocate — chia tiền floor + largest remainder, tổng đúng (moneyphp allocate)
-│   ├── money.go          Money — cộng/trừ/nhân tỷ lệ/đổi tiền
-│   ├── currency.go       Currency, CurrencyFromCode
-│   ├── decimal.go        parseDecimal, addExact/subExact/mulExact, divRoundHalfUp (private)
-│   ├── rate.go           Rate (tỷ lệ %), ExchangeRate (tỷ giá, chính xác 12 số lẻ)
-│   ├── weight.go         Weight, Dimensions, trọng lượng quy đổi thể tích
-│   ├── id.go             ID — UUID v7, sinh trong domain
-│   ├── event.go          Event, Events — ghi nhận domain event
-│   ├── operator.go       OperatorID + ErrOperatorRequired — danh tính nhân viên, mọi context đều hỏi "ai làm" (catalog và procurement cùng dùng)
-│   ├── parcelspec.go     ParcelSpec — cân nặng + hộp; DỜI từ catalog (05/09) vì pricing cũng dùng
-│   │   (catalog/)        + snapshot.go — MerchantSnapshot/ProductSnapshot, FromSnapshot; 5 test round trip
-│   └── *_test.go         money 16 · rate 7 · weight 9 · id 6 · event 2 · operator 1 · helpers
-│
-├── catalog/              Bounded context đầu tiên — 47 test, coverage 89,1%
-    ├── merchant.go       Merchant (aggregate root), MerchantID, MerchantStatus, SourcingMode, Hostname
-    ├── freeshipping.go   FreeShipping — VO 3 trạng thái
-    ├── category.go       CategoryPolicy (VO khoá tự nhiên), CategoryCode, Restriction
-│   ├── provenance.go     Provenance — nguồn + thời điểm + ai xác nhận
-    ├── sourceurl.go      SourceURL — link tham chiếu, không fetch
-    ├── product.go        Product (aggregate root) — draft → published → retired
-    ├── variant.go        Variant — entity con của Product; khoá chống trùng bỏ MỌI khoảng trắng; unnamed() cho luật "không tên phải là duy nhất"
-│   ├── events.go         16 domain event (+ VariantAdded 08/09 mang size/màu/mã shop; ProductPublished mang Price + Parcel + Source; MerchantRegistered mang Currency)
-│   ├── repository.go     MerchantRepository, CategoryRepository, ProductRepository (interface)
-│   └── *_test.go         merchant 14 · category 9 · freeshipping 5 · product 11 · provenance 2 · sourceurl 1
-│
-└── pricing/              Bounded context thứ hai (05/09) — 14 test, coverage 73,6%
-    ├── errors.go         11 sentinel
-    ├── lane.go           LaneCode, GoodsClass, RateCard, DutyPolicy, LaneDetails, ShippingLane, Classification
-    ├── policy.go         MarginPolicy (max %, sàn), QuotePolicyDetails, QuotePolicy
-    ├── listing.go        Listing, CategoryProfile — projection từ event của catalog
-    ├── calc.go           QuoteInputs, Breakdown, Calculate — DOMAIN SERVICE thuần
-    ├── quote.go          Quote (aggregate root) — IssueQuote, Accept, Expire, QuoteSnapshot
-    ├── events.go         QuoteIssuedEvent, QuoteAcceptedEvent, QuoteExpiredEvent
-    ├── repository.go     LaneRepository, QuoteRepository, ListingRepository, CategoryProfileRepository, ExchangeRates
-    └── *_test.go         lane 7 · quote 7 (số vàng: 5 328 720 / 5 211 720 ₫)
-
-└── ordering/             Bounded context thứ ba (05/09, chiều) — 4 test, coverage 81,4%
-    ├── errors.go         16 sentinel — mỗi lý do từ chối một tên (+ ErrVariantUnknown, ErrVariantNotForProduct)
-    ├── order.go          OrderID, OrderStatus (Status*), Refund, OrderDetails, CustomerOrder (8 method), OrderSnapshot
-    ├── acceptedquote.go  AcceptedQuote — projection từ pricing.quote_accepted
-    ├── variant.go        Variant{Variant, Product} — projection từ catalog.variant_added; bản sao MỎNG nhất, không giữ size
-    ├── events.go         OrderPlaced, DepositPaid, OrderPurchased, OrderPurchaseFailed, OrderShipped, BalancePaid, OrderDelivered, OrderCancelled
-    ├── repository.go     OrderRepository (ByID, ByQuote), AcceptedQuoteRepository, VariantRepository
-    └── order_test.go     vòng đời tới delivered · bảng Cancel 5 trạng thái · snapshot từ chối 8 hình dạng
-
-└── procurement/          Bounded context thứ tư (05/09, chiều muộn) — 4 test, coverage 80,6%
-    ├── errors.go         12 sentinel, kể cả ErrManualPurchase (câu trả lời của ACL "để người mua") và ErrVariantNotFound
-    ├── task.go           TaskID, TaskStatus, PurchaseReceipt (Actual đầu tiên), Subject (mua gì, bằng chữ), TaskDetails (5 field, chỉ Subject không bắt buộc), PurchaseTask (Confirm/Fail), TaskSnapshot
-    ├── events.go         PurchaseTaskOpened, PurchaseConfirmed, PurchaseFailed
-    ├── repository.go     Shop/Item/Variant projection (Variant.Label() → "M 8 / W 9.5 · black"); TaskRepository (ByID, ByOrder, Open), ShopRepository, ItemRepository, VariantRepository, PORT MerchantACL
-    └── task_test.go      validate từng field · biên nhận gắt (4 lý do) · fail cần lý do · snapshot từ chối 7 hình dạng
-
-└── logistics/            Bounded context thứ năm (06/09) — 2 test, coverage 76,1%
-    ├── errors.go         15 sentinel
-    ├── parcel.go         ParcelID, ParcelStatus, ParcelDetails, Parcel (Receive/AssignToBatch/MarkShipped), ParcelSnapshot
-    ├── batch.go          BatchID, BatchStatus, BatchItem, ConsolidationBatch (AddParcel/Close/Ship), BatchSnapshot
-    ├── allocator.go      Allocation, FreightAllocator (PORT/Domain Service), LaneRule, ByChargeableWeight
-    ├── events.go         ParcelExpectedEvent, ParcelReceivedEvent, BatchOpened, BatchClosedEvent, BatchShippedEvent{Allocations}
-    ├── repository.go     ParcelRepository (Pending), BatchRepository, LaneRuleRepository
-    └── logistics_test.go vòng đời parcel · ship chia 87.50 → 29.17/58.33 · snapshot từ chối
+5 bounded context + 1 tầng đọc  ·  37 domain event  ·  41 route
+35 dòng Subscribe  ·  305 test (304 PASS + 1 SKIP cố ý)
+272 test chạy < 2 giây, KHÔNG cần Docker  ·  7 test canh kiến trúc bằng go/ast
 ```
 
-Chạy kiểm tra:
+| Context | Aggregate root |
+|---|---|
+| `catalog` | Merchant, Product ⊃ Variant |
+| `pricing` | Quote, Reconciliation (Quote vs Actual) |
+| `ordering` | CustomerOrder (cọc 50 %, điểm không thể quay đầu) |
+| `procurement` | PurchaseTask + port MerchantACL |
+| `logistics` | Parcel, ConsolidationBatch + FreightAllocator |
+| `reporting` | *(không có domain — read model, không invariant nào)* |
 
-```bash
-cd /d/portage
-go test -cover ./...
-# ok  github.com/duongsy/portage/internal/adapter/eventcodec coverage: 98.6%
-# ok  github.com/duongsy/portage/internal/adapter/http      coverage: 80.7%
-# ok  github.com/duongsy/portage/internal/adapter/memory    coverage: 80.8%
-# ok  github.com/duongsy/portage/internal/adapter/merchant  coverage: 88.9%
-# ok  github.com/duongsy/portage/internal/adapter/openai    coverage: 80.9%
-# ok  github.com/duongsy/portage/internal/adapter/postgres  coverage: 79.8%   (cần PORTAGE_TEST_DSN)
-# ok  github.com/duongsy/portage/internal/app/catalog       coverage: 77.0%
-# ok  github.com/duongsy/portage/internal/app/logistics     coverage: 78.3%
-# ok  github.com/duongsy/portage/internal/app/ordering      coverage: 70.8%
-# ok  github.com/duongsy/portage/internal/app/pricing       coverage: 72.9%
-# ok  github.com/duongsy/portage/internal/app/procurement   coverage: 81.5%
-# ok  github.com/duongsy/portage/internal/app/reporting     coverage: 79.8%
-# ok  github.com/duongsy/portage/internal/domain            (7 guard)
-# ok  github.com/duongsy/portage/internal/domain/catalog    coverage: 89.1%
-# ok  github.com/duongsy/portage/internal/domain/logistics  coverage: 76.1%
-# ok  github.com/duongsy/portage/internal/domain/ordering   coverage: 81.4%
-# ok  github.com/duongsy/portage/internal/domain/pricing    coverage: 73.6%
-# ok  github.com/duongsy/portage/internal/domain/procurement coverage: 80.6%
-# ok  github.com/duongsy/portage/internal/domain/shared     coverage: 90.7%
-# ok  github.com/duongsy/portage/internal/platform/auth     coverage: 88.8%
-# ok  github.com/duongsy/portage/internal/platform/wire     coverage: 94.9%
-# ok  github.com/duongsy/portage/internal/worker            coverage: 87.3%
-# tổng 296 test (08/09, + hai route tham chiếu cho UI) — 31 bỏ qua khi không có DSN (29 postgres + 1 wire + 1 rollback cố ý), 265 còn lại < 2 giây không cần gì
-```
+Coverage từng package: xem cây ở §4. Chạy lại: `go test -cover ./...`
 
-### 🛡️ Test canh quyết định — `internal/domain/decisions_test.go`
+### 6b. Test canh quyết định — `internal/domain/decisions_test.go`
 
-Chín quy ước bên dưới **không chỉ nằm trong tài liệu**. Bảy trong số đó đã được
-viết thành test, quét mã nguồn bằng `go/ast`. Vi phạm là **build đỏ**.
+**Vì sao có nhóm test này:** ngày 04/09, `CategoryPolicy` bị thêm `hsCode` và
+`dutyRate` — **vài ngày sau khi đã ghi hai lần** rằng tuyến vận chuyển đang gộp
+thuế vào giá /kg và không tách dòng thuế. **Mọi unit test đều xanh.** Thiết kế
+vẫn sai.
 
-Lý do có nhóm test này: ngày 04/09, `CategoryPolicy` bị thêm `hsCode` và
-`dutyRate` — **vài ngày sau khi đã ghi hai lần** rằng tuyến vận chuyển đang
-dùng gộp thuế vào giá /kg và không tách dòng thuế. **Mọi unit test đều xanh.**
-Thiết kế vẫn sai.
-
-> Unit test hỏi *"hàm này trả đúng chưa?"*. Test canh quyết định hỏi
-> *"code này còn tuân quy ước mình đã chốt không?"*. Hai câu hỏi khác nhau,
-> và cái thứ hai mới là cái hay bị quên.
+> Unit test hỏi *"hàm này trả đúng chưa?"*.
+> Test canh quyết định hỏi *"code này còn tuân quy ước đã chốt không?"*.
+> Hai câu hỏi khác nhau — và cái thứ hai mới là cái hay bị quên.
 
 | # | Guard | Bắt cái gì |
 |---|---|---|
@@ -1001,188 +620,241 @@ Thiết kế vẫn sai.
 **Đã kiểm chứng từng cái thật sự sập bẫy** — cố tình vi phạm, xem test đỏ, rồi
 khôi phục. Guard không bao giờ đỏ là guard vô dụng.
 
-Mỗi guard trong file đều ghi rõ ba thứ: **quyết định là gì**, **ghi ở tài liệu
-nào**, và **làm gì nếu nó đỏ** — kể cả trường hợp *"quyết định đã đổi, sửa
-guard đi"*. Đây là tripwire, không phải điều răn.
-
-```bash
-go test ./internal/domain/ -v      # chạy riêng nhóm guard
-go test ./...                      # chạy chung, CI cũng chạy cái này
-```
+Mỗi guard ghi rõ ba thứ: **quyết định là gì**, **ghi ở tài liệu nào**, **làm gì
+nếu nó đỏ** — kể cả trường hợp *"quyết định đã đổi, sửa guard đi"*. Đây là
+tripwire, không phải điều răn.
 
 ---
 
-### Quy ước code đã chốt — đọc trước khi viết bounded context đầu tiên
+### 6c. Mười quy ước code
 
-Mỗi quy ước dưới đây đều **đã có code thật** trong `shared/` để soi.
+> Mã số 1–10 dưới đây **được code trỏ vào** (`decisions_test.go` "convention 2",
+> `merchant.go` "quy ước 5"…). Đổi số là hỏng 47 chỗ — thêm quy ước thì đánh
+> số 11, đừng chèn giữa.
 
-**1. Hai loại constructor, phân biệt bằng cách xử lý input sai**
+#### Quy ước 1 — Input sai của ai?
 
-| Loại | Ví dụ | Input | Sai thì |
-|---|---|---|---|
-| Validating | `ParseMoney`, `ParsePercent`, `NewExchangeRate`, `NewWeight`, `CurrencyFromCode`, `ParseID`; catalog: `ParseHostname`, `ParseCategoryCode`, `ParseSourceURL`, `NewParcelSpec`, `NewProvenance`, `FreeShippingOver`, `RegisterMerchant`, `NewCategoryPolicy`, `AddProduct` | **không tin được** — form, CSV, dòng DB | trả `error` |
-| Literal | `NewMoney`, `Grams`, `Kilos`, `NewDimensionsCM`, `RatePPM`, `Must*` (`MustParseHostname`, `MustParseCategoryCode`, `MustParcelSpec`, `MustProvenance`…) | **lập trình viên viết tay** | `panic` |
-
-`panic` ở đây = "code của mình có bug" (như Go panic khi index âm), **không bao
-giờ** là lỗi của người dùng. Adapter nhận input ngoài → luôn dùng loại validating.
-
-> **So với Symfony:** `error` ~ `\DomainException` / `\InvalidArgumentException`
-> (bắt được, xử lý được); `panic` ~ `\LogicException` (không nên bắt, sửa code).
-
-**2. Tiền: `int64` đơn vị nhỏ nhất, phép nhân/chia qua `math/big`, làm tròn
-half-up xa số 0**
-
-`13.215 → 13.22` và `-13.215 → -13.22`, để hoàn tiền = đúng số thuế đã thu đổi
-dấu. Tích trung gian đi qua `big.Int` nên không tràn; kết quả tràn `int64`
-(92 triệu tỷ đô) là bug → panic, không trả `0.00`.
-
-**3. Parse số nghiêm ngặt: chỉ nhận `-?digits[.digits]`**
-
-Không dấu phẩy, không `+`, không `150.`, không `.5`. Lý do: `"150,50"` là 150,50
-với người Việt nhưng là 15.050 với người Mỹ — domain mà đoán thì sai với một
-trong hai. Chuẩn hoá theo locale là việc của adapter (form/API), **trước khi**
-gọi vào domain. Một hàm `parseDecimal` dùng chung cho Money, Rate, ExchangeRate.
-
-**4. Cân nặng: mọi bước làm tròn đều làm tròn LÊN**
-
-Kể cả bước trung gian `VolumetricWeight`. Bug đã gặp: 1900,8 g bị cắt xuống 1900
-→ rơi đúng mốc 100 g → tính thiếu một bậc cân. Chi tiết ở mục 9.
-
-**5. ID = UUID v7, sinh trong domain, mỗi aggregate bọc kiểu riêng**
+| | |
+|---|---|
+| **Luật** | input của **người dùng** sai → `error`. Input của **lập trình viên** sai → `panic` |
+| **Symfony** | `error` ~ `\DomainException`; `panic` ~ `\LogicException` (không nên bắt) |
+| **Code** | mọi `Parse*`/`New*` trả `error`; mọi `Must*` panic |
 
 ```go
-type OrderID struct{ shared.ID }          // OrderID ≠ MerchantID với compiler
+// Validating — input KHÔNG tin được (form, CSV, dòng DB)
+ParseMoney, ParsePercent, NewWeight, ParseID, ParseHostname, RegisterMerchant
+
+// Literal — lập trình viên gõ tay, sai là bug
+NewMoney, Grams, Kilos, RatePPM, MustParseHostname, MustProvenance
+```
+
+**Adapter nhận input từ ngoài → LUÔN dùng loại validating.** `panic` ở đây nghĩa
+là "code của mình có bug", **không bao giờ** là lỗi của người dùng.
+
+#### Quy ước 2 — Tiền là `int64` đơn vị nhỏ nhất
+
+| | |
+|---|---|
+| **Luật** | không bao giờ `float`. Nhân/chia qua `math/big`. Half-up, làm tròn **xa số 0** |
+| **Symfony** | `moneyphp/money` — cùng lý do. `Money::allocate()` = `shared.Allocate` |
+| **Code** | `internal/domain/shared/money.go`, `decimal.go` |
+| **Máy canh** | guard 1 — `float64` lọt vào domain là **build đỏ** |
+
+```go
+// SAI — 0.1 + 0.2 != 0.3, và không ai thấy cho tới lúc đối soát
+var price float64 = 150.00
+
+// ĐÚNG — 15000 xu, số nguyên, không có "gần đúng"
+shared.NewMoney(15_000, shared.USD)
+```
+
+**Vì sao half-up *xa số 0*:** `13.215 → 13.22` **và** `-13.215 → -13.22`. Hoàn
+tiền phải bằng đúng số thuế đã thu, đổi dấu. Làm tròn *về* 0 thì hoàn thiếu 1 xu.
+
+**Tràn `int64` thì `panic`, không phải `error`** — 9,2 tỷ tỷ đơn vị nhỏ nhất là
+92 triệu tỷ đô. Không nghiệp vụ nào chạm tới đó, nên chạm = bug (quy ước 1).
+Bug thật đã gặp: §9 đợt 2 #6.
+
+#### Quy ước 3 — Parse số nghiêm ngặt: chỉ nhận `-?digits[.digits]`
+
+| | |
+|---|---|
+| **Luật** | không dấu phẩy, không `+`, không `150.`, không `.5` |
+| **Symfony** | `NumberFormatter` theo locale — nhưng để ở tầng **controller**, không phải Entity |
+| **Code** | `shared.parseDecimal` — dùng chung cho Money, Rate, ExchangeRate |
+
+**Vì sao:** `"150,50"` là **150,50** với người Việt nhưng là **15.050** với người
+Mỹ. Domain mà đoán thì sai với một trong hai. Chuẩn hoá theo locale là việc của
+adapter, **trước khi** gọi vào domain (`Accept-Language` → `normalizeAmount`).
+
+Bug thật đã gặp: §9 đợt 1 #2.
+
+#### Quy ước 4 — Cân nặng: MỌI bước làm tròn đều làm tròn LÊN
+
+| | |
+|---|---|
+| **Luật** | kể cả bước trung gian `VolumetricWeight` |
+| **Code** | `shared/weight.go` |
+
+```
+SAI :  thùng 32×27×11 cm = 1900,8 g → cắt xuống 1900 g → bill 1.900 kg
+ĐÚNG:                      1900,8 g → làm tròn lên 1901 g → bill 2.000 kg
+```
+
+**Vì sao:** 1900 rơi đúng dưới mốc bậc cân 100 g → **mất nguyên một bậc**, mình
+chịu lỗ. Trong chuỗi tính phí, một bước cắt xuống là mất một bậc.
+Bug thật đã gặp: §9 đợt 1 #1.
+
+#### Quy ước 5 — ID là UUID v7, sinh trong domain, mỗi aggregate một kiểu riêng
+
+| | |
+|---|---|
+| **Luật** | `type OrderID struct{ shared.ID }` — compiler phân biệt `OrderID` ≠ `MerchantID` |
+| **Symfony** | `symfony/uid` — nhưng Doctrine sinh id lúc `flush()`, ở đây sinh ngay |
+| **Code** | `shared/id.go` |
+
+```go
+type OrderID struct{ shared.ID }
 func NewOrderID() OrderID { return OrderID{shared.NewID()} }
 ```
 
-Không có `private ?int $id = null` chờ `flush()`. Object có danh tính từ dòng
-đầu constructor. v7 có timestamp ở đầu nên index B-tree ghi nối đuôi, không
+Không có `private ?int $id = null` chờ `flush()`. **Object có danh tính từ dòng
+đầu constructor.** v7 có timestamp ở đầu nên index B-tree ghi nối đuôi, không
 rải rác như v4.
 
-**6. Domain event: aggregate chỉ GHI, tầng app mới PHÁT**
+#### Quy ước 6 — Aggregate chỉ GHI event, tầng app mới PHÁT
 
-Aggregate root nhúng `shared.Events`, gọi `o.Record(ev)` trong method đổi trạng
-thái. Tầng app gọi `o.PullEvents()` **sau khi** repository lưu xong, ghi vào
-outbox cùng transaction. Không bao giờ publish trước khi lưu.
-
-**7. Domain không đọc đồng hồ**
-
-Method nhận `now time.Time` qua tham số. Không `time.Now()` trong
-`internal/domain/`. Tầng app lấy `now` từ `app.Clock` (`internal/app/ports.go`)
-**một lần** ở đầu handler rồi truyền xuống; production cắm `clock.System`, test
-cắm `clock.Fixed` (`internal/platform/clock/`). Test canh số 2 chặn `time.Now()`
-lọt vào domain.
-
-**8. `internal/app/<context>/`, không để phẳng**
-
-Mỗi bounded context một thư mục con trong `app/`, song song với `domain/`.
-Package đặt tên `<context>app` (`catalogapp`) vì `package catalog` sẽ trùng tên
-với domain và mọi file phải alias import. Khuôn một use case: `now` → `InTx` →
-(load) → domain → `Save` → `PullEvents` → `Outbox` — xem WALKTHROUGH.md §3, §8.
-
-**9. `Money{}`, `Currency{}`, `ID{}` — zero value của Go là trạng thái "chưa
-set", không phải giá trị hợp lệ**
-
-Go luôn cho phép viết `shared.Money{}` — không cấm được. Nên mỗi VO có `IsZero()`
-/ `IsValid()`, và constructor từ chối xây trên zero value (`NewMoney(5,
-Currency{})` panic). Coi nó như cột nullable chưa gán.
-
-**10. Constructor > 3 tham số → struct `XxxDetails` — kèm hai điều kiện**
+| | |
+|---|---|
+| **Luật** | `o.Record(ev)` trong domain · `o.PullEvents()` → Outbox trong app, **sau** khi Save |
+| **Symfony** | `DomainEvent` gom trong Entity rồi dispatch ở Handler — cùng ý |
+| **Code** | `shared/event.go`; khuôn ở mọi `app/*/`; `adapter/*/outbox.go` |
 
 ```go
-// ≤ 3 tham số: vị trí                 > 3 hoặc sẽ lớn: struct
-NewParcelSpec(weight, dims)            RegisterMerchant(MerchantDetails{
-NewExchangeRate(from, to, "26000")         Name: "…", Site: …, Currency: shared.USD,
-                                           FreeShipping: …, Sourcing: …,
-                                       }, now)
+// ĐÚNG — thứ tự này không được đảo
+repo.Save(ctx, o)                       // 1. lưu trạng thái
+outbox.Append(ctx, o.PullEvents())      // 2. ghi event, CÙNG transaction
 ```
+
+**Không bao giờ publish trước khi lưu.** Đảo hai dòng này là event bay ra cho
+một trạng thái chưa tồn tại. Test bắt: `TestRelay_*` và test rollback.
+
+#### Quy ước 7 — Domain không đọc đồng hồ
+
+| | |
+|---|---|
+| **Luật** | method nhận `now time.Time` qua tham số. KHÔNG `time.Now()` trong domain |
+| **Symfony** | inject `ClockInterface` (PSR-20) thay vì `new \DateTime()` |
+| **Code** | `app/ports.go` (`Clock`) · `platform/clock/` (`System`, `Fixed`) |
+| **Máy canh** | guard 2 — `time.Now()` trong domain là **build đỏ** |
+
+Tầng app lấy `now` **một lần** ở đầu handler rồi truyền xuống. Production cắm
+`clock.System`, test cắm `clock.Fixed` → test về hạn 48 h không cần `sleep`.
+
+#### Quy ước 8 — `internal/app/<context>/`, không để phẳng
+
+| | |
+|---|---|
+| **Luật** | mỗi bounded context một thư mục con, package tên `<context>app` |
+| **Vì sao tên khác** | `package catalog` sẽ **trùng tên** với domain → mọi file phải alias import |
+
+Khuôn một use case — sáu bước, mọi handler đều giống nhau:
+
+```
+now → InTx → (load) → domain → Save → PullEvents → Outbox
+```
+
+Để phẳng thì `app/` sẽ phình thành một package 50 file.
+
+#### Quy ước 9 — Zero value là "chưa set", KHÔNG phải giá trị hợp lệ
+
+| | |
+|---|---|
+| **Luật** | mỗi VO có `IsZero()`/`IsValid()`; constructor **từ chối** xây trên zero value |
+| **Symfony** | ~ cột nullable chưa gán. PHP có `?Type`, Go **không cấm được** `Money{}` |
+
+```go
+// Go LUÔN cho phép viết cái này — không cấm được
+m := shared.Money{}          // 0, currency rỗng
+
+// Nên constructor phải tự vệ
+shared.NewMoney(5, shared.Currency{})   // → panic
+```
+
+**Vì sao gắt:** hai giá trị **cùng vô hiệu** thì "khớp" nhau — `Money{}.Add(Money{})`
+từng trả `"0 "` không lỗi. Guard phải hỏi *"có hợp lệ không"* **trước** khi hỏi
+*"có khớp không"*. Bug thật: §9 đợt 2 #14.
+
+#### Quy ước 10 — Constructor > 3 tham số → struct `XxxDetails`, kèm HAI điều kiện
 
 | | Tham số vị trí | Struct tham số |
 |---|---|---|
-| Thêm field | **lỗi biên dịch** ở mọi chỗ gọi — compiler bắt | mọi chỗ gọi vẫn compile, field mới **âm thầm** mang zero value |
+| Thêm field | **lỗi biên dịch** ở mọi chỗ gọi | vẫn compile, field mới **âm thầm** mang zero value |
 | Đảo 2 tham số cùng kiểu | compiler **không** bắt | không xảy ra — có tên |
 | Đọc call site | phải nhớ thứ tự | tự giải thích |
 
-Compile-time mạnh hơn runtime, nên struct chỉ được dùng khi **đủ hai điều kiện**:
+Compile-time mạnh hơn runtime, nên struct **chỉ** được dùng khi đủ **hai** điều kiện:
 
-1. **Constructor validate mọi field bắt buộc** — zero value đi vào là `error`
-   lớn tiếng, không phải merchant có lỗ. Field nào cho phép zero thì zero phải
-   là **đáp án nghiệp vụ an toàn** (`FreeShipping{}` = shop luôn tính phí ship;
-   `Sourcing` nil = chưa có cách lấy dữ liệu).
+1. **Constructor validate mọi field bắt buộc.** Field nào cho phép zero thì zero
+   phải là **đáp án nghiệp vụ an toàn** (`FreeShipping{}` = shop luôn tính phí ship).
 2. **Có test `Test…_everyFieldIsValidated`** — dùng `reflect` zero **từng field
-   một** trên details hợp lệ và đòi constructor từ chối; field nào cho phép zero
-   phải khai trong `zeroIsMeaningful` kèm lý do. Nó thay cho việc compiler không
-   còn bắt.
+   một** và đòi constructor từ chối.
 
-   > ⚠️ Một test zero **cả struct** là KHÔNG đủ — đã kiểm chứng: thêm field
-   > `Country` không validate, 91 test vẫn xanh, vì `MerchantDetails{}` chết ở
-   > `Name` rỗng rồi return, không bao giờ chạy tới field mới.
+> ⚠️ Một test zero **cả struct** là KHÔNG đủ — đã kiểm chứng: thêm field
+> `Country` không validate, **91 test vẫn xanh**, vì `MerchantDetails{}` chết ở
+> `Name` rỗng rồi return, không bao giờ chạy tới field mới. §9 đợt 5 #24.
 
 `now time.Time` để **ngoài** struct: nó là "lúc nào", không phải chi tiết của
-merchant. Symfony: DTO / named arguments; Go không có named arguments.
+merchant. Symfony có named arguments; Go không.
 
-## 7. Việc tiếp theo
+---
+## 7. Số liệu nghiệp vụ đã chốt
 
-- [x] `git init` + commit đầu tiên
-- [x] Shared kernel: review, sửa bug, thêm `ID`, `Events` (04/09)
-- [x] CI, README, `.editorconfig` (04/09)
-- [ ] Tạo repo GitHub **bằng tài khoản cá nhân**, `git remote add origin`, push.
-      Xác nhận username đúng là `duongsy` — nếu không, sửa module path trong
-      `go.mod` và mọi import `github.com/duongsy/portage/...`
-- [x] `internal/domain/catalog` — Merchant, CategoryPolicy, Estimate, FreeShipping, repository interface (04/09)
-- [x] `internal/domain/catalog` — Product, Variant, Provenance, SourceURL (04/09, chiều)
-- [x] `internal/app/catalog` + `adapter/memory` + `platform/clock` — 3 use case, port/adapter in-memory (04/09, tối)
-- [x] `internal/adapter/http` + `cmd/api` — 3 endpoint, locale, bảng lỗi; chạy thật (04/09, tối)
-- [x] API snapshot/rehydrate cho aggregate — `snapshot.go` (04/09, đêm)
-- [x] `eventcodec` — payload outbox viết tay (04/09, đêm)
-- [x] `adapter/postgres` + `docker-compose.yml` + CI service Postgres (04/09, đêm)
-- [x] `platform/wire` — `Memory`/`Postgres`, `cmd/api -dsn` (04/09, đêm)
-- [x] `internal/worker` + `cmd/worker -dsn` — cùng `wire.Postgres`, không chế độ memory (04/09, đêm)
-- [x] `internal/domain/pricing` — ShippingLane, RateCard, DutyPolicy, QuotePolicy, Calculate, Quote (05/09)
-- [x] `internal/contracts` + `eventcodec.Decode` — Published Language; `pricingapp.Projector` nghe catalog (05/09)
-- [x] `0002_pricing.sql` + 5 repo Postgres; `wire.Graph` + `wire.Subscribe`; `/quotes`; smoke thật (05/09)
-- [x] Ba bước operator qua HTTP: variants / confirm-listing / measure (05/09)
-- [x] **P9/T1** Auth thật — `platform/auth` (Principal, `Verifier`/`Issuer`), bearer token bọc CẢ mux,
-      `X-Operator-ID` và `customer_id` biến mất, `POST /tokens`, `0006_auth.sql`, `-bootstrap-operator-token` (06/09)
-- [x] `GET /tokens` + `DELETE /tokens/{hash}` — xem/thu hồi chìa; chìa operator cuối cùng → 409 (06/09, trả nợ T1)
-- [x] **P9/T4** `POST /fx` — endpoint tỷ giá (lane đã có `POST /lanes` từ 06/09); route DUY NHẤT không phát event (06/09)
-- [ ] `config/ratecard.yaml` với bảng giá **thật** (hiện là hằng trong `wire.quotePolicy`)
-- [x] `internal/domain/ordering` — `CustomerOrder` + luật cọc 50 % + `Cancel`/`Refund` (§26), nghe `pricing.quote_accepted`; `/orders` (05/09, chiều)
-- [x] `internal/domain/procurement` — `PurchaseTask`, port `MerchantACL` + `merchant.Manual`; nghe `deposit_paid`, phát `purchase_confirmed/failed` → `ordering.Reactor`; `/purchase-tasks` (05/09, chiều muộn)
-- [x] **P9/T6** `merchant.Router` — chọn ACL theo shop, mặc định `Manual`; thêm shop có API = một dòng trong `wire` (06/09)
-- [ ] `adapter/merchant/<shop>.go` — ACL **thật** cho một shop có API (chưa có shop nào cho API)
-- [x] `internal/domain/logistics` — `Parcel`, `ConsolidationBatch`, `FreightAllocator`, `shared.Allocate`; `pricing.Reconciliation` = đối soát Quote vs Actual; `/lanes`, `/parcels`, `/batches`, `/reconciliations` (06/09)
-- [x] **P9/T3** Quét quote hết hạn — `pricing.QuoteRepository.IssuedBefore`, `pricingapp.ExpireQuotesHandler`
-      (mỗi quote một transaction), `worker.Sweeper`, `cmd/worker -sweep` + `cmd/api` memory (06/09)
-- [x] **P9/T2** Read model bảng riêng — `internal/app/reporting`, `order_summaries` dựng từ event của NĂM context,
-      `GET /me/orders` (khách) + `GET /orders?status=` (operator), `0007_reporting.sql` (06/09)
-- [x] **P9/T5** `adapter/openai` — ACL thứ hai: đọc trang shop bằng model → nháp `SourcedByFeed`; không key → 503 (06/09)
-- [x] **P9/T7** `docs/FLOW-ORDER.md` — một đơn từ đầu tới cuối: mỗi bước ai gọi, ai nghe, bảng nào đổi, hỏng thì sao (06/09)
-- [x] **P9/T8** dọn dẹp — unit test repo memory (17,5 % → 80,8 %), `scripts/smoke.sh` + smoke trong CI, README bảng route (06/09)
-- [x] **P9 XONG (06/09)** — T1 auth · T2 read model · T3 quét quote · T4 `POST /fx` · T5 `adapter/openai` · T6 ACL Router · T7 `docs/FLOW-ORDER.md` · T8 dọn dẹp
-- [x] `docker-compose.yml` cho Postgres
-- [x] Tầng adapter: postgres, http
+> Code trỏ vào mục này ở nhiều chỗ (`wire.go`, `pricing/lane.go`, `policy.go`,
+> `quote_test.go`). **Đổi số ở đây là phải đổi cả code và test vàng.**
 
-### Số liệu nghiệp vụ đã chốt
-
-| Tham số | Giá trị | Ghi chú |
+| Tham số | Giá trị | Nằm ở đâu trong code |
 |---|---|---|
-| Tỷ giá | 26.000 ₫/USD | tỷ giá ngân hàng |
-| Cọc khách trả trước | 50% giá trị đơn | |
-| Lãi mục tiêu | 500.000 ₫/đơn | mức sàn tối thiểu |
-| Kho Mỹ | Denver, Colorado | sales tax ~8,81% |
-| Tuyến vận chuyển chính | dịch vụ gửi hàng ở Mỹ, trọn gói tận nhà VN | phí trả hết đầu Mỹ |
-| Chia thể tích | 5000 (cm³/kg) | cần xác nhận lại — **tạm là seed** `wire.seedPricing`: 5000, bước 500 g, 9/10/12/14 USD/kg, phụ thu pin 3 USD |
-| Thời hạn báo giá | 48 h | `wire.quotePolicy()` — chụp vào từng quote |
-| Phân loại hàng | footwear, apparel → branded; electronics → electronics; còn lại standard | `wire.goodsClasses()` — thiếu dòng → báo giá THẤP, lộ ở đối soát |
+| Tỷ giá | 26.000 ₫/USD | `wire.seedPricing` |
+| Thuế bán hàng Colorado | 8,81 % | kho Denver |
+| Cọc khách trả trước | 50 % giá trị đơn | `ordering.CustomerOrder` |
+| Phí dịch vụ | max(10 %, sàn 500.000 ₫) | `wire.quotePolicy()` |
+| Quy đổi thể tích | mm³ / 5000, bước cân 500 g | `wire.seedPricing` |
+| Hạn báo giá | 48 h | `wire.quotePolicy()` — chụp vào **từng** quote |
+| Giá cân | 9/10/12/14 USD/kg + phụ thu pin 3 USD | `wire.seedPricing` |
+| Phân loại hàng | footwear, apparel → branded · electronics → electronics · còn lại standard | `wire.goodsClasses()` |
+
+> ⚠️ `goodsClasses()` **thiếu một dòng** → món đó rơi về `standard` → **báo giá
+> THẤP**, và chỉ lộ ra ở bước đối soát cuối cùng.
+
+**Số vàng — `scripts/smoke.sh` phải luôn in đúng những con số này:**
+
+```
+quote … total 5393720 VND, deposit 2696860
+variance -2.50 USD          (quoted 163.22+25.00, actual 163.22+27.50)
+```
+
+> ⚠️ Script **in** cả bốn số nhưng chỉ **assert** hai: `deposit=2696860` và
+> `variance=-2.50` (`smoke.sh` dòng 129–130). In ra mà không assert thì mắt
+> người phải canh — và mắt người bỏ sót. Đổi nghiệp vụ mà `total` lệch thì
+> script vẫn **xanh**.
 
 ### Số còn thiếu — cần hỏi nhà gửi hàng bên Mỹ
 
-- [ ] Bảng giá theo **kg**, phân theo **loại hàng** (thường / hàng hiệu / điện tử / nhạy cảm)
+- [ ] Bảng giá theo **kg**, phân theo loại hàng (thường / hàng hiệu / điện tử / nhạy cảm)
 - [ ] Bước làm tròn cân — 100 g hay 500 g?
 - [ ] Số chia thể tích họ dùng — 5000 hay 6000?
 - [ ] Có phụ thu hàng **pin lithium** không (tai nghe, đồng hồ…)?
 - [ ] Trần giá trị mỗi kiện?
+
+### Còn nợ trong code
+
+- [ ] `config/ratecard.yaml` — bảng giá đang là **hằng** trong `wire.go`
+- [ ] `adapter/merchant/<shop>.go` — ACL **thật** (chưa shop nào cho API)
+- [ ] Cổng thanh toán
+
+> Việc **đã xong** không liệt kê ở đây nữa — `git log` và §9 đã kể đủ, và một
+> danh sách 30 dòng `[x]` chỉ làm loãng 3 dòng `[ ]` thật sự còn lại.
 
 ### Ghi chú rủi ro
 
@@ -1191,24 +863,61 @@ Tuyến "gửi ở Mỹ, trả trọn gói, về tận nhà VN" hoạt động t
 cách hải quan xử lý có thể khác. Hệ thống nên **đếm và cảnh báo** khi tần suất
 vượt ngưỡng tự đặt, thay vì giả vờ rủi ro đó không tồn tại.
 
+**Ràng buộc pháp lý:** điều khoản của Nike và phần lớn shop **cấm cào trang**.
+Nên hệ thống **không tự fetch trang shop** — khách/operator nhập tay, hoặc
+`adapter/openai` đọc từ URL. Đây là ràng buộc thiết kế, không phải chú thích.
+
 ---
 
-## 8. Dựng lại trên máy mới — bản rút gọn
+## 8. Dựng lại trên máy mới
 
 ```bash
-winget install --id GoLang.Go -e --accept-source-agreements --accept-package-agreements
-# ĐÓNG rồi MỞ LẠI terminal
+# 1. Cài Go (§2) — rồi ĐÓNG HẲN và MỞ LẠI terminal
+winget install --id GoLang.Go -e --accept-source-agreements --accept-package-agreements   # Windows
+sudo apt install golang-go                                                                # Linux
 
-git clone <repo> portage
-cd portage
-go mod download        # tải thư viện        (~ composer install)
-go test ./...          # xác nhận chạy được
+# 2. Clone + danh tính cá nhân NGAY, trước commit đầu tiên (§3b)
+git clone <repo> portage && cd portage
+git config --local user.email "duongsy1920@gmail.com"
+
+# 3. Thư viện + xác nhận chạy được
+go mod download        # ~ composer install
+go test ./...          # 272 test, < 2 giây, không cần Docker
+
+# 4. Muốn chạy thật thì thêm Postgres
+docker compose up -d
+bash scripts/smoke.sh
 ```
 
-
 ---
-
 ## 9. Nhật ký review 04/09/2026 — bug đã tìm thấy và bài học
+
+> **Đây là chỗ trả lời câu *"vì sao code lại trông như thế này"*.** 18 đợt, mỗi
+> đợt một bảng `quyết định / bug → chỗ nó nằm`. Đọc 2–3 đợt cuối là nắm được
+> tình trạng hiện tại. 24 bug được đánh số — câu tự kiểm rút từ chúng ở
+> [HOC.md](HOC.md).
+
+| Đợt | Ngày | Chủ đề | Bug đắt nhất của đợt |
+|---|---|---|---|
+| 1 | 04/09 | review `shared/` | làm tròn **xuống** ở bước trung gian → mất một bậc cân |
+| 2 | 04/09 | tổ chức lại source | `Add`/`Sub` tràn `int64` âm thầm, `Mul` thì panic — **không nhất quán** |
+| 3 | 04/09 | `catalog` | thuế và số chia nằm nhầm trong `CategoryPolicy` |
+| 4 | 04/09 | `Product`/`Variant`/`Provenance` | — |
+| 5 | 04/09 | review chéo từ session Windows | test zero **cả struct** không guard được field mới |
+| 6 | 04/09 | tầng app + adapter in-memory | — |
+| 7 | 04/09 | `adapter/http` + `cmd/api` | — |
+| 8 | 04/09 | quyết định **không** làm `cmd/worker` vội | — |
+| 9 | 04/09 | Postgres, outbox, worker | test tích hợp song song giẫm chân nhau trên một DB |
+| 10 | 05/09 | context 2 — `pricing` | patch theo anchor cũ **hỏng im lặng** sau khi đổi tên |
+| 11 | 05/09 | context 3 — `ordering` | hằng trạng thái trùng tên kiểu event (Go một namespace) |
+| 12 | 05/09 | context 4 — `procurement`, ACL #1 | script vá dừng giữa chừng mà vẫn đẩy file cũ |
+| 13 | 06/09 | context 5 — `logistics`, đối soát | — |
+| 14 | 06/09 | P9/T1 auth thật | `pgtest` truncate theo danh sách bảng **viết tay** |
+| 15 | 06/09 | P9/T3 quét quote hết hạn | smoke xanh chỉ vì DB tình cờ rỗng; lần 2 **401 sạch** |
+| 16 | 06/09 | P9 xong — read model, AI, tỷ giá | — |
+| 17 | 08/09 | variant/size qua ba context | `POST /orders` nhận **bất kỳ** uuid làm `variant_id` |
+| 18 | 08/09 | clone sang Linux, `smoke.sh` chạy thật | `CREATE TABLE IF NOT EXISTS` **không nguyên tử** — chỉ vỡ khi DB cold |
+
 
 Review toàn bộ `shared/` bằng cách viết một file test "thăm dò" chạy trên bản
 copy tạm, in ra giá trị thật thay vì đoán. Kết quả:
@@ -1706,3 +1415,44 @@ Con số giống nhau trên cả Windows và Linux.
 **Nợ đã trả:** `scripts/smoke.sh` từ đợt 16 tới giờ mới chỉ syntax-check trên
 Windows. Giờ nó đã chạy thật, trên Linux, trên database trống, và ngay lần đầu
 đã bắt được một bug mà 292 test không bắt.
+
+### Đợt 19 (08/09) — hai màn hình theo vai, và một luật đã bị bỏ quên
+
+Anh bấm thử bản console đầu rồi nói thẳng: *"UI gì mà khó xài dữ vậy ta?"*, kèm danh sách
+rất cụ thể. Đợt này là câu trả lời, và nó sinh ra bảng đọc thứ hai cùng ba trường mới.
+
+| Quyết định / bug | Chỗ nó nằm |
+|---|---|
+| Lỗi gốc: bản console bày ra **hình dạng của API** — một nút cho mỗi endpoint, bốn nút sáng cùng lúc, một ô dán uuid, và `1250` hardcode trong nhãn nút. Người dùng không nghĩ "thêm variant"; họ nghĩ *"làm cho cái link này bán được"* | `WALKTHROUGH.md` §23a |
+| Nhân viên **không hề biết** khách muốn size nào — hệ thống chưa bao giờ ghi. Thêm `RequestedVariant` (chữ của khách) cạnh `RequestedBy` (ai đang đợi). Cả hai nói về **yêu cầu**, nên cố tình không nằm trong `Provenance` | `catalog/product.go`, `0009`, `0011` |
+| Size phải là **chữ tự do**: giày người lớn có hệ M/W, giày trẻ có Y/C, áo có S/M/L, điện thoại có dung lượng. Enum nào cũng sẽ từ chối một size thật. UI **dạy** hệ size thay vì ép danh sách | `web/app/{customer,staff}.js` |
+| `catalog.listing_confirmed` — event thứ 37. Không event nào khác cho biết bước xác nhận đã xong, nên bảng đọc không thể biết, và một hàng chờ bắt người ta làm lại việc đã làm là hàng chờ họ thôi tin | `catalog/events.go` |
+| Bảng đọc `product_worklist`: bốn event, một dòng, `NextStep()` quyết **đúng một lần** trong model. Hai màn hình tự tính "còn thiếu gì" sẽ lệch nhau vào ngày có bước thứ năm, và lệch im lặng | `reporting/worklist.go` |
+| `GET /categories` và `GET /merchants` — hai tập đóng đã có ở domain nhưng **không có route đọc**, nên form buộc phải hỏi uuid | `http/reference.go` |
+| **Bug thật:** adapter in-memory của `CategoryRepo.All()` duyệt map Go, mà Go cố tình ngẫu nhiên hoá thứ tự duyệt map; Postgres thì `ORDER BY code`. Hai adapter không đồng ý → ngành hàng mặc định của form đổi mỗi lần tải trang. Có test canh cả hai giờ | `memory/category_repo.go` |
+| **Lỗ hổng nghiệp vụ, tìm ra khi đang viết docs:** `Merchant.Supports()` tồn tại từ đầu và **chưa ai gọi**. `sourcing` được ghi, được thông báo bằng event riêng, rồi bỏ quên — khách dán được link cho shop chỉ dành nhân viên. Giờ kiểm trong `AddProduct`, 409 `sourcing_not_allowed` (không phải 403: chìa hợp lệ, shop không nhận nguồn đó) | `app/catalog/add_product.go` |
+| Hai fixture test phải mở rộng vì chúng **đang chạy qua đường mà luật cấm**, suốt thời gian đó không ai biết, vì không có gì kiểm | `server_test.go`, `register_merchant_test.go` |
+| **Bug của tôi:** sửa migration 0009 tại chỗ với lý do "nó chỉ chạy trên database tạm", quên là máy Windows cũng đã chạy → 31 test đỏ ở đó với `column requested_by already exists`. Sửa một migration là phải dựng lại DB ở **mọi** máy đã chạy nó | `docker compose down -v` |
+| Mục **§3b** của file này từng bị bỏ khi file được viết lại gọn hơn. Đã lấy lại nguyên văn: nó giữ cho commit cá nhân không mang email công ty | `SETUP.md` §3b |
+
+### Năm lỗi chỉ trình duyệt thật mới bắt được
+
+`go test` xanh, `curl` đúng, và cả năm vẫn còn nguyên. Chỉ lộ ra khi cho Chrome bấm hết
+luồng bằng Playwright:
+
+```
+style="margin-left:auto"        React đòi object, không phải chuỗi        → error #62
+Field({...}) gọi như hàm        useId nhập vào hook list của cha          → error #310
+<label> không nối for/id        hỏng trình đọc màn hình VÀ getByLabel
+dòng tiền 0.00 vẫn hiện         so chuỗi với "0" mà API trả "0.00"
+ngành hàng mặc định đổi         map của Go, xem dòng bảng trên
+```
+
+Bài học: **một UI không có test là một UI chưa ai chạy.** Với backend thì `go test ./...` là
+bằng chứng; với màn hình, bằng chứng duy nhất là có cái gì đó bấm nó.
+
+Tổng **305 test** (+14 so với đợt 18). Với `PORTAGE_TEST_DSN`: **304 PASS + 1 SKIP**; không
+DSN: 272 PASS + 32 SKIP. 41 route, 35 dòng `Subscribe`, 37 domain event, 11 migration. Số
+giống nhau trên cả Windows và Linux.
+
+Đọc chi tiết: `WALKTHROUGH.md` §23 (chín mục) và `UI-GUIDE.md` (bốn màn hình).
