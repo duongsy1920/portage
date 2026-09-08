@@ -108,6 +108,7 @@ type ProductSnapshot struct {
 	ListingProvenance    Provenance
 	Price                shared.Money
 	PriceProvenance      Provenance
+	RequestedBy          shared.ID
 	Parcel               shared.ParcelSpec
 	ParcelProvenance     Provenance
 	Variants             []VariantSnapshot
@@ -133,6 +134,7 @@ func (p *Product) Snapshot() ProductSnapshot {
 		ListingProvenance:    p.listingProv,
 		Price:                p.price,
 		PriceProvenance:      p.priceProv,
+		RequestedBy:          p.requestedBy,
 		Parcel:               p.parcel,
 		ParcelProvenance:     p.parcelProv,
 		Variants:             variants,
@@ -209,6 +211,7 @@ func ProductFromSnapshot(s ProductSnapshot) (*Product, error) {
 		listingProv:          s.ListingProvenance,
 		price:                s.Price,
 		priceProv:            s.PriceProvenance,
+		requestedBy:          s.RequestedBy,
 		parcel:               s.Parcel,
 		parcelProv:           s.ParcelProvenance,
 		variants:             variants,

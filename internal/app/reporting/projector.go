@@ -32,7 +32,7 @@ type Projector struct {
 }
 
 func NewProjector(d Deps) *Projector {
-	mustHave("Projector", map[string]any{"UoW": d.UoW, "Summaries": d.Summaries, "Names": d.Names})
+	mustHave("Projector", map[string]any{"UoW": d.UoW, "Summaries": d.Summaries, "Names": d.Names, "Worklist": d.Worklist})
 	return &Projector{deps: d}
 }
 
@@ -44,6 +44,16 @@ func (p *Projector) OnProductPublished(ctx context.Context, m contracts.ProductP
 	product, err := shared.ParseID(m.ID)
 	if err != nil {
 		return fmt.Errorf("product_published: %w", err)
+	}
+	// Two read models move on this one event: the name every order summary
+	// shows, and the worklist row that can stop asking for anything.
+	if err := p.worklist(ctx, product, m.At, func(w *WorklistItem) {
+		w.Published = true
+		if w.Name == "" {
+			w.Name = m.Name // published before added was relayed: still order-tolerant
+		}
+	}); err != nil {
+		return err
 	}
 	return p.deps.UoW.InTx(ctx, func(ctx context.Context) error {
 		if err := p.deps.Names.Save(ctx, product, m.Name); err != nil {

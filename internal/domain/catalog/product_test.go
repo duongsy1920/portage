@@ -110,7 +110,12 @@ func TestAddProduct_rejectsBadInput(t *testing.T) {
 // choice either way. (A single all-zero struct would prove nothing: it dies on
 // the first check and never reaches the others.)
 func TestAddProduct_everyFieldIsValidated(t *testing.T) {
-	zeroIsMeaningful := map[string]string{} // none: a product needs everything
+	zeroIsMeaningful := map[string]string{
+		// An operator may add a product on spec, before any customer asks for
+		// it. Demanding a requester would make that impossible, and a made-up
+		// id would be worse: the worklist would promise to tell somebody.
+		"RequestedBy": "an operator may add a product nobody has asked for yet",
+	}
 
 	typ := reflect.TypeOf(exampleProduct())
 	for i := range typ.NumField() {
@@ -289,10 +294,10 @@ func TestProduct_publishRequiresEverything(t *testing.T) {
 	if err := p.Publish(testNow); !errors.Is(err, catalog.ErrUnverified) {
 		t.Fatalf("customer-supplied listing: got %v", err)
 	}
-	if err := p.ConfirmListing(customerSaid()); !errors.Is(err, catalog.ErrUnverified) {
+	if err := p.ConfirmListing(customerSaid(), testNow); !errors.Is(err, catalog.ErrUnverified) {
 		t.Fatalf("confirming with an unverified provenance: got %v", err)
 	}
-	if err := p.ConfirmListing(operatorChecked()); err != nil {
+	if err := p.ConfirmListing(operatorChecked(), testNow); err != nil {
 		t.Fatalf("ConfirmListing: %v", err)
 	}
 

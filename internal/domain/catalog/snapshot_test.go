@@ -55,7 +55,7 @@ func TestProduct_snapshotRoundTrip(t *testing.T) {
 	verified := operatorChecked()
 	addVariant(t, p, "US 9", "black")
 	addVariant(t, p, "US 10", "black")
-	if err := p.ConfirmListing(verified); err != nil {
+	if err := p.ConfirmListing(verified, testNow); err != nil {
 		t.Fatal(err)
 	}
 	if err := p.Measure(shared.MustParcelSpec(shared.Grams(1250), shared.NewDimensionsCM(34, 23, 13)), verified, testNow); err != nil {

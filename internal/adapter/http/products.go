@@ -60,15 +60,19 @@ func (s *server) addProduct(w http.ResponseWriter, r *http.Request) {
 	// Both facts come from the token: an operator's paste is vouched for and
 	// carries their id; a customer's is a draft nobody has checked yet.
 	operator, _ := operatorOf(r) // zero for a customer, which is correct here
+	// And who is WAITING for it, which is a different question: an operator
+	// pasting on spec leaves this zero, and that is legal.
+	customer, _ := customerOf(r)
 
 	id, err := s.add.Handle(r.Context(), catalogapp.AddProduct{
-		Name:      req.Name,
-		Merchant:  merchant,
-		Category:  category,
-		Source:    source,
-		Price:     price,
-		SourcedBy: sourcingOf(r),
-		Operator:  operator,
+		Name:        req.Name,
+		Merchant:    merchant,
+		Category:    category,
+		Source:      source,
+		Price:       price,
+		SourcedBy:   sourcingOf(r),
+		Operator:    operator,
+		RequestedBy: customer,
 	})
 	if err != nil {
 		writeError(w, err)

@@ -59,6 +59,7 @@ type api struct {
 	// reporting (read model)
 	summaries *memory.OrderSummaryRepo
 	names     *memory.ProductNameRepo
+	worklist  *memory.ProductWorklistRepo
 }
 
 // newAPI wires the whole API onto in-memory adapters. newAPIWith takes the
@@ -92,6 +93,7 @@ func newAPIWith(tweak func(*httpapi.Deps)) *api {
 		reconciliations: memory.NewReconciliationRepo(),
 		summaries:       memory.NewOrderSummaryRepo(),
 		names:           memory.NewProductNameRepo(),
+		worklist:        memory.NewProductWorklistRepo(),
 	}
 	a.auth = auth.NewStatic(map[string]auth.Principal{
 		devOperatorToken: auth.MustPrincipal(auth.Operator, a.operatorID.ID),
@@ -123,7 +125,7 @@ func newAPIWith(tweak func(*httpapi.Deps)) *api {
 			Clock: a.clock, UoW: memory.UnitOfWork{}, Outbox: a.outbox, Parcels: a.parcels, Batches: a.batches, Lanes: a.laneRules,
 		},
 		Reporting: reportingapp.Deps{
-			UoW: memory.UnitOfWork{}, Summaries: a.summaries, Names: a.names,
+			UoW: memory.UnitOfWork{}, Summaries: a.summaries, Names: a.names, Worklist: a.worklist,
 		},
 		Auth:   a.auth,
 		Tokens: a.auth, Registry: a.auth, // one store, all three halves of the port
@@ -416,7 +418,7 @@ func TestPOSTPublish(t *testing.T) {
 	if _, err := p.AddVariant(catalog.VariantDetails{Size: "US 9"}, now); err != nil {
 		t.Fatal(err)
 	}
-	if err := p.ConfirmListing(verified); err != nil {
+	if err := p.ConfirmListing(verified, now); err != nil {
 		t.Fatal(err)
 	}
 	if err := p.Measure(shared.MustParcelSpec(shared.Grams(1250), shared.NewDimensionsCM(34, 23, 13)), verified, now); err != nil {

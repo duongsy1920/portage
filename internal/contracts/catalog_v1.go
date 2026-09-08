@@ -53,6 +53,32 @@ type ProductPublishedV1 struct {
 // vocabulary, so a structured Size type would need a taxonomy per shop per
 // category — and a wrong guess merges two real sizes into one. MerchantRef is
 // the shop's own code, the field that makes an order unambiguous when it exists.
+// ProductAddedV1 is a DRAFT product appearing. The reading side needs it to
+// build the list of work still to do, which is why it carries the page and the
+// price and not only the ids: a row a person cannot act on is not a worklist.
+//
+// RequestedBy is the customer waiting, and it is EMPTY when an operator added
+// the product with nobody asking. Never treat it as required.
+type ProductAddedV1 struct {
+	ID          string    `json:"id"`
+	Merchant    string    `json:"merchant"`
+	Category    string    `json:"category"`
+	Name        string    `json:"name"`
+	Source      string    `json:"source"`
+	Price       MoneyV1   `json:"price"`
+	SourcedBy   string    `json:"sourced_by"`
+	RequestedBy string    `json:"requested_by"`
+	At          time.Time `json:"at"`
+}
+
+// ListingConfirmedV1 is an operator vouching for what a product is. The
+// worklist consumes it to stop asking for a step somebody already did.
+type ListingConfirmedV1 struct {
+	ID string    `json:"id"`
+	By string    `json:"by"`
+	At time.Time `json:"at"`
+}
+
 type VariantAddedV1 struct {
 	Product     string    `json:"product"`
 	Variant     string    `json:"variant"`

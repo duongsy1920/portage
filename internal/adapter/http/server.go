@@ -85,6 +85,7 @@ type server struct {
 	// a form has to offer instead of asking for a uuid
 	categories catalog.CategoryRepository
 	merchants  catalog.MerchantRepository
+	worklist   reportingapp.ProductWorklistRepository // the two screens' queue
 	// pricing
 	issue  *pricingapp.IssueQuoteHandler
 	accept *pricingapp.AcceptQuoteHandler
@@ -152,6 +153,7 @@ func NewHandler(d Deps) http.Handler {
 		fromURL:         catalogapp.NewDraftFromURLHandler(d.Catalog, extractor),
 		categories:      d.Catalog.Categories,
 		merchants:       d.Catalog.Merchants,
+		worklist:        d.Reporting.Worklist,
 		issue:           pricingapp.NewIssueQuoteHandler(d.Pricing),
 		accept:          pricingapp.NewAcceptQuoteHandler(d.Pricing),
 		quotes:          d.Pricing.Quotes,
@@ -193,6 +195,8 @@ func NewHandler(d Deps) http.Handler {
 	mux.HandleFunc("POST /merchants", requireOperator(s.registerMerchant))
 	mux.HandleFunc("POST /products", requireAny(s.addProduct))
 	mux.HandleFunc("POST /products/from-url", requireAny(s.draftFromURL))
+	mux.HandleFunc("GET /product-queue", requireOperator(s.listProductQueue))
+	mux.HandleFunc("GET /me/products", requireCustomer(s.listMyProducts))
 	mux.HandleFunc("GET /categories", requireAny(s.listCategories))
 	mux.HandleFunc("GET /merchants", requireAny(s.listMerchants))
 	mux.HandleFunc("POST /products/{id}/variants", requireOperator(s.addVariant))

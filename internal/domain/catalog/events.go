@@ -131,11 +131,46 @@ type ProductAdded struct {
 	Merchant MerchantID
 	Category CategoryCode
 	Name     string
-	At       time.Time
+
+	// Source and Price travel with the event because the screen that lists
+	// work still to do has to show a person WHICH page to open and what the
+	// shop was asking. A row with only a name and a uuid is not actionable.
+	Source SourceURL
+	Price  shared.Money
+
+	// SourcedBy is how the data reached us, and RequestedBy is the customer
+	// waiting for it — two different questions. RequestedBy is zero when an
+	// operator added the product with nobody asking for it yet, which is why
+	// no consumer may treat it as required.
+	SourcedBy   SourcingMode
+	RequestedBy shared.ID
+
+	At time.Time
 }
 
 func (e ProductAdded) EventName() string {
 	return "catalog.product_added"
+}
+
+// ListingConfirmed is an operator putting their name to what a product IS:
+// this page really is this thing, from this shop, in this category.
+//
+// It exists because the screen that lists unfinished work has to say which of
+// the four steps are done, and it cannot know this one by watching any other
+// event. Without it a person is told to confirm a listing that was confirmed
+// an hour ago, which is how a worklist loses their trust.
+type ListingConfirmed struct {
+	ID ProductID
+	By shared.OperatorID
+	At time.Time
+}
+
+func (e ListingConfirmed) EventName() string {
+	return "catalog.listing_confirmed"
+}
+
+func (e ListingConfirmed) OccurredAt() time.Time {
+	return e.At
 }
 
 // VariantAdded says which purchasable form now exists, in the shop's own

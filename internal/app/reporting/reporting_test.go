@@ -18,14 +18,19 @@ var now = time.Date(2026, 9, 6, 10, 0, 0, 0, time.UTC)
 type world struct {
 	summaries *memory.OrderSummaryRepo
 	names     *memory.ProductNameRepo
+	worklist  *memory.ProductWorklistRepo
 	p         *reportingapp.Projector
 }
 
 func newWorld(t *testing.T) *world {
 	t.Helper()
-	w := &world{summaries: memory.NewOrderSummaryRepo(), names: memory.NewProductNameRepo()}
+	w := &world{
+		summaries: memory.NewOrderSummaryRepo(),
+		names:     memory.NewProductNameRepo(),
+		worklist:  memory.NewProductWorklistRepo(),
+	}
 	w.p = reportingapp.NewProjector(reportingapp.Deps{
-		UoW: memory.UnitOfWork{}, Summaries: w.summaries, Names: w.names,
+		UoW: memory.UnitOfWork{}, Summaries: w.summaries, Names: w.names, Worklist: w.worklist,
 	})
 	return w
 }

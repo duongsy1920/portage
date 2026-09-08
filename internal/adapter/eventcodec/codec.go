@@ -87,7 +87,11 @@ func payload(ev shared.Event) (m, error) {
 
 	// ── Product ───────────────────────────────────────────────────────────
 	case catalog.ProductAdded:
-		return m{"id": e.ID.String(), "merchant": e.Merchant.String(), "category": e.Category.String(), "name": e.Name, "at": ts(e.At)}, nil
+		return m{"id": e.ID.String(), "merchant": e.Merchant.String(), "category": e.Category.String(),
+			"name": e.Name, "source": e.Source.String(), "price": money(e.Price),
+			"sourced_by": string(e.SourcedBy), "requested_by": idOrEmpty(e.RequestedBy), "at": ts(e.At)}, nil
+	case catalog.ListingConfirmed:
+		return m{"id": e.ID.String(), "by": e.By.String(), "at": ts(e.At)}, nil
 	case catalog.ProductMeasured:
 		return m{"id": e.ID.String(), "parcel": parcel(e.Parcel), "verified": e.Verified, "at": ts(e.At)}, nil
 	case catalog.ProductRepriced:
@@ -176,6 +180,17 @@ func payload(ev shared.Event) (m, error) {
 }
 
 // ts is the one time format on the wire: RFC 3339, UTC, nanoseconds when any.
+// idOrEmpty keeps a zero id out of the wire as "" rather than a uuid of all
+// zeros. A consumer that parses "00000000-0000-0000-0000-000000000000" gets a
+// perfectly valid id for a customer who does not exist, and then addresses a
+// notification to nobody. Same rule the reporting repository follows with NULL.
+func idOrEmpty(id shared.ID) string {
+	if id.IsZero() {
+		return ""
+	}
+	return id.String()
+}
+
 func ts(t time.Time) string {
 	return t.UTC().Format(time.RFC3339Nano)
 }

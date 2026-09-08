@@ -75,6 +75,13 @@ func Subscribe(bus *worker.Bus, g Graph) {
 	// them may be the event that creates the row.
 	screens := reportingapp.NewProjector(g.Reporting)
 	bus.Subscribe("catalog.product_published", on(screens.OnProductPublished)) // third listener on this one
+	// The worklist: four operator actions, four events, one row that always
+	// knows which step is next. product_added is heard ONLY here, because a
+	// draft nobody has checked is a screen's problem and nobody else's.
+	bus.Subscribe("catalog.product_added", on(screens.OnProductAdded))
+	bus.Subscribe("catalog.variant_added", on(screens.OnVariantAdded)) // third listener on this one
+	bus.Subscribe("catalog.listing_confirmed", on(screens.OnListingConfirmed))
+	bus.Subscribe("catalog.product_measured", on(screens.OnProductMeasured)) // second listener on this one
 	bus.Subscribe("ordering.order_placed", on(screens.OnOrderPlaced))
 	bus.Subscribe("ordering.deposit_paid", on(screens.OnDepositPaid))
 	bus.Subscribe("ordering.order_purchased", on(screens.OnOrderPurchased))

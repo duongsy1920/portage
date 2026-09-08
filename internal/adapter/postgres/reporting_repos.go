@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -253,4 +254,161 @@ func timeFrom(t *time.Time) time.Time {
 		return time.Time{}
 	}
 	return t.UTC()
+}
+
+// ── the worklist (0009_product_worklist.sql) ─────────────────────────────────
+
+const worklistColumns = `product, merchant, category, name, source_url,
+	price_minor, price_currency, sourced_by, requested_by,
+	listing_confirmed, measured, published, variants,
+	added_at, updated_at`
+
+type ProductWorklistRepo struct {
+	pool *pgxpool.Pool
+}
+
+var _ reportingapp.ProductWorklistRepository = (*ProductWorklistRepo)(nil)
+
+func NewProductWorklistRepo(pool *pgxpool.Pool) *ProductWorklistRepo {
+	return &ProductWorklistRepo{pool: pool}
+}
+
+func (r *ProductWorklistRepo) ByProduct(ctx context.Context, product shared.ID) (reportingapp.WorklistItem, error) {
+	row := db(ctx, r.pool).QueryRow(ctx,
+		`SELECT `+worklistColumns+` FROM product_worklist WHERE product = $1`, product.String())
+	w, err := scanWorklistItem(row)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return reportingapp.WorklistItem{}, fmt.Errorf("worklist item %s: %w", product, reportingapp.ErrWorklistItemNotFound)
+	}
+	return w, err
+}
+
+func (r *ProductWorklistRepo) Open(ctx context.Context) ([]reportingapp.WorklistItem, error) {
+	return r.listWorklist(ctx, `WHERE published = false`)
+}
+
+func (r *ProductWorklistRepo) ByRequester(ctx context.Context, customer shared.ID) ([]reportingapp.WorklistItem, error) {
+	if customer.IsZero() {
+		// requested_by IS NULL would match every row an operator added on
+		// spec, and hand one person a list that is not theirs.
+		return []reportingapp.WorklistItem{}, nil
+	}
+	return r.listWorklist(ctx, `WHERE requested_by = $1`, customer.String())
+}
+
+func (r *ProductWorklistRepo) Save(ctx context.Context, w reportingapp.WorklistItem) error {
+	// The list goes down as jsonb. An empty list is "[]" and not NULL, so a
+	// reader never has to tell "no sizes yet" from "column missing".
+	rows := make([]worklistVariantRow, 0, len(w.Variants))
+	for _, v := range w.Variants {
+		rows = append(rows, worklistVariantRow{ID: v.ID.String(), Label: v.Label})
+	}
+	variants, err := json.Marshal(rows)
+	if err != nil {
+		return fmt.Errorf("save worklist item %s: %w", w.Product, err)
+	}
+	_, err = db(ctx, r.pool).Exec(ctx, `
+		INSERT INTO product_worklist (`+worklistColumns+`)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+		ON CONFLICT (product) DO UPDATE SET
+			merchant = EXCLUDED.merchant, category = EXCLUDED.category, name = EXCLUDED.name,
+			source_url = EXCLUDED.source_url,
+			price_minor = EXCLUDED.price_minor, price_currency = EXCLUDED.price_currency,
+			sourced_by = EXCLUDED.sourced_by, requested_by = EXCLUDED.requested_by,
+			listing_confirmed = EXCLUDED.listing_confirmed,
+			measured = EXCLUDED.measured, published = EXCLUDED.published,
+			variants = EXCLUDED.variants,
+			added_at = EXCLUDED.added_at, updated_at = EXCLUDED.updated_at`,
+		w.Product.String(), w.Merchant.String(), w.Category, w.Name, w.Source,
+		w.Price.Minor(), w.Price.Currency().Code(), w.SourcedBy, idOrNil(w.RequestedBy),
+		w.ListingConfirmed, w.Measured, w.Published, variants,
+		w.AddedAt, w.UpdatedAt)
+	if err != nil {
+		return fmt.Errorf("save worklist item %s: %w", w.Product, err)
+	}
+	return nil
+}
+
+func (r *ProductWorklistRepo) listWorklist(ctx context.Context, where string, args ...any) ([]reportingapp.WorklistItem, error) {
+	rows, err := db(ctx, r.pool).Query(ctx,
+		`SELECT `+worklistColumns+` FROM product_worklist `+where+` ORDER BY added_at, product`, args...)
+	if err != nil {
+		return nil, fmt.Errorf("list worklist: %w", err)
+	}
+	defer rows.Close()
+	out := []reportingapp.WorklistItem{}
+	for rows.Next() {
+		w, err := scanWorklistItem(rows)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, w)
+	}
+	return out, rows.Err()
+}
+
+// worklistVariantRow is the jsonb shape. Named keys, written by hand, for the
+// same reason event payloads are: the column IS a contract once a row exists.
+type worklistVariantRow struct {
+	ID    string `json:"id"`
+	Label string `json:"label"`
+}
+
+// scanWorklistItem fills a plain struct, like the summary scan above: a
+// projection has no invariant to re-check, only ids and money to parse.
+func scanWorklistItem(row pgx.Row) (reportingapp.WorklistItem, error) {
+	var (
+		product, merchant, category, name, source string
+		priceCurrency, sourcedBy                  string
+		priceMinor                                int64
+		requestedBy                               *string
+		confirmed, measured, published            bool
+		variantsJSON                              []byte
+		addedAt, updatedAt                        time.Time
+	)
+	if err := row.Scan(&product, &merchant, &category, &name, &source,
+		&priceMinor, &priceCurrency, &sourcedBy, &requestedBy,
+		&confirmed, &measured, &published, &variantsJSON,
+		&addedAt, &updatedAt); err != nil {
+		return reportingapp.WorklistItem{}, err
+	}
+	pid, err := shared.ParseID(product)
+	if err != nil {
+		return reportingapp.WorklistItem{}, corrupt("product_worklist", product, err)
+	}
+	mid, err := shared.ParseID(merchant)
+	if err != nil {
+		return reportingapp.WorklistItem{}, corrupt("product_worklist", product, err)
+	}
+	cur, err := shared.CurrencyFromCode(priceCurrency)
+	if err != nil {
+		return reportingapp.WorklistItem{}, corrupt("product_worklist", product, err)
+	}
+	w := reportingapp.WorklistItem{
+		Product: pid, Merchant: mid, Category: category, Name: name, Source: source,
+		Price: shared.NewMoney(priceMinor, cur), SourcedBy: sourcedBy,
+		ListingConfirmed: confirmed, Measured: measured, Published: published,
+		AddedAt: addedAt.UTC(), UpdatedAt: updatedAt.UTC(),
+	}
+	var rows []worklistVariantRow
+	if len(variantsJSON) > 0 {
+		if err := json.Unmarshal(variantsJSON, &rows); err != nil {
+			return reportingapp.WorklistItem{}, corrupt("product_worklist", product, err)
+		}
+	}
+	for _, v := range rows {
+		id, err := shared.ParseID(v.ID)
+		if err != nil {
+			return reportingapp.WorklistItem{}, corrupt("product_worklist", product, err)
+		}
+		w.Variants = append(w.Variants, reportingapp.WorklistVariant{ID: id, Label: v.Label})
+	}
+	if requestedBy != nil {
+		id, err := shared.ParseID(*requestedBy)
+		if err != nil {
+			return reportingapp.WorklistItem{}, corrupt("product_worklist", product, err)
+		}
+		w.RequestedBy = id
+	}
+	return w, nil
 }

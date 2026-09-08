@@ -3,10 +3,12 @@ package memory_test
 import (
 	"context"
 	"errors"
+	"reflect"
 	"testing"
 	"time"
 
 	"github.com/duongsy/portage/internal/adapter/memory"
+	"github.com/duongsy/portage/internal/domain/catalog"
 	"github.com/duongsy/portage/internal/domain/logistics"
 	"github.com/duongsy/portage/internal/domain/ordering"
 	"github.com/duongsy/portage/internal/domain/pricing"
@@ -402,4 +404,73 @@ func TestOutbox_pendingAndMarkSent(t *testing.T) {
 	if again, _ := outbox.Pending(ctx, 10); len(again) != 0 {
 		t.Errorf("a sent row came back: %+v", again)
 	}
+}
+
+// The two reference lists a form turns into select boxes, and the property
+// that makes them usable: a STABLE order, matching what Postgres returns.
+//
+// Go randomises map iteration on purpose, so a repository that just ranges
+// over its map hands back a different order every call. On a screen that is a
+// select box whose default answer changes on every page load, which reads as a
+// broken form long before anybody suspects the adapter.
+func TestReferenceLists_comeBackInAStableOrder(t *testing.T) {
+	ctx := context.Background()
+	cats := memory.NewCategoryRepo()
+	for _, code := range []string{"luggage", "footwear", "electronics", "apparel"} {
+		p, err := catalog.NewCategoryPolicy(catalog.MustParseCategoryCode(code),
+			shared.MustParcelSpec(shared.Grams(1000), shared.NewDimensionsCM(30, 20, 10)), nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := cats.Save(ctx, p); err != nil {
+			t.Fatal(err)
+		}
+	}
+	want := []string{"apparel", "electronics", "footwear", "luggage"} // by code, like ORDER BY code
+	for range 8 {                                                     // enough calls that a random order would show
+		all, err := cats.All(ctx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		got := make([]string, 0, len(all))
+		for _, c := range all {
+			got = append(got, c.Code().String())
+		}
+		if !reflect.DeepEqual(got, want) {
+			t.Fatalf("categories = %v, want %v", got, want)
+		}
+	}
+
+	// Merchants sort by id, which is UUIDv7 and therefore creation order: the
+	// list a person reads grows at the bottom instead of reshuffling.
+	shops := memory.NewMerchantRepo()
+	first := aShop(t, "www.first.com")
+	second := aShop(t, "www.second.com")
+	for _, m := range []*catalog.Merchant{first, second} {
+		if err := shops.Save(ctx, m); err != nil {
+			t.Fatal(err)
+		}
+	}
+	for range 8 {
+		all, err := shops.All(ctx)
+		if err != nil || len(all) != 2 {
+			t.Fatalf("All = %d, %v", len(all), err)
+		}
+		if all[0].ID() != first.ID() || all[1].ID() != second.ID() {
+			t.Fatalf("merchants came back %s, %s; want %s, %s", all[0].ID(), all[1].ID(), first.ID(), second.ID())
+		}
+	}
+}
+
+func aShop(t *testing.T, site string) *catalog.Merchant {
+	t.Helper()
+	m, err := catalog.RegisterMerchant(catalog.MerchantDetails{
+		Name: site, Site: catalog.MustParseHostname(site), Currency: shared.USD,
+		Sourcing: []catalog.SourcingMode{catalog.SourcedByOperator},
+	}, time.Date(2026, 9, 8, 10, 0, 0, 0, time.UTC))
+	if err != nil {
+		t.Fatal(err)
+	}
+	m.PullEvents()
+	return m
 }

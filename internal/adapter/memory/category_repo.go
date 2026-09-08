@@ -3,6 +3,7 @@ package memory
 import (
 	"context"
 	"fmt"
+	"sort"
 	"sync"
 
 	"github.com/duongsy/portage/internal/domain/catalog"
@@ -38,6 +39,11 @@ func (r *CategoryRepo) All(ctx context.Context) ([]catalog.CategoryPolicy, error
 	for _, p := range r.byCode {
 		out = append(out, p)
 	}
+	// By code, because Postgres says ORDER BY code and the two adapters have
+	// to agree. Go map iteration is deliberately randomised, so without this
+	// the form that lists categories picks a different default on every load —
+	// a select box that reshuffles under the person using it.
+	sort.Slice(out, func(i, j int) bool { return out[i].Code().String() < out[j].Code().String() })
 	return out, nil
 }
 

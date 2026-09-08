@@ -42,12 +42,18 @@ func TestOperatorFlow_overHTTP(t *testing.T) {
 	if rec := a.call(t, "POST", "/products/"+id+"/measure", body, operator); rec.Code != http.StatusNoContent {
 		t.Fatalf("measure = %d %s", rec.Code, rec.Body)
 	}
-	// Two events, in the order they were decided: adding the size is a fact
-	// ordering and procurement both need (it is what lets them refuse an
-	// invented variant, and name a size on the buyer's screen), and the
-	// measurement is the fact pricing needs.
-	if evs := a.outbox.Drain(); len(evs) != 2 || evs[0].EventName() != "catalog.variant_added" || evs[1].EventName() != "catalog.product_measured" {
-		t.Fatalf("outbox after measure = %v", evs)
+	// Three events, in the order the operator decided them: the size, the
+	// signature on what the product is, and the measurement. Each has a
+	// consumer outside catalog, which is the only reason any of them exists.
+	evs := a.outbox.Drain()
+	want := []string{"catalog.variant_added", "catalog.listing_confirmed", "catalog.product_measured"}
+	if len(evs) != len(want) {
+		t.Fatalf("outbox after measure = %v, want %v", evs, want)
+	}
+	for i := range want {
+		if evs[i].EventName() != want[i] {
+			t.Fatalf("outbox after measure = %v, want %v", evs, want)
+		}
 	}
 
 	if rec := a.call(t, "POST", "/products/"+id+"/publish", "", nil); rec.Code != http.StatusNoContent {

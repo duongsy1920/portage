@@ -50,7 +50,7 @@ func TestPublishProduct_savesThenPublishes(t *testing.T) {
 	if _, err := p.AddVariant(catalog.VariantDetails{Size: "US 9"}, now); err != nil {
 		t.Fatal(err)
 	}
-	if err := p.ConfirmListing(verified); err != nil {
+	if err := p.ConfirmListing(verified, now); err != nil {
 		t.Fatal(err)
 	}
 	if err := p.Measure(shared.MustParcelSpec(shared.Grams(1250), shared.NewDimensionsCM(34, 23, 13)), verified, now); err != nil {

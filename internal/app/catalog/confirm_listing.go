@@ -30,7 +30,8 @@ func NewConfirmListingHandler(d Deps) *ConfirmListingHandler {
 }
 
 func (h *ConfirmListingHandler) Handle(ctx context.Context, cmd ConfirmListing) error {
-	prov, err := catalog.NewProvenance(catalog.SourcedByOperator, h.deps.Clock.Now(), cmd.Operator)
+	now := h.deps.Clock.Now()
+	prov, err := catalog.NewProvenance(catalog.SourcedByOperator, now, cmd.Operator)
 	if err != nil {
 		return err
 	}
@@ -39,7 +40,7 @@ func (h *ConfirmListingHandler) Handle(ctx context.Context, cmd ConfirmListing) 
 		if err != nil {
 			return err
 		}
-		if err := p.ConfirmListing(prov); err != nil {
+		if err := p.ConfirmListing(prov, now); err != nil {
 			return err
 		}
 		if err := h.deps.Products.Save(ctx, p); err != nil {

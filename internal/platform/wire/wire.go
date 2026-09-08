@@ -131,6 +131,7 @@ func Memory(clk app.Clock) Graph {
 			UoW:       uow,
 			Summaries: memory.NewOrderSummaryRepo(),
 			Names:     memory.NewProductNameRepo(),
+			Worklist:  memory.NewProductWorklistRepo(),
 		},
 		// A Fake extractor in memory: `go run ./cmd/api` must work with no API
 		// key, no network and no bill. Postgres does NOT fall back to it.
@@ -254,6 +255,7 @@ func Postgres(ctx context.Context, clk app.Clock, dsn string) (g Graph, closeFn 
 			UoW:       uow,
 			Summaries: postgres.NewOrderSummaryRepo(pool),
 			Names:     postgres.NewProductNameRepo(pool),
+			Worklist:  postgres.NewProductWorklistRepo(pool),
 		},
 		Extractor: extractor,
 		Source:    outbox,

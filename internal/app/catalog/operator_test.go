@@ -53,11 +53,20 @@ func TestOperatorSteps_makeAProductPublishable(t *testing.T) {
 	if err := measure.Handle(ctx, catalogapp.MeasureProduct{Product: id, Spec: spec, Operator: operator}); err != nil {
 		t.Fatal(err)
 	}
-	// Two events now: adding the variant announced WHICH SIZE exists, because
-	// procurement has to buy that size and may not read catalog to find it.
+	// Three events, in the order they were decided. Each one exists because
+	// somebody outside catalog needs it: the size so procurement can buy it
+	// and ordering can refuse an invented one, the signature so the worklist
+	// stops asking for a step already done, the measurement so pricing can
+	// quote on a real box.
 	evs := w.outbox.Drain()
-	if len(evs) != 2 || evs[0].EventName() != "catalog.variant_added" || evs[1].EventName() != "catalog.product_measured" {
-		t.Fatalf("outbox = %v, want variant_added then product_measured", evs)
+	want := []string{"catalog.variant_added", "catalog.listing_confirmed", "catalog.product_measured"}
+	if len(evs) != len(want) {
+		t.Fatalf("outbox = %v, want %v", evs, want)
+	}
+	for i := range want {
+		if evs[i].EventName() != want[i] {
+			t.Fatalf("outbox = %v, want %v", evs, want)
+		}
 	}
 	if va, ok := evs[0].(catalog.VariantAdded); !ok || va.Size != "US 9" || va.Color != "black" {
 		t.Fatalf("variant_added must carry the shop's own words: %+v", evs[0])

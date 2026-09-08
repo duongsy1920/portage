@@ -23,6 +23,8 @@ var decoders = map[string]func([]byte) (any, error){
 	"catalog.product_retired":        into[contracts.ProductRetiredV1],
 	"catalog.category_defined":       into[contracts.CategoryDefinedV1],
 	"catalog.variant_added":          into[contracts.VariantAddedV1],       // procurement: WHICH SIZE to buy
+	"catalog.product_added":          into[contracts.ProductAddedV1],       // reporting: the worklist of drafts
+	"catalog.listing_confirmed":      into[contracts.ListingConfirmedV1],   // reporting: that step is done
 	"pricing.quote_accepted":         into[contracts.QuoteAcceptedV1],      // ordering places orders on it
 	"catalog.merchant_registered":    into[contracts.MerchantRegisteredV1], // procurement: which currency a shop bills in
 	"ordering.deposit_paid":          into[contracts.DepositPaidV1],        // procurement opens a purchase task

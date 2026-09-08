@@ -123,3 +123,60 @@ func TestProductNameRepo_upsertAndMissIsNotAnError(t *testing.T) {
 		t.Fatalf("name = %q, %v", name, ok)
 	}
 }
+
+// The worklist read model on real columns: one nullable id, four booleans and
+// two queries the screens live on.
+func TestProductWorklistRepo_roundTripAndTheTwoQueries(t *testing.T) {
+	p := pool(t)
+	ctx := context.Background()
+	repo := postgres.NewProductWorklistRepo(p)
+
+	waiting := shared.NewID()
+	mine := reportingapp.WorklistItem{
+		Product: shared.NewID(), Merchant: shared.NewID(), Category: "footwear", Name: "Air Trainer 90",
+		Source: "https://www.example.com/t/air-trainer-90/abc",
+		Price:  shared.MustParseMoney("150.00", shared.USD), SourcedBy: "customer", RequestedBy: waiting,
+		Variants: []reportingapp.WorklistVariant{{ID: shared.NewID(), Label: "US 9 · black"}},
+		AddedAt:  now, UpdatedAt: now,
+	}
+	// An operator added this one on spec: requested_by goes down as NULL, not
+	// as a uuid of all zeros that would read back as a real customer.
+	onSpec := reportingapp.WorklistItem{
+		Product: shared.NewID(), Merchant: shared.NewID(), Category: "apparel", Name: "On spec",
+		Source: "https://www.example.com/t/y", Price: shared.MustParseMoney("20.00", shared.USD),
+		SourcedBy: "operator", Published: true,
+		AddedAt: now.Add(time.Minute), UpdatedAt: now.Add(time.Minute),
+	}
+
+	if _, err := repo.ByProduct(ctx, mine.Product); !errors.Is(err, reportingapp.ErrWorklistItemNotFound) {
+		t.Fatalf("missing row: %v", err)
+	}
+	for range 2 { // upsert, because the relay is at-least-once
+		for _, item := range []reportingapp.WorklistItem{mine, onSpec} {
+			if err := repo.Save(ctx, item); err != nil {
+				t.Fatal(err)
+			}
+		}
+	}
+	got, err := repo.ByProduct(ctx, mine.Product)
+	if err != nil || !reflect.DeepEqual(got, mine) {
+		t.Fatalf("round trip:\n got %+v\nwant %+v\n%v", got, mine, err)
+	}
+	if back, err := repo.ByProduct(ctx, onSpec.Product); err != nil || !back.RequestedBy.IsZero() {
+		t.Fatalf("NULL requested_by must read back as the zero id: %+v, %v", back, err)
+	}
+
+	// Open is unfinished work only, and the published row is finished.
+	open, err := repo.Open(ctx)
+	if err != nil || len(open) != 1 || open[0].Product != mine.Product {
+		t.Fatalf("Open = %+v, %v", open, err)
+	}
+	// ByRequester is the customer's own list, and the zero id owns nothing.
+	ours, err := repo.ByRequester(ctx, waiting)
+	if err != nil || len(ours) != 1 || ours[0].Product != mine.Product {
+		t.Fatalf("ByRequester = %+v, %v", ours, err)
+	}
+	if none, err := repo.ByRequester(ctx, shared.ID{}); err != nil || len(none) != 0 {
+		t.Fatalf("the zero customer = %+v, %v", none, err)
+	}
+}

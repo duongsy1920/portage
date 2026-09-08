@@ -10,6 +10,7 @@ type Deps struct {
 	UoW       app.UnitOfWork
 	Summaries OrderSummaryRepository
 	Names     ProductNames
+	Worklist  ProductWorklistRepository
 }
 
 func mustHave(handler string, deps map[string]any) {

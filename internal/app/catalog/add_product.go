@@ -25,6 +25,11 @@ type AddProduct struct {
 	Price     shared.Money
 	SourcedBy catalog.SourcingMode // how the data reached us: customer or operator
 	Operator  shared.OperatorID    // who, when SourcedBy is operator (from auth)
+
+	// RequestedBy: the customer this is for, taken from the token when a
+	// customer pastes. Zero when an operator adds a product on spec, which is
+	// legal — nobody is waiting for it yet.
+	RequestedBy shared.ID
 }
 
 // AddProductHandler records a draft product, enforcing the two rules that need
@@ -84,6 +89,7 @@ func (h *AddProductHandler) Handle(ctx context.Context, cmd AddProduct) (catalog
 			Price:             cmd.Price,
 			ListingProvenance: prov,
 			PriceProvenance:   prov,
+			RequestedBy:       cmd.RequestedBy,
 		}, now)
 		if err != nil {
 			return err

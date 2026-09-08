@@ -112,3 +112,65 @@ func (r *ProductNameRepo) Save(ctx context.Context, product shared.ID, name stri
 	r.byID[product] = name
 	return nil
 }
+
+// ProductWorklistRepo is the in-memory store for the worklist read model.
+type ProductWorklistRepo struct {
+	mu        sync.Mutex
+	byProduct map[shared.ID]reportingapp.WorklistItem
+}
+
+var _ reportingapp.ProductWorklistRepository = (*ProductWorklistRepo)(nil)
+
+func NewProductWorklistRepo() *ProductWorklistRepo {
+	return &ProductWorklistRepo{byProduct: map[shared.ID]reportingapp.WorklistItem{}}
+}
+
+func (r *ProductWorklistRepo) ByProduct(ctx context.Context, product shared.ID) (reportingapp.WorklistItem, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	w, ok := r.byProduct[product]
+	if !ok {
+		return reportingapp.WorklistItem{}, fmt.Errorf("worklist item %s: %w", product, reportingapp.ErrWorklistItemNotFound)
+	}
+	return w, nil
+}
+
+// Open is unfinished work, oldest first: a queue, so the thing that has been
+// waiting longest is the thing a person sees at the top.
+func (r *ProductWorklistRepo) Open(ctx context.Context) ([]reportingapp.WorklistItem, error) {
+	return r.filterWorklist(func(w reportingapp.WorklistItem) bool { return !w.Published }), nil
+}
+
+func (r *ProductWorklistRepo) ByRequester(ctx context.Context, customer shared.ID) ([]reportingapp.WorklistItem, error) {
+	if customer.IsZero() {
+		// Nobody is "the zero customer". Answering with every unrequested row
+		// would hand one person somebody else's list.
+		return []reportingapp.WorklistItem{}, nil
+	}
+	return r.filterWorklist(func(w reportingapp.WorklistItem) bool { return w.RequestedBy == customer }), nil
+}
+
+func (r *ProductWorklistRepo) Save(ctx context.Context, item reportingapp.WorklistItem) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.byProduct[item.Product] = item
+	return nil
+}
+
+func (r *ProductWorklistRepo) filterWorklist(keep func(reportingapp.WorklistItem) bool) []reportingapp.WorklistItem {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	out := []reportingapp.WorklistItem{}
+	for _, w := range r.byProduct {
+		if keep(w) {
+			out = append(out, w)
+		}
+	}
+	sort.Slice(out, func(i, j int) bool {
+		if !out[i].AddedAt.Equal(out[j].AddedAt) {
+			return out[i].AddedAt.Before(out[j].AddedAt)
+		}
+		return out[i].Product.String() < out[j].Product.String() // ties break stably
+	})
+	return out
+}

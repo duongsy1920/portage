@@ -65,6 +65,12 @@ type ProductDetails struct {
 	Price             shared.Money // in the merchant's currency — the app layer checks that
 	ListingProvenance Provenance   // where name, merchant, category and source came from
 	PriceProvenance   Provenance
+
+	// RequestedBy is the customer who asked for this thing. Optional: an
+	// operator may add a product before anybody wants it. It is NOT part of
+	// Provenance on purpose — provenance answers "how did this data get here
+	// and who vouched for it", this answers "who is waiting for it".
+	RequestedBy shared.ID
 }
 
 // Product is the second AGGREGATE ROOT of the catalogue: one thing a customer
@@ -100,6 +106,9 @@ type Product struct {
 
 	price     shared.Money
 	priceProv Provenance
+
+	// requestedBy: the customer waiting for this product, when one asked.
+	requestedBy shared.ID
 
 	parcel     shared.ParcelSpec // zero until Measure
 	parcelProv Provenance
@@ -144,10 +153,16 @@ func AddProduct(d ProductDetails, now time.Time) (*Product, error) {
 		listingProv: d.ListingProvenance,
 		price:       d.Price,
 		priceProv:   d.PriceProvenance,
+		requestedBy: d.RequestedBy,
 		status:      ProductStatusDraft,
 		addedAt:     now,
 	}
-	p.Record(ProductAdded{ID: p.id, Merchant: p.merchant, Category: p.category, Name: name, At: now})
+	p.Record(ProductAdded{
+		ID: p.id, Merchant: p.merchant, Category: p.category, Name: name,
+		Source: p.source, Price: p.price,
+		SourcedBy: d.ListingProvenance.Source(), RequestedBy: p.requestedBy,
+		At: now,
+	})
 	return p, nil
 }
 
@@ -179,6 +194,12 @@ func (p *Product) Name() string {
 
 func (p *Product) Source() SourceURL {
 	return p.source
+}
+
+// RequestedBy is the customer waiting for this product, or the zero id when
+// an operator added it with nobody asking.
+func (p *Product) RequestedBy() shared.ID {
+	return p.requestedBy
 }
 
 func (p *Product) Price() shared.Money {
@@ -273,11 +294,12 @@ func (p *Product) AddVariant(d VariantDetails, now time.Time) (VariantID, error)
 // ConfirmListing records that an operator has checked what this product is.
 // Only a verified provenance can confirm; a customer cannot vouch for their
 // own paste. No event and no clock: the provenance carries its own time.
-func (p *Product) ConfirmListing(prov Provenance) error {
+func (p *Product) ConfirmListing(prov Provenance, now time.Time) error {
 	if !prov.Verified() {
 		return fmt.Errorf("confirm listing of %q with %s: %w", p.name, prov, ErrUnverified)
 	}
 	p.listingProv = prov
+	p.Record(ListingConfirmed{ID: p.id, By: prov.By(), At: now})
 	return nil
 }
 

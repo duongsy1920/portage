@@ -275,10 +275,15 @@ func TestProductRepo_roundTrip(t *testing.T) {
 	operator := shared.NewOperatorID()
 	customer := catalog.MustProvenance(catalog.SourcedByCustomer, now, shared.OperatorID{})
 	verified := catalog.MustProvenance(catalog.SourcedByOperator, now.Add(time.Minute), operator)
+	// RequestedBy is set here on purpose: it is the one nullable id on this
+	// table, and a round trip that leaves it zero would pass while the column
+	// did not exist at all.
+	waiting := shared.NewID()
 	prod, err := catalog.AddProduct(catalog.ProductDetails{
 		Name: "Air Trainer 90", Merchant: m.ID(), Category: catalog.MustParseCategoryCode("footwear"),
 		Source: catalog.MustParseSourceURL("https://www.example.com/t/air-trainer-90/abc"),
 		Price:  shared.MustParseMoney("150.00", shared.USD), ListingProvenance: customer, PriceProvenance: customer,
+		RequestedBy: waiting,
 	}, now)
 	if err != nil {
 		t.Fatal(err)
@@ -299,7 +304,7 @@ func TestProductRepo_roundTrip(t *testing.T) {
 	if _, err := prod.AddVariant(catalog.VariantDetails{Size: "US 10", Color: "black"}, now); err != nil {
 		t.Fatal(err)
 	}
-	if err := prod.ConfirmListing(verified); err != nil {
+	if err := prod.ConfirmListing(verified, now); err != nil {
 		t.Fatal(err)
 	}
 	if err := prod.Measure(shared.MustParcelSpec(shared.Grams(1250), shared.NewDimensionsCM(34, 23, 13)), verified, now); err != nil {

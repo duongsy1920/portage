@@ -27,6 +27,7 @@ var (
 	pid  = catalog.NewProductID()
 	oid  = catalog.NewProductID()
 	host = catalog.MustParseHostname("www.example.com")
+	src  = catalog.MustParseSourceURL("https://www.example.com/t/air-trainer-90/abc")
 	usd  = func(s string) shared.Money { return shared.MustParseMoney(s, shared.USD) }
 	over = catalog.MustFreeShippingOver(usd("50.00"))
 	box  = shared.MustParcelSpec(shared.Grams(1250), shared.NewDimensionsCM(34, 23, 13))
@@ -67,8 +68,25 @@ var contract = []struct {
 		m{"id": mid.String(), "reason": "banned", "at": atS}},
 	{catalog.MerchantReinstated{ID: mid, At: at},
 		m{"id": mid.String(), "at": atS}},
-	{catalog.ProductAdded{ID: pid, Merchant: mid, Category: catalog.MustParseCategoryCode("footwear"), Name: "Air Trainer 90", At: at},
-		m{"id": pid.String(), "merchant": mid.String(), "category": "footwear", "name": "Air Trainer 90", "at": atS}},
+	// A customer's paste: the page and the price travel with it so the worklist
+	// can show a row somebody can act on, and requested_by names who is waiting.
+	{catalog.ProductAdded{ID: pid, Merchant: mid, Category: catalog.MustParseCategoryCode("footwear"),
+		Name: "Air Trainer 90", Source: src, Price: usd("150.00"),
+		SourcedBy: catalog.SourcedByCustomer, RequestedBy: cust, At: at},
+		m{"id": pid.String(), "merchant": mid.String(), "category": "footwear", "name": "Air Trainer 90",
+			"source": "https://www.example.com/t/air-trainer-90/abc", "price": m{"minor": 15000.0, "currency": "USD"},
+			"sourced_by": "customer", "requested_by": cust.String(), "at": atS}},
+	// An operator adding one on spec: nobody is waiting, so requested_by is
+	// EMPTY on the wire rather than a uuid of all zeros, which would parse
+	// into a perfectly valid id for a customer who does not exist.
+	{catalog.ProductAdded{ID: oid, Merchant: mid, Category: catalog.MustParseCategoryCode("footwear"),
+		Name: "Air Trainer 90", Source: src, Price: usd("150.00"),
+		SourcedBy: catalog.SourcedByOperator, At: at},
+		m{"id": oid.String(), "merchant": mid.String(), "category": "footwear", "name": "Air Trainer 90",
+			"source": "https://www.example.com/t/air-trainer-90/abc", "price": m{"minor": 15000.0, "currency": "USD"},
+			"sourced_by": "operator", "requested_by": "", "at": atS}},
+	{catalog.ListingConfirmed{ID: pid, By: op, At: at},
+		m{"id": pid.String(), "by": op.String(), "at": atS}},
 	{catalog.ProductMeasured{ID: pid, Parcel: box, Verified: true, At: at},
 		m{"id": pid.String(), "parcel": m{"weight_g": 1250.0, "length_mm": 340.0, "width_mm": 230.0, "height_mm": 130.0}, "verified": true, "at": atS}},
 	{catalog.ProductRepriced{ID: pid, From: usd("150.00"), To: usd("160.00"), At: at},
