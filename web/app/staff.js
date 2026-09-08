@@ -24,7 +24,10 @@ function ProductCard({ item, shops, categories, onDone }) {
   const box = categories[item.category] || {};
   const act = useAction();
 
-  const [size, setSize] = useState("");
+  // Prefilled with the customer's own words. They are the only person who
+  // knows which size they want, and typing it again is both work and a chance
+  // to get it wrong.
+  const [size, setSize] = useState(item.requested_variant || "");
   const [colour, setColour] = useState("");
   const [ref, setRef] = useState("");
   // The weight is PREFILLED from the category's default box and labelled as a
@@ -70,11 +73,20 @@ function ProductCard({ item, shops, categories, onDone }) {
     {
       key: "variant", title: "Khách mua size nào", state: stateOf("variant"),
       recorded: html`Đã có <b>${item.variant_label || "một phiên bản"}</b>`,
-      why: html`Khách mua <b>một hình thức cụ thể</b>, không mua "một đôi giày". Chữ bạn gõ ở đây là chữ của shop, và nó sẽ hiện nguyên văn trên phiếu đi mua.`,
+      why: item.requested_variant
+        ? html`Ô Size đã điền sẵn <b>đúng chữ khách viết</b>. Việc của bạn là mở trang shop xem có loại đó
+            không, rồi sửa lại theo cách shop ghi nếu khác. Chữ cuối cùng ở đây in nguyên văn lên phiếu đi mua.
+            <br />Coi kỹ <b>chữ cái sau số</b>: cùng số 1 mà <span class="mono">1Y</span> (thiếu niên) và
+            <span class="mono">1C</span> (trẻ nhỏ) là hai đôi khác nhau, mua nhầm là đổi cả đơn.`
+        : html`Khách mua <b>một hình thức cụ thể</b>, không mua "một đôi giày". Chữ bạn gõ ở đây là chữ của
+            shop, và nó sẽ hiện nguyên văn trên phiếu đi mua. Giữ nguyên cả chữ cái của hệ size:
+            <span class="mono">M</span> nam, <span class="mono">W</span> nữ, <span class="mono">Y</span>
+            thiếu niên, <span class="mono">C</span> trẻ nhỏ, còn áo thì <span class="mono">S/M/L</span>.`,
       children: html`
         <div class="grid3">
-          <${Field} ...${{ label: "Size", value: size, placeholder: "US 9 hoặc M 8 / W 9.5",
-            onChange: e => setSize(e.target.value) }} />
+          <${Field} ...${{ label: "Size", value: size, placeholder: "US 9 · M 8 / W 9.5 · 1Y · 10C · L",
+            onChange: e => setSize(e.target.value),
+            hint: item.requested_variant ? `khách viết: ${item.requested_variant}` : "" }} />
           <${Field} ...${{ label: "Màu", value: colour, placeholder: "black",
             onChange: e => setColour(e.target.value) }} />
           <${Field} ...${{ label: "Mã của shop", value: ref, placeholder: "không có thì để trống",
@@ -145,6 +157,12 @@ function ProductCard({ item, shops, categories, onDone }) {
           <span>Shop: <b>${shop ? shop.name : "—"}</b></span>
           ${item.source && html`<a href=${item.source} target="_blank" rel="noreferrer noopener">${trim(item.source)}</a>`}
         </div>
+        ${item.requested_variant
+          ? html`<div class="note why">Khách yêu cầu: <b>${item.requested_variant}</b>. Mở trang shop kiểm
+              xem có đúng loại đó không. Shop ghi khác thì sửa lại theo chữ của shop, vì phiếu đi mua sẽ
+              in đúng chữ bạn nhập.</div>`
+          : html`<div class="note">Khách <b>không ghi</b> muốn loại nào. Nếu sản phẩm có nhiều size thì hỏi
+              lại khách trước khi nhập, đừng đoán.</div>`}
         ${act.problem && html`<div class="note bad">${friendly(act.problem)}</div>`}
         <${Steps} steps=${steps} />
       </div>

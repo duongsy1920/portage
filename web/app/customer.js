@@ -39,6 +39,7 @@ function PasteForm({ shops, categories, onSent }) {
   const [url, setUrl] = useState("");
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
+  const [wanted, setWanted] = useState("");
 
   useEffect(() => { if (!shopId && canPaste.length) setShopId(canPaste[0].id); }, [canPaste, shopId]);
   useEffect(() => { if (!category && categories.length) setCategory(categories[0].code); }, [categories, category]);
@@ -52,9 +53,10 @@ function PasteForm({ shops, categories, onSent }) {
       body: {
         name: name.trim(), merchant_id: shopId, category,
         source_url: url.trim(), price: price.trim(), currency: shop.currency,
+        requested_variant: wanted.trim(),
       },
     });
-    setUrl(""); setName(""); setPrice("");
+    setUrl(""); setName(""); setPrice(""); setWanted("");
     await onSent();
   });
 
@@ -82,6 +84,15 @@ function PasteForm({ shops, categories, onSent }) {
           onChange: e => setPrice(e.target.value),
           hint: "Đúng số trên trang, chưa gồm thuế và cước" }} />
       </div>
+      <${Field} ...${{ label: "Size hoặc màu bạn muốn", value: wanted,
+        placeholder: "US 9 · M 8 / W 9.5 · 1Y · 10C · L · bản 256GB",
+        onChange: e => setWanted(e.target.value),
+        hint: "Copy đúng chữ trên trang shop, kể cả chữ cái của hệ size. Nhân viên đọc dòng này để biết mua cái nào, nên bỏ trống là họ phải hỏi lại bạn." }} />
+      <div class="note">Chữ cái đứng cạnh số quyết định đôi nào, đừng bỏ: <span class="mono">M</span> nam,
+        <span class="mono">W</span> nữ, <span class="mono">Y</span> thiếu niên, <span class="mono">C</span>
+        trẻ nhỏ, áo thì <span class="mono">S/M/L</span>. Cùng số 1 mà <span class="mono">1Y</span> và
+        <span class="mono">1C</span> là hai đôi khác nhau. Trang nào ghi hai hệ cùng lúc, ví dụ
+        <span class="mono">M 8 / W 9.5</span>, thì copy nguyên cả dòng.</div>
       <div class="actions">
         <button class="primary" disabled=${act.busy || !url.trim() || !name.trim() || !price.trim()}
           onClick=${send}>Gửi cho nhân viên</button>
@@ -97,9 +108,16 @@ function MyProduct({ item, quotes, setQuotes, onChanged }) {
   const [variantId, setVariantId] = useState(saved.variant || "");
   const [quote, setQuote] = useState(null);
 
+  // Default to the size the customer asked for, not to the first one staff
+  // happened to create. Matching ignores case and every space, the same way
+  // catalog decides two variants are the same thing.
   useEffect(() => {
-    if (!variantId && item.variants.length) setVariantId(item.variants[0].id);
-  }, [item.variants, variantId]);
+    if (variantId || !item.variants.length) return;
+    const key = s => String(s || "").toLowerCase().replace(/\s+/g, "");
+    const wish = key(item.requested_variant);
+    const match = wish && item.variants.find(v => key(v.label).includes(wish));
+    setVariantId((match || item.variants[0]).id);
+  }, [item.variants, item.requested_variant, variantId]);
 
   // Re-read a quote we already asked for, so a reload does not lose the price.
   useEffect(() => {
@@ -138,6 +156,7 @@ function MyProduct({ item, quotes, setQuotes, onChanged }) {
       <div class="item-body">
         <div class="meta" style=${{ marginBottom: "10px" }}>
           <span>Giá trên web: <b>${money(item.price)}</b></span>
+          ${item.requested_variant && html`<span>Bạn yêu cầu: <b>${item.requested_variant}</b></span>`}
           ${item.source && html`<a href=${item.source} target="_blank" rel="noreferrer noopener">trang bạn đã gửi</a>`}
         </div>
         ${act.problem && html`<div class="note bad">${friendly(act.problem)}</div>`}
@@ -150,7 +169,10 @@ function MyProduct({ item, quotes, setQuotes, onChanged }) {
           <${React.Fragment}>
             <div class="grid2">
               <${Select} ...${{ label: "Chọn size", value: variantId, onChange: e => setVariantId(e.target.value),
-                options: item.variants.map(v => ({ value: v.id, label: v.label || "một phiên bản" })) }} />
+                options: item.variants.map(v => ({ value: v.id, label: v.label || "một phiên bản" })),
+                hint: item.requested_variant
+                  ? `Đã chọn sẵn theo yêu cầu của bạn (${item.requested_variant}). Nếu shop ghi khác thì đây là các size nhân viên tìm thấy.`
+                  : "Đây là các size nhân viên tìm thấy trên trang shop." }} />
             </div>
             <div class="actions">
               <button class="primary" disabled=${act.busy || !variantId} onClick=${ask}>Xin báo giá</button>

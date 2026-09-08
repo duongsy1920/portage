@@ -55,6 +55,12 @@ type WorklistItem struct {
 	SourcedBy   string
 	RequestedBy shared.ID
 
+	// RequestedVariant is the size the customer asked for, in their words.
+	// It is a WISH, and it stays on the row after the real variant exists so
+	// the two can be compared: "asked for US 9, we created US 9.5" is a
+	// conversation somebody needs to have, and hiding it prevents it.
+	RequestedVariant string
+
 	ListingConfirmed bool
 	Measured         bool
 	Published        bool

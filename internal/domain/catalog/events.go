@@ -145,6 +145,11 @@ type ProductAdded struct {
 	SourcedBy   SourcingMode
 	RequestedBy shared.ID
 
+	// RequestedVariant is what the customer asked for in their own words. The
+	// worklist shows it so the person creating the real variant is not
+	// guessing, and prefills the field with it.
+	RequestedVariant string
+
 	At time.Time
 }
 

@@ -115,6 +115,10 @@ func TestAddProduct_everyFieldIsValidated(t *testing.T) {
 		// it. Demanding a requester would make that impossible, and a made-up
 		// id would be worse: the worklist would promise to tell somebody.
 		"RequestedBy": "an operator may add a product nobody has asked for yet",
+		// A one-size product has nothing to ask for, and an operator pasting
+		// on spec is not asking for anything either. Demanding it would make
+		// both impossible.
+		"RequestedVariant": "a one-size product has no size to ask for",
 	}
 
 	typ := reflect.TypeOf(exampleProduct())

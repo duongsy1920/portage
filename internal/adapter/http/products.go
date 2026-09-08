@@ -22,6 +22,13 @@ type addProductRequest struct {
 	SourceURL  string `json:"source_url"`
 	Price      string `json:"price"`
 	Currency   string `json:"currency"`
+
+	// Which size or colour the customer wants, in their own words. Optional:
+	// a one-size product has nothing to ask for, and an operator pasting on
+	// spec is not asking for anything either. The staff screen shows it and
+	// prefills the field where the real variant gets created, so nobody has
+	// to guess which size a paid order was for.
+	RequestedVariant string `json:"requested_variant"`
 }
 
 // POST /products → 201 {"id"}.
@@ -65,14 +72,15 @@ func (s *server) addProduct(w http.ResponseWriter, r *http.Request) {
 	customer, _ := customerOf(r)
 
 	id, err := s.add.Handle(r.Context(), catalogapp.AddProduct{
-		Name:        req.Name,
-		Merchant:    merchant,
-		Category:    category,
-		Source:      source,
-		Price:       price,
-		SourcedBy:   sourcingOf(r),
-		Operator:    operator,
-		RequestedBy: customer,
+		Name:             req.Name,
+		Merchant:         merchant,
+		Category:         category,
+		Source:           source,
+		Price:            price,
+		SourcedBy:        sourcingOf(r),
+		Operator:         operator,
+		RequestedBy:      customer,
+		RequestedVariant: req.RequestedVariant,
 	})
 	if err != nil {
 		writeError(w, err)

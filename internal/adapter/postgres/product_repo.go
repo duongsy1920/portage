@@ -30,7 +30,7 @@ const productColumns = `id, merchant_id, category, name, source_url, source_host
 	listing_source, listing_at, listing_by,
 	price_minor, price_currency, price_source, price_at, price_by,
 	parcel_weight_g, parcel_length_mm, parcel_width_mm, parcel_height_mm, parcel_source, parcel_at, parcel_by,
-	suspected_duplicate_of, dismissed_duplicates, status, added_at, requested_by`
+	suspected_duplicate_of, dismissed_duplicates, status, added_at, requested_by, requested_variant`
 
 // Save upserts the product row and rewrites its variants (delete + insert):
 // simple, correct for aggregate-owned children, and inside the caller's
@@ -65,7 +65,7 @@ func (r *ProductRepo) Save(ctx context.Context, p *catalog.Product) error {
 	_, err := q.Exec(ctx, `
 		INSERT INTO products (`+productColumns+`)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14,
-		        $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26)
+		        $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27)
 		ON CONFLICT (id) DO UPDATE SET
 			merchant_id = EXCLUDED.merchant_id, category = EXCLUDED.category, name = EXCLUDED.name,
 			source_url = EXCLUDED.source_url, source_host = EXCLUDED.source_host,
@@ -77,12 +77,12 @@ func (r *ProductRepo) Save(ctx context.Context, p *catalog.Product) error {
 			parcel_source = EXCLUDED.parcel_source, parcel_at = EXCLUDED.parcel_at, parcel_by = EXCLUDED.parcel_by,
 			suspected_duplicate_of = EXCLUDED.suspected_duplicate_of, dismissed_duplicates = EXCLUDED.dismissed_duplicates,
 			status = EXCLUDED.status, added_at = EXCLUDED.added_at,
-			requested_by = EXCLUDED.requested_by`,
+			requested_by = EXCLUDED.requested_by, requested_variant = EXCLUDED.requested_variant`,
 		s.ID.String(), s.Merchant.String(), s.Category.String(), s.Name, s.Source.String(), s.Source.Host().String(),
 		listingSource, listingAt, listingBy,
 		s.Price.Minor(), s.Price.Currency().Code(), priceSource, priceAt, priceBy,
 		parcelW, parcelL, parcelWd, parcelH, parcelSource, parcelAt, parcelBy,
-		suspected, dismissed, string(s.Status), s.AddedAt, idOrNil(s.RequestedBy))
+		suspected, dismissed, string(s.Status), s.AddedAt, idOrNil(s.RequestedBy), s.RequestedVariant)
 	if err != nil {
 		return fmt.Errorf("save product %s: %w", s.ID, err)
 	}
@@ -193,12 +193,13 @@ func scanProduct(row pgx.Row) (catalog.ProductSnapshot, error) {
 		dismissed                                           []string
 		status                                              string
 		requestedBy                                         *string
+		requestedVariant                                    string
 	)
 	if err := row.Scan(&id, &merchant, &category, &name, &sourceURL, &sourceHost,
 		&listingSource, &listingAt, &listingBy,
 		&priceMinor, &priceCurrency, &priceSource, &priceAt, &priceBy,
 		&parcelW, &parcelL, &parcelWd, &parcelH, &parcelSource, &parcelAt, &parcelBy,
-		&suspected, &dismissed, &status, &addedAt, &requestedBy); err != nil {
+		&suspected, &dismissed, &status, &addedAt, &requestedBy, &requestedVariant); err != nil {
 		return catalog.ProductSnapshot{}, err
 	}
 	_ = sourceHost // derived from source_url on load; stored for indexing/joins only
@@ -239,6 +240,7 @@ func scanProduct(row pgx.Row) (catalog.ProductSnapshot, error) {
 		ListingProvenance: listingProv,
 		Price:             shared.NewMoney(priceMinor, cur), PriceProvenance: priceProv,
 		Status: catalog.ProductStatus(status), AddedAt: addedAt.UTC(),
+		RequestedVariant: requestedVariant,
 	}
 	if requestedBy != nil {
 		id, err := shared.ParseID(*requestedBy)

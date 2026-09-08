@@ -71,6 +71,16 @@ type ProductDetails struct {
 	// Provenance on purpose — provenance answers "how did this data get here
 	// and who vouched for it", this answers "who is waiting for it".
 	RequestedBy shared.ID
+
+	// RequestedVariant is the form the customer asked for, in THEIR words:
+	// "US 9", "M 8 / W 9.5", "bản 256GB". A wish, not a fact about the
+	// product — the shop may not sell it, so an operator still has to look
+	// and create the real Variant. Without it that operator is guessing which
+	// size to buy, which is how a paid order becomes the wrong shoe.
+	//
+	// Free text and optional, for the same reason Variant's size is: a
+	// one-size product has nothing to ask for.
+	RequestedVariant string
 }
 
 // Product is the second AGGREGATE ROOT of the catalogue: one thing a customer
@@ -110,6 +120,9 @@ type Product struct {
 	// requestedBy: the customer waiting for this product, when one asked.
 	requestedBy shared.ID
 
+	// requestedVariant: which form they asked for, in their own words.
+	requestedVariant string
+
 	parcel     shared.ParcelSpec // zero until Measure
 	parcelProv Provenance
 
@@ -145,22 +158,24 @@ func AddProduct(d ProductDetails, now time.Time) (*Product, error) {
 	}
 
 	p := &Product{
-		id:          NewProductID(),
-		merchant:    d.Merchant,
-		category:    d.Category,
-		name:        name,
-		source:      d.Source,
-		listingProv: d.ListingProvenance,
-		price:       d.Price,
-		priceProv:   d.PriceProvenance,
-		requestedBy: d.RequestedBy,
-		status:      ProductStatusDraft,
-		addedAt:     now,
+		id:               NewProductID(),
+		merchant:         d.Merchant,
+		category:         d.Category,
+		name:             name,
+		source:           d.Source,
+		listingProv:      d.ListingProvenance,
+		price:            d.Price,
+		priceProv:        d.PriceProvenance,
+		requestedBy:      d.RequestedBy,
+		requestedVariant: strings.TrimSpace(d.RequestedVariant),
+		status:           ProductStatusDraft,
+		addedAt:          now,
 	}
 	p.Record(ProductAdded{
 		ID: p.id, Merchant: p.merchant, Category: p.category, Name: name,
 		Source: p.source, Price: p.price,
-		SourcedBy: d.ListingProvenance.Source(), RequestedBy: p.requestedBy,
+		SourcedBy:   d.ListingProvenance.Source(),
+		RequestedBy: p.requestedBy, RequestedVariant: p.requestedVariant,
 		At: now,
 	})
 	return p, nil
@@ -200,6 +215,14 @@ func (p *Product) Source() SourceURL {
 // an operator added it with nobody asking.
 func (p *Product) RequestedBy() shared.ID {
 	return p.requestedBy
+}
+
+// RequestedVariant is the form the customer asked for, in their own words, or
+// "" when nobody said. Never treat it as the name of a real Variant: it is
+// what somebody typed, and matching it to what the shop sells is a person's
+// job.
+func (p *Product) RequestedVariant() string {
+	return p.requestedVariant
 }
 
 func (p *Product) Price() shared.Money {

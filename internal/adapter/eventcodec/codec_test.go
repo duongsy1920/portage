@@ -72,10 +72,10 @@ var contract = []struct {
 	// can show a row somebody can act on, and requested_by names who is waiting.
 	{catalog.ProductAdded{ID: pid, Merchant: mid, Category: catalog.MustParseCategoryCode("footwear"),
 		Name: "Air Trainer 90", Source: src, Price: usd("150.00"),
-		SourcedBy: catalog.SourcedByCustomer, RequestedBy: cust, At: at},
+		SourcedBy: catalog.SourcedByCustomer, RequestedBy: cust, RequestedVariant: "M 8 / W 9.5", At: at},
 		m{"id": pid.String(), "merchant": mid.String(), "category": "footwear", "name": "Air Trainer 90",
 			"source": "https://www.example.com/t/air-trainer-90/abc", "price": m{"minor": 15000.0, "currency": "USD"},
-			"sourced_by": "customer", "requested_by": cust.String(), "at": atS}},
+			"sourced_by": "customer", "requested_by": cust.String(), "requested_variant": "M 8 / W 9.5", "at": atS}},
 	// An operator adding one on spec: nobody is waiting, so requested_by is
 	// EMPTY on the wire rather than a uuid of all zeros, which would parse
 	// into a perfectly valid id for a customer who does not exist.
@@ -84,7 +84,7 @@ var contract = []struct {
 		SourcedBy: catalog.SourcedByOperator, At: at},
 		m{"id": oid.String(), "merchant": mid.String(), "category": "footwear", "name": "Air Trainer 90",
 			"source": "https://www.example.com/t/air-trainer-90/abc", "price": m{"minor": 15000.0, "currency": "USD"},
-			"sourced_by": "operator", "requested_by": "", "at": atS}},
+			"sourced_by": "operator", "requested_by": "", "requested_variant": "", "at": atS}},
 	{catalog.ListingConfirmed{ID: pid, By: op, At: at},
 		m{"id": pid.String(), "by": op.String(), "at": atS}},
 	{catalog.ProductMeasured{ID: pid, Parcel: box, Verified: true, At: at},

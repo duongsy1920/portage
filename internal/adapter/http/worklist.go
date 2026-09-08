@@ -29,6 +29,11 @@ type worklistView struct {
 	SourcedBy string `json:"sourced_by"`
 	Requester string `json:"requested_by,omitempty"`
 
+	// What the customer asked for, in their words. Stays after the real
+	// variant exists, so a screen can show both and let a person notice they
+	// are not the same.
+	RequestedVariant string `json:"requested_variant,omitempty"`
+
 	// The four steps, so a screen can render a checklist instead of a row of
 	// buttons that all look equally available.
 	HasVariant       bool   `json:"has_variant"`
@@ -66,7 +71,8 @@ func worklistViewOf(w reportingapp.WorklistItem) worklistView {
 		Source:    w.Source,
 		Price:     viewOf(w.Price),
 
-		SourcedBy: w.SourcedBy,
+		SourcedBy:        w.SourcedBy,
+		RequestedVariant: w.RequestedVariant,
 
 		HasVariant:       w.HasVariant(),
 		ListingConfirmed: w.ListingConfirmed,

@@ -30,6 +30,9 @@ type AddProduct struct {
 	// customer pastes. Zero when an operator adds a product on spec, which is
 	// legal — nobody is waiting for it yet.
 	RequestedBy shared.ID
+
+	// RequestedVariant: which size or colour they asked for, in their words.
+	RequestedVariant string
 }
 
 // AddProductHandler records a draft product, enforcing the two rules that need
@@ -90,6 +93,7 @@ func (h *AddProductHandler) Handle(ctx context.Context, cmd AddProduct) (catalog
 			ListingProvenance: prov,
 			PriceProvenance:   prov,
 			RequestedBy:       cmd.RequestedBy,
+			RequestedVariant:  cmd.RequestedVariant,
 		}, now)
 		if err != nil {
 			return err

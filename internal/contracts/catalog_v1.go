@@ -60,15 +60,21 @@ type ProductPublishedV1 struct {
 // RequestedBy is the customer waiting, and it is EMPTY when an operator added
 // the product with nobody asking. Never treat it as required.
 type ProductAddedV1 struct {
-	ID          string    `json:"id"`
-	Merchant    string    `json:"merchant"`
-	Category    string    `json:"category"`
-	Name        string    `json:"name"`
-	Source      string    `json:"source"`
-	Price       MoneyV1   `json:"price"`
-	SourcedBy   string    `json:"sourced_by"`
-	RequestedBy string    `json:"requested_by"`
-	At          time.Time `json:"at"`
+	ID          string  `json:"id"`
+	Merchant    string  `json:"merchant"`
+	Category    string  `json:"category"`
+	Name        string  `json:"name"`
+	Source      string  `json:"source"`
+	Price       MoneyV1 `json:"price"`
+	SourcedBy   string  `json:"sourced_by"`
+	RequestedBy string  `json:"requested_by"`
+
+	// RequestedVariant: the size or colour the customer asked for, in their
+	// own words. A wish, not the name of a Variant that exists. Empty when
+	// nobody said.
+	RequestedVariant string `json:"requested_variant"`
+
+	At time.Time `json:"at"`
 }
 
 // ListingConfirmedV1 is an operator vouching for what a product is. The

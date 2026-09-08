@@ -48,7 +48,8 @@ func added() contracts.ProductAddedV1 {
 		ID: prod.String(), Merchant: shop.String(), Category: "footwear", Name: "Air Trainer 90",
 		Source:    "https://www.example.com/t/air-trainer-90/abc",
 		Price:     contracts.MoneyV1{Minor: 15000, Currency: "USD"},
-		SourcedBy: "customer", RequestedBy: who.String(), At: now,
+		SourcedBy: "customer", RequestedBy: who.String(),
+		RequestedVariant: "M 8 / W 9.5", At: now,
 	}
 }
 
@@ -126,6 +127,12 @@ func TestWorklist_isIdempotentAndOrderTolerant(t *testing.T) {
 	}
 	if item.RequestedBy != who {
 		t.Fatalf("requested_by = %s, want %s", item.RequestedBy, who)
+	}
+	// The wish stays on the row after the real variant exists, so a person can
+	// see that "asked for M 8 / W 9.5" and "we created M 8 / W 9.5 · black"
+	// are not the same string and decide whether that matters.
+	if item.RequestedVariant != "M 8 / W 9.5" {
+		t.Fatalf("requested_variant = %q", item.RequestedVariant)
 	}
 
 	// Only publish takes it off the staff queue.

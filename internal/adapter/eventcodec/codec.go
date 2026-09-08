@@ -89,7 +89,8 @@ func payload(ev shared.Event) (m, error) {
 	case catalog.ProductAdded:
 		return m{"id": e.ID.String(), "merchant": e.Merchant.String(), "category": e.Category.String(),
 			"name": e.Name, "source": e.Source.String(), "price": money(e.Price),
-			"sourced_by": string(e.SourcedBy), "requested_by": idOrEmpty(e.RequestedBy), "at": ts(e.At)}, nil
+			"sourced_by": string(e.SourcedBy), "requested_by": idOrEmpty(e.RequestedBy),
+			"requested_variant": e.RequestedVariant, "at": ts(e.At)}, nil
 	case catalog.ListingConfirmed:
 		return m{"id": e.ID.String(), "by": e.By.String(), "at": ts(e.At)}, nil
 	case catalog.ProductMeasured:

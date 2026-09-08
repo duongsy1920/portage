@@ -259,7 +259,7 @@ func timeFrom(t *time.Time) time.Time {
 // ── the worklist (0009_product_worklist.sql) ─────────────────────────────────
 
 const worklistColumns = `product, merchant, category, name, source_url,
-	price_minor, price_currency, sourced_by, requested_by,
+	price_minor, price_currency, sourced_by, requested_by, requested_variant,
 	listing_confirmed, measured, published, variants,
 	added_at, updated_at`
 
@@ -309,18 +309,19 @@ func (r *ProductWorklistRepo) Save(ctx context.Context, w reportingapp.WorklistI
 	}
 	_, err = db(ctx, r.pool).Exec(ctx, `
 		INSERT INTO product_worklist (`+worklistColumns+`)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
 		ON CONFLICT (product) DO UPDATE SET
 			merchant = EXCLUDED.merchant, category = EXCLUDED.category, name = EXCLUDED.name,
 			source_url = EXCLUDED.source_url,
 			price_minor = EXCLUDED.price_minor, price_currency = EXCLUDED.price_currency,
 			sourced_by = EXCLUDED.sourced_by, requested_by = EXCLUDED.requested_by,
+			requested_variant = EXCLUDED.requested_variant,
 			listing_confirmed = EXCLUDED.listing_confirmed,
 			measured = EXCLUDED.measured, published = EXCLUDED.published,
 			variants = EXCLUDED.variants,
 			added_at = EXCLUDED.added_at, updated_at = EXCLUDED.updated_at`,
 		w.Product.String(), w.Merchant.String(), w.Category, w.Name, w.Source,
-		w.Price.Minor(), w.Price.Currency().Code(), w.SourcedBy, idOrNil(w.RequestedBy),
+		w.Price.Minor(), w.Price.Currency().Code(), w.SourcedBy, idOrNil(w.RequestedBy), w.RequestedVariant,
 		w.ListingConfirmed, w.Measured, w.Published, variants,
 		w.AddedAt, w.UpdatedAt)
 	if err != nil {
@@ -358,16 +359,16 @@ type worklistVariantRow struct {
 // projection has no invariant to re-check, only ids and money to parse.
 func scanWorklistItem(row pgx.Row) (reportingapp.WorklistItem, error) {
 	var (
-		product, merchant, category, name, source string
-		priceCurrency, sourcedBy                  string
-		priceMinor                                int64
-		requestedBy                               *string
-		confirmed, measured, published            bool
-		variantsJSON                              []byte
-		addedAt, updatedAt                        time.Time
+		product, merchant, category, name, source  string
+		priceCurrency, sourcedBy, requestedVariant string
+		priceMinor                                 int64
+		requestedBy                                *string
+		confirmed, measured, published             bool
+		variantsJSON                               []byte
+		addedAt, updatedAt                         time.Time
 	)
 	if err := row.Scan(&product, &merchant, &category, &name, &source,
-		&priceMinor, &priceCurrency, &sourcedBy, &requestedBy,
+		&priceMinor, &priceCurrency, &sourcedBy, &requestedBy, &requestedVariant,
 		&confirmed, &measured, &published, &variantsJSON,
 		&addedAt, &updatedAt); err != nil {
 		return reportingapp.WorklistItem{}, err
@@ -386,7 +387,7 @@ func scanWorklistItem(row pgx.Row) (reportingapp.WorklistItem, error) {
 	}
 	w := reportingapp.WorklistItem{
 		Product: pid, Merchant: mid, Category: category, Name: name, Source: source,
-		Price: shared.NewMoney(priceMinor, cur), SourcedBy: sourcedBy,
+		Price: shared.NewMoney(priceMinor, cur), SourcedBy: sourcedBy, RequestedVariant: requestedVariant,
 		ListingConfirmed: confirmed, Measured: measured, Published: published,
 		AddedAt: addedAt.UTC(), UpdatedAt: updatedAt.UTC(),
 	}

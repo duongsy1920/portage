@@ -283,7 +283,7 @@ func TestProductRepo_roundTrip(t *testing.T) {
 		Name: "Air Trainer 90", Merchant: m.ID(), Category: catalog.MustParseCategoryCode("footwear"),
 		Source: catalog.MustParseSourceURL("https://www.example.com/t/air-trainer-90/abc"),
 		Price:  shared.MustParseMoney("150.00", shared.USD), ListingProvenance: customer, PriceProvenance: customer,
-		RequestedBy: waiting,
+		RequestedBy: waiting, RequestedVariant: "M 8 / W 9.5",
 	}, now)
 	if err != nil {
 		t.Fatal(err)

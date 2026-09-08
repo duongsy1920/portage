@@ -47,6 +47,7 @@ func (p *Projector) OnProductAdded(ctx context.Context, m contracts.ProductAdded
 		w.Merchant, w.Category, w.Name = merchant, m.Category, m.Name
 		w.Source, w.Price = m.Source, price
 		w.SourcedBy, w.RequestedBy = m.SourcedBy, requester
+		w.RequestedVariant = m.RequestedVariant
 		if w.AddedAt.IsZero() {
 			w.AddedAt = m.At
 		}
