@@ -125,6 +125,15 @@ tồn tại (`OnBehalfOf` là kiểm quyền sở hữu, không phải đặt h�
 một `adapter/merchant/<shop>.go` thật (chưa shop nào cho API) · cổng thanh toán.
 (`scripts/smoke.sh` đã hết nợ: chạy thật trên Linux 08/09, xem SETUP §9 đợt 18.)
 
+**Quyết định 08/09 — HOÃN, đừng đề xuất lại:** một đơn = một variant = **một cái**. Không
+có `Quantity`, và một kiện không chứa được nhiều đơn. Anh biết hai chỗ đó là đơn giản hoá và
+chọn để nguyên: *"sau này chạy thật xem thực tế lãi lỗ như nào"*. Thứ sẽ trả lời chính là
+bảng `reconciliations` (DDD.md §28) — `variance` âm liên tục qua nhiều đơn nghĩa là bảng giá
+cước hoặc phép đo đang sai, và lúc đó mới có dữ liệu để quyết đổi mô hình. Chi tiết ba chỗ
+đơn giản hoá: kích thước đo trên **một hộp giày** chứ không phải thùng gom; lô hàng
+**không được đo**, chỉ nhận hoá đơn của hãng bay rồi chia; cân quy đổi tính trên từng kiện,
+không trên pallet.
+
 ---
 
 ## Docs — đọc cái nào khi nào
