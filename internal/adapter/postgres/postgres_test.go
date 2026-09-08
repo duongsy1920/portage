@@ -4,7 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"net/url"
 	"reflect"
+	"sync"
 	"testing"
 	"time"
 
@@ -60,6 +63,83 @@ func TestMigrate_isIdempotent(t *testing.T) {
 	var n int
 	if err := p.QueryRow(context.Background(), `SELECT count(*) FROM schema_migrations`).Scan(&n); err != nil || n == 0 {
 		t.Fatalf("schema_migrations = %d, %v", n, err)
+	}
+}
+
+// Two processes starting at once against a COLD database — exactly what
+// cmd/api and cmd/worker do in scripts/smoke.sh on a first deploy.
+//
+// This used to fail. The advisory lock guarded the loop that applies the .sql
+// files, but NOT the CREATE TABLE that makes schema_migrations itself, and in
+// PostgreSQL two concurrent CREATE TABLE IF NOT EXISTS both pass the existence
+// check and then collide inserting the table's row type:
+//
+//	ERROR: duplicate key value violates unique constraint "pg_type_typname_nsp_index"
+//
+// The test needs a throwaway database, because "cold" has to mean cold and the
+// shared test database must keep its schema. A race is probabilistic, so this
+// can pass on buggy code now and then — but it can never fail on correct code,
+// which is the direction that matters.
+func TestMigrate_survivesTwoProcessesOnAColdDatabase(t *testing.T) {
+	admin := pool(t) // holds the pgtest lock, so no other package is migrating
+	ctx := context.Background()
+
+	// Digits only, so the name needs no quoting.
+	name := fmt.Sprintf("portage_migrate_%d", time.Now().UnixNano())
+	if _, err := admin.Exec(ctx, `CREATE DATABASE `+name+` OWNER portage`); err != nil {
+		t.Fatalf("create database: %v", err)
+	}
+	t.Cleanup(func() {
+		_, _ = admin.Exec(context.Background(), `DROP DATABASE IF EXISTS `+name+` WITH (FORCE)`)
+	})
+
+	u, err := url.Parse(pgtest.DSN(t))
+	if err != nil {
+		t.Fatalf("parse dsn: %v", err)
+	}
+	u.Path = "/" + name
+	cold := u.String()
+
+	const starters = 4
+	var (
+		wg    sync.WaitGroup
+		start = make(chan struct{})
+		errs  = make([]error, starters)
+	)
+	for i := range starters {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			p, err := postgres.Connect(ctx, cold)
+			if err != nil {
+				errs[i] = err
+				return
+			}
+			defer p.Close()
+			<-start // released together, so they really do collide
+			errs[i] = postgres.Migrate(ctx, p)
+		}(i)
+	}
+	close(start)
+	wg.Wait()
+	for i, err := range errs {
+		if err != nil {
+			t.Errorf("starter %d: %v", i, err)
+		}
+	}
+
+	// And the schema is applied exactly once, not four times.
+	p, err := postgres.Connect(ctx, cold)
+	if err != nil {
+		t.Fatalf("connect: %v", err)
+	}
+	defer p.Close()
+	var versions, distinct int
+	if err := p.QueryRow(ctx, `SELECT count(*), count(DISTINCT version) FROM schema_migrations`).Scan(&versions, &distinct); err != nil {
+		t.Fatalf("count: %v", err)
+	}
+	if versions == 0 || versions != distinct {
+		t.Fatalf("schema_migrations = %d rows, %d distinct", versions, distinct)
 	}
 }
 
