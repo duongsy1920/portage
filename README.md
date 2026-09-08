@@ -33,7 +33,7 @@ go run ./cmd/api    -dsn "postgres://portage:portage@localhost:5432/portage?sslm
 go run ./cmd/worker -dsn "postgres://portage:portage@localhost:5432/portage?sslmode=disable"
 go run ./cmd/api -web ./web          # + console trong trình duyệt tại http://localhost:8080/ui/   # + sweep quote hết hạn mỗi phút (-sweep)
 powershell -ExecutionPolicy Bypass -File scripts\smoke.ps1   # cả flow trên binary thật: paste → publish → relay → quote → accept
-go test ./...                       # 263 test < 2 giây; set PORTAGE_TEST_DSN để chạy cả 30 test tích hợp
+go test ./...                       # 265 test < 2 giây; set PORTAGE_TEST_DSN để chạy cả 31 test tích hợp
 go test -cover ./...   # kèm độ phủ
 go vet ./...           # soi lỗi tĩnh
 gofmt -l .             # liệt kê file chưa format (rỗng = sạch)
@@ -132,7 +132,7 @@ Mọi route đều ở sau một cửa: `Authorization: Bearer <token>`. Không 
   Payload event là hợp đồng viết tay (`internal/adapter/eventcodec`, Encode + Decode).
 - **7 test canh quyết định** (`internal/domain/decisions_test.go`) — kiến trúc
   được kiểm tra bằng `go/ast`, vi phạm là build đỏ.
-- 293 test; 263 unit < 2 giây, 30 test tích hợp cần `PORTAGE_TEST_DSN`; một test vàng chạy **cả vòng đời**
+- 296 test; 265 unit < 2 giây, 31 test tích hợp cần `PORTAGE_TEST_DSN`; một test vàng chạy **cả vòng đời**
   (paste → publish → quote `5 393 720 ₫` → accept → order → cọc → task mua → confirm `163.22 USD` → `purchased`
   → cân thật → gom lô → ship `27.50 USD` → `in_transit` → trả nốt → `delivered` → đối soát `variance −2.50 USD`)
   trên **cả** memory và Postgres; `scripts/smoke.ps1` (Windows) và `scripts/smoke.sh` (CI, Linux) chạy đúng flow đó trên

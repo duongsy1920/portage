@@ -3,6 +3,7 @@ package memory
 import (
 	"context"
 	"fmt"
+	"sort"
 	"sync"
 
 	"github.com/duongsy/portage/internal/domain/catalog"
@@ -45,6 +46,20 @@ func (r *MerchantRepo) BySite(ctx context.Context, site catalog.Hostname) (*cata
 		}
 	}
 	return nil, fmt.Errorf("merchant at %s: %w", site, catalog.ErrMerchantNotFound)
+}
+
+// All returns the merchants sorted by id. Ids are UUIDv7, so that IS the order
+// they were added in — the same order Postgres gives with ORDER BY id, which is
+// what makes the two adapters interchangeable in a test.
+func (r *MerchantRepo) All(ctx context.Context) ([]*catalog.Merchant, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	out := make([]*catalog.Merchant, 0, len(r.byID))
+	for _, m := range r.byID {
+		out = append(out, m)
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].ID().String() < out[j].ID().String() })
+	return out, nil
 }
 
 func (r *MerchantRepo) Save(ctx context.Context, m *catalog.Merchant) error {

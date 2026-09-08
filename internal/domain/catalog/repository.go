@@ -39,6 +39,13 @@ type MerchantRepository interface {
 	// reference the customer supplies is tied back to who we buy from.
 	BySite(ctx context.Context, site Hostname) (*Merchant, error)
 
+	// All returns every merchant in the order they were added, for the screen
+	// that lets a person PICK a shop instead of typing its id. Small by
+	// nature, like CategoryRepository.All: shops are added one at a time by
+	// hand, because each one is a decision about who we are willing to buy
+	// from and in which currency.
+	All(ctx context.Context) ([]*Merchant, error)
+
 	// Save persists a new or changed merchant. It does NOT publish the
 	// merchant's events: the application layer pulls them after Save
 	// returns and writes them to the outbox in the same transaction.

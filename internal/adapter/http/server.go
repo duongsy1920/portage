@@ -27,6 +27,7 @@ import (
 	pricingapp "github.com/duongsy/portage/internal/app/pricing"
 	procurementapp "github.com/duongsy/portage/internal/app/procurement"
 	reportingapp "github.com/duongsy/portage/internal/app/reporting"
+	"github.com/duongsy/portage/internal/domain/catalog"
 	"github.com/duongsy/portage/internal/domain/logistics"
 	"github.com/duongsy/portage/internal/domain/ordering"
 	"github.com/duongsy/portage/internal/domain/pricing"
@@ -80,6 +81,10 @@ type server struct {
 	confirm  *catalogapp.ConfirmListingHandler
 	measure  *catalogapp.MeasureProductHandler
 	fromURL  *catalogapp.DraftFromURLHandler
+	// the read side of GET /categories and GET /merchants: the two closed sets
+	// a form has to offer instead of asking for a uuid
+	categories catalog.CategoryRepository
+	merchants  catalog.MerchantRepository
 	// pricing
 	issue  *pricingapp.IssueQuoteHandler
 	accept *pricingapp.AcceptQuoteHandler
@@ -145,6 +150,8 @@ func NewHandler(d Deps) http.Handler {
 		confirm:         catalogapp.NewConfirmListingHandler(d.Catalog),
 		measure:         catalogapp.NewMeasureProductHandler(d.Catalog),
 		fromURL:         catalogapp.NewDraftFromURLHandler(d.Catalog, extractor),
+		categories:      d.Catalog.Categories,
+		merchants:       d.Catalog.Merchants,
 		issue:           pricingapp.NewIssueQuoteHandler(d.Pricing),
 		accept:          pricingapp.NewAcceptQuoteHandler(d.Pricing),
 		quotes:          d.Pricing.Quotes,
@@ -186,6 +193,8 @@ func NewHandler(d Deps) http.Handler {
 	mux.HandleFunc("POST /merchants", requireOperator(s.registerMerchant))
 	mux.HandleFunc("POST /products", requireAny(s.addProduct))
 	mux.HandleFunc("POST /products/from-url", requireAny(s.draftFromURL))
+	mux.HandleFunc("GET /categories", requireAny(s.listCategories))
+	mux.HandleFunc("GET /merchants", requireAny(s.listMerchants))
 	mux.HandleFunc("POST /products/{id}/variants", requireOperator(s.addVariant))
 	mux.HandleFunc("POST /products/{id}/confirm-listing", requireOperator(s.confirmListing))
 	mux.HandleFunc("POST /products/{id}/measure", requireOperator(s.measureProduct))

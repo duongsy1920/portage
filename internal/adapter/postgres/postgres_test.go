@@ -143,6 +143,48 @@ func TestMigrate_survivesTwoProcessesOnAColdDatabase(t *testing.T) {
 	}
 }
 
+// All is the read side of GET /merchants, and it has to come back in a stable
+// order or a select box reshuffles under the person using it. Ids are UUIDv7,
+// so ORDER BY id is order of creation — and the in-memory adapter sorts the
+// same way, which is what keeps the two interchangeable.
+func TestMerchantRepo_allInCreationOrder(t *testing.T) {
+	p := pool(t)
+	ctx := context.Background()
+	repo := postgres.NewMerchantRepo(p)
+
+	if all, err := repo.All(ctx); err != nil || len(all) != 0 {
+		t.Fatalf("empty database = %d rows, %v", len(all), err)
+	}
+	// Two DIFFERENT hostnames: merchants.site is UNIQUE, because one shop is
+	// one place we buy from and two rows for one hostname would make
+	// "who owns this page url" ambiguous.
+	first := aMerchant(t)
+	second, err := catalog.RegisterMerchant(catalog.MerchantDetails{
+		Name: "Other Shop", Site: catalog.MustParseHostname("www.other-shop.com"), Currency: shared.USD,
+		Sourcing: []catalog.SourcingMode{catalog.SourcedByOperator},
+	}, now)
+	if err != nil {
+		t.Fatal(err)
+	}
+	second.PullEvents()
+	for _, m := range []*catalog.Merchant{first, second} {
+		if err := repo.Save(ctx, m); err != nil {
+			t.Fatal(err)
+		}
+	}
+	all, err := repo.All(ctx)
+	if err != nil || len(all) != 2 {
+		t.Fatalf("All = %d rows, %v", len(all), err)
+	}
+	if all[0].ID() != first.ID() || all[1].ID() != second.ID() {
+		t.Fatalf("order = %s, %s; want %s, %s", all[0].ID(), all[1].ID(), first.ID(), second.ID())
+	}
+	// Same rebuild path as ByID: every column back through the domain's parsers.
+	if !reflect.DeepEqual(all[0].Snapshot(), first.Snapshot()) {
+		t.Fatal("All must rebuild the aggregate the same way ByID does")
+	}
+}
+
 // Save → ByID must give back the SAME state — the snapshot round trip, now
 // through real columns — and Save again must update, not duplicate.
 func TestMerchantRepo_roundTrip(t *testing.T) {

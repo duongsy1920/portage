@@ -75,6 +75,25 @@ func (r *MerchantRepo) BySite(ctx context.Context, site catalog.Hostname) (*cata
 	return m, err
 }
 
+// All is the read side of GET /merchants. ORDER BY id is ORDER BY creation
+// time, because the ids are UUIDv7.
+func (r *MerchantRepo) All(ctx context.Context) ([]*catalog.Merchant, error) {
+	rows, err := db(ctx, r.pool).Query(ctx, `SELECT `+merchantColumns+` FROM merchants ORDER BY id`)
+	if err != nil {
+		return nil, fmt.Errorf("list merchants: %w", err)
+	}
+	defer rows.Close()
+	out := []*catalog.Merchant{}
+	for rows.Next() {
+		m, err := scanMerchant(rows)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, m)
+	}
+	return out, rows.Err()
+}
+
 // scanMerchant reads one row into a snapshot and lets the domain rebuild the
 // aggregate. Every column goes back through the domain's own parsers: a row
 // the domain would not accept is corruption, reported, never a half-merchant.

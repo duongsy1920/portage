@@ -435,9 +435,20 @@ func TestPOSTPublish(t *testing.T) {
 }
 
 func TestUnknownRouteIs404(t *testing.T) {
-	rec := newAPI().call(t, "GET", "/merchants", "", nil)
+	a := newAPI()
+
+	// A path nobody ever defined.
+	if rec := a.call(t, "GET", "/nope", "", nil); rec.Code != http.StatusNotFound {
+		t.Fatalf("GET /nope = %d", rec.Code)
+	}
+
+	// And a path that is missing ON PURPOSE: there is no GET /products/{id},
+	// because reading an aggregate back is the read model's job, not the write
+	// side's (WALKTHROUGH §20). If this ever starts answering 200, somebody
+	// added a read route to the write side and this test is the objection.
+	rec := a.call(t, "GET", "/products/"+shared.NewID().String(), "", nil)
 	if rec.Code != http.StatusNotFound && rec.Code != http.StatusMethodNotAllowed {
-		t.Fatalf("status = %d", rec.Code)
+		t.Fatalf("GET /products/{id} = %d, want it to stay absent", rec.Code)
 	}
 }
 

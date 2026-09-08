@@ -80,8 +80,8 @@ buộc thiết kế, không phải chú thích.
 ## Trạng thái (08/09/2026 — P9 xong, đợt variant/size, đợt migrate race)
 
 ```
-5 bounded context + 1 tầng đọc · 36 domain event · 37 route · 31 dòng Subscribe
-293 test (292 PASS + 1 SKIP cố ý) · 263 test chạy < 2 giây không cần Docker
+5 bounded context + 1 tầng đọc · 36 domain event · 39 route · 31 dòng Subscribe
+296 test (295 PASS + 1 SKIP cố ý) · 265 test chạy < 2 giây không cần Docker
 7 test canh kiến trúc bằng go/ast
 ```
 
@@ -141,7 +141,7 @@ vì sao code hiện tại trông như vậy.
 ## Lệnh hay dùng
 
 ```bash
-go test ./...                     # 263 test, < 2 giây
+go test ./...                     # 265 test, < 2 giây
 gofmt -l . && go vet ./...        # phải sạch trước khi báo xong
 
 # Có Postgres (28 test tích hợp)

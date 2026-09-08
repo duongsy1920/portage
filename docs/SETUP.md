@@ -839,7 +839,7 @@ internal/domain/
 ├── ../adapter/merchant/  3 test, 88,9% — manual.go (luôn ErrManualPurchase) + router.go (chọn ACL theo shop; không biết shop → giao cho người)
 ├── ../adapter/memory/    14 test, 80,8% — repo của CẢ 6 context + Outbox (Drain, Pending/MarkSent) + UnitOfWork; mỗi repo: miss trả sentinel của DOMAIN, Save thứ hai là upsert, list có thứ tự ổn định
 ├── ../adapter/eventcodec/ 5 test, 98,6% — Encode 36 event + Decode → V1 (21 tên) + guard go/ast quét domain/*/events.go
-├── ../adapter/postgres/  28 test tích hợp, 79,8% — round trip repo 6 context + reconciliations + api_tokens + order_summaries, rollback thật, outbox
+├── ../adapter/postgres/  29 test tích hợp, 79,8% — round trip repo 6 context + reconciliations + api_tokens + order_summaries, rollback thật, outbox
 │   ├── postgres.go       Connect, querier, txKey, db(ctx), UnitOfWork.InTx
 │   ├── migrate.go        embed migrations/*.sql; MỌI thứ trong một tx sau pg_advisory_xact_lock — kể cả CREATE TABLE schema_migrations (đợt 18)
 │   ├── migrations/       0001_catalog.sql (merchants, categories, products, product_variants, outbox) · 0002_pricing.sql (lanes, fx_rates, listings, category_profiles, quotes) · 0003_ordering.sql (accepted_quotes, orders UNIQUE(quote)) · 0004_procurement.sql (purchase_tasks UNIQUE("order"), procurement_shops, procurement_items) · 0005_logistics.sql (lane_rules, parcels, batches + batch_items + batch_allocations, reconciliations) · 0006_auth.sql (api_tokens: token_hash PK, kind, subject, revoked_at) · 0007_reporting.sql (order_summaries, product_names) · 0008_variant_subject.sql (procurement_variants, ordering_variants, 4 cột Subject của purchase_tasks, procurement_items.source)
@@ -856,8 +856,8 @@ internal/domain/
 │   ├── wire.go           Graph{Catalog, Pricing, Ordering, Procurement, Logistics, Source, Auth, Tokens}; DevTokens() cho memory, TokenRepo cho Postgres; quotePolicy(), goodsClasses(); seed categories + lane (qua DefineLane) + fx; ACL = merchant.Manual
 │   └── subscribe.go      Subscribe(bus, g) — 31 dòng định tuyến = vòng đời §31; purchase_confirmed có 4 listener; on[T] decode generic
 ├── ../worker/            9 test, 87,3% — RunOnce thứ tự, retry at-least-once, batch, Run/cancel, Bus; Sweeper: pass lỗi vẫn chạy tiếp, chờ nhịp đầu, panic thiếu Pass
-├── ../adapter/http/      package httpapi — 37 test, coverage 80,7%   (taskView có product_name/variant_label/variant_ref/source)
-│   ├── server.go         NewHandler(Deps{6 context, Auth/Tokens/Registry, Extractor}) → http.Handler; 37 route, authenticate() bọc CẢ mux
+├── ../adapter/http/      package httpapi — 39 test, coverage 80,7%   (taskView có product_name/variant_label/variant_ref/source)
+│   ├── server.go         NewHandler(Deps{6 context, Auth/Tokens/Registry, Extractor}) → http.Handler; 39 route, authenticate() bọc CẢ mux
 │   ├── decode.go         decodeJSON (DisallowUnknownFields), language(), normalizeAmount()
 │   ├── errors.go         errorTable (~58 dòng) + writeError → 400/401/403/404/409/500/503
 │   ├── auth.go           authenticate() bọc CẢ mux (fail-closed), requireOperator/Customer/Any, principalOf/operatorOf/customerOf/sourcingOf
@@ -971,7 +971,7 @@ go test -cover ./...
 # ok  github.com/duongsy/portage/internal/platform/auth     coverage: 88.8%
 # ok  github.com/duongsy/portage/internal/platform/wire     coverage: 94.9%
 # ok  github.com/duongsy/portage/internal/worker            coverage: 87.3%
-# tổng 293 test (08/09, hết P9 + variant/size + migrate race) — 30 bỏ qua khi không có DSN (28 postgres + 1 wire + 1 rollback cố ý), 263 còn lại < 2 giây không cần gì
+# tổng 296 test (08/09, + hai route tham chiếu cho UI) — 31 bỏ qua khi không có DSN (29 postgres + 1 wire + 1 rollback cố ý), 265 còn lại < 2 giây không cần gì
 ```
 
 ### 🛡️ Test canh quyết định — `internal/domain/decisions_test.go`
