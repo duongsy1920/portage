@@ -53,9 +53,11 @@ func TestReference_listsTheTwoClosedSets(t *testing.T) {
 	if shops[0].Currency != "USD" || shops[0].Status != "active" {
 		t.Fatalf("merchant row = %+v", shops[0])
 	}
-	// Sourcing says who may bring a product in from this shop. The seeded one
-	// is operator-only, and the list says so rather than hiding it.
-	if len(shops[0].Sourcing) != 1 || shops[0].Sourcing[0] != "operator" {
+	// Sourcing says who may bring a product in from this shop, and the list
+	// carries it so a form can offer only the shops this caller may paste for.
+	// It is not a filter the server relies on: POST /products enforces the
+	// same rule and answers 409 sourcing_not_allowed.
+	if len(shops[0].Sourcing) != 3 {
 		t.Fatalf("sourcing = %+v", shops[0].Sourcing)
 	}
 }

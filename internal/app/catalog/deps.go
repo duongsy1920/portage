@@ -27,6 +27,15 @@ var (
 	// (Merchant, Product), so it lives here, not in either of them.
 	ErrMerchantInactive = errors.New("merchant is not active")
 
+	// ErrSourcingNotAllowed: the merchant exists and is active, but this way
+	// of bringing a product in is not one it accepts. Merchant.Sourcing is the
+	// list of who may, and it is a decision per shop: some shops we are happy
+	// to let customers paste links from, others only staff.
+	//
+	// A rule that spans two aggregates, like the two above, which is why it
+	// lives here and not in Product.
+	ErrSourcingNotAllowed = errors.New("merchant does not accept products from this source")
+
 	// ErrPriceCurrency: a product's price must be in its merchant's currency.
 	// Product cannot know the merchant's currency; the use case does.
 	ErrPriceCurrency = errors.New("price is not in the merchant's currency")

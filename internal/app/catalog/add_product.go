@@ -52,7 +52,8 @@ func NewAddProductHandler(d Deps) *AddProductHandler {
 // Handle, in order:
 //
 //  1. the merchant must exist and be active — nothing new is listed for a
-//     shop we cannot buy from (ErrMerchantInactive, a two-aggregate rule);
+//     shop we cannot buy from (ErrMerchantInactive, a two-aggregate rule), and
+//     not from a source that shop does not accept (ErrSourcingNotAllowed);
 //  2. the price must be in the merchant's currency (ErrPriceCurrency — the
 //     Product cannot know the merchant's currency, the use case can);
 //  3. the category must exist;
@@ -71,6 +72,15 @@ func (h *AddProductHandler) Handle(ctx context.Context, cmd AddProduct) (catalog
 		}
 		if !m.IsActive() {
 			return fmt.Errorf("merchant %q: %w", m.Name(), ErrMerchantInactive)
+		}
+		// Merchant.Supports has existed since the merchant aggregate did, and
+		// nothing called it: the field was recorded, announced through
+		// merchant_sourcing_enabled/disabled, and then never enforced. A rule
+		// nobody checks is not a rule, and a screen that filters the list is
+		// not enforcement — curl does not read the screen.
+		if !m.Supports(cmd.SourcedBy) {
+			return fmt.Errorf("merchant %q does not accept products from %s: %w",
+				m.Name(), cmd.SourcedBy, ErrSourcingNotAllowed)
 		}
 		if cmd.Price.IsValid() && cmd.Price.Currency() != m.Currency() {
 			return fmt.Errorf("price %s for merchant %q selling in %s: %w",

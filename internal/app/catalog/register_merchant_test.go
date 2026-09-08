@@ -51,7 +51,11 @@ func exampleMerchant() catalog.MerchantDetails {
 		Site:         catalog.MustParseHostname("www.example.com"),
 		Currency:     shared.USD,
 		FreeShipping: catalog.MustFreeShippingOver(shared.MustParseMoney("50.00", shared.USD)),
-		Sourcing:     []catalog.SourcingMode{catalog.SourcedByOperator},
+		// Both modes: the tests that use this shop are about other rules, and
+		// a shop that refused customer pastes would fail them for a reason
+		// they are not about. ErrSourcingNotAllowed has its own test in
+		// internal/adapter/http.
+		Sourcing: []catalog.SourcingMode{catalog.SourcedByOperator, catalog.SourcedByCustomer},
 	}
 }
 

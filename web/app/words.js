@@ -106,6 +106,7 @@ export const ERRORS = {
   category_not_found:      "Ngành hàng đó chưa được mở.",
   merchant_not_found:      "Không tìm thấy shop đó. Có thể máy chủ vừa khởi động lại.",
   merchant_inactive:       "Shop này đang tạm ngưng, chưa mua hộ được.",
+  sourcing_not_allowed:    "Shop này không nhận link do khách tự gửi. Nhắn nhân viên để họ thêm hộ.",
   price_currency:          "Giá phải cùng loại tiền với shop.",
   malformed_amount:        "Số tiền không đúng dạng. Tiền Việt không có phần thập phân.",
   listing_not_found:       "Sản phẩm chưa đăng bán xong. Vài giây nữa thử lại.",

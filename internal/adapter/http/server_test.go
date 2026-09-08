@@ -235,7 +235,11 @@ func (a *api) seedMerchant(t *testing.T) *catalog.Merchant {
 	t.Helper()
 	m, err := catalog.RegisterMerchant(catalog.MerchantDetails{
 		Name: "Example Sports", Site: catalog.MustParseHostname("www.example.com"), Currency: shared.USD,
-		Sourcing: []catalog.SourcingMode{catalog.SourcedByOperator},
+		// All three modes: most tests here are about a route's own logic, and a
+		// shop that refused customer pastes would make them fail for a reason
+		// that has nothing to do with what they are testing. The rule itself
+		// gets its own test below.
+		Sourcing: []catalog.SourcingMode{catalog.SourcedByOperator, catalog.SourcedByCustomer, catalog.SourcedByFeed},
 	}, now)
 	if err != nil {
 		t.Fatal(err)

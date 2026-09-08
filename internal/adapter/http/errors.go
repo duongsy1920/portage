@@ -118,6 +118,7 @@ var errorTable = []mapping{
 	{catalog.ErrDuplicateVariant, http.StatusConflict, "duplicate_variant"},
 	{catalog.ErrInvalidDuplicate, http.StatusConflict, "invalid_duplicate"},
 	{catalogapp.ErrMerchantInactive, http.StatusConflict, "merchant_inactive"},
+	{catalogapp.ErrSourcingNotAllowed, http.StatusConflict, "sourcing_not_allowed"},
 	{catalogapp.ErrPriceCurrency, http.StatusConflict, "price_currency"},
 	{shared.ErrCurrencyMismatch, http.StatusConflict, "currency_mismatch"},
 	{pricing.ErrListingInactive, http.StatusConflict, "listing_inactive"},
