@@ -176,7 +176,7 @@ nếu quên một đầu.
 | `TestAuth_customerOnlyRoutesRefuseOperator` | `adapter/http` | sửa: accept giờ nhận cả hai |
 | `wholeFlow` | `platform/wire` | thêm một đơn operator đặt hộ; số vàng **không được đổi** |
 
-Xong phải xanh: `gofmt -l .` rỗng · `go vet ./...` · **296 + 5 test** ·
+Xong phải xanh: `gofmt -l .` rỗng · `go vet ./...` · **304 + 5 test** ·
 7 decision guard · `smoke.ps1` in đúng `total 5393720`, `variance -2.50`.
 
 ---

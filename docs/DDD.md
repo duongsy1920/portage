@@ -199,7 +199,7 @@ Bounded context của Portage:
 ```
 internal/domain/
 ├── shared/         ✅  Shared Kernel — Money, Weight, Rate, ID, Events, ParcelSpec, OperatorID
-├── catalog/        ✅  Merchant, Product ⊃ Variant, CategoryPolicy, Provenance — 16 event
+├── catalog/        ✅  Merchant, Product ⊃ Variant, CategoryPolicy, Provenance — 17 event
 ├── pricing/        ✅  ShippingLane, RateCard, DutyPolicy, QuotePolicy, Calculate, Quote — nghe catalog qua event
 ├── ordering/       ✅  CustomerOrder (cọc 50 %, Cancel/Refund = §26), AcceptedQuote, Variant — nghe pricing + catalog qua event
 ├── procurement/    ✅  PurchaseTask, PurchaseReceipt, PORT MerchantACL (ACL §22) — nghe ordering, nghe catalog; ordering nghe lại
@@ -1194,8 +1194,8 @@ Nhờ vậy:
 - Đổi từ OpenAI sang model khác = viết adapter mới, domain **không đổi một dòng**
 - Chạy song song nhiều adapter để so sánh chất lượng
 
-**Bằng chứng đã hoạt động trong Portage:** 265/296 test chạy **không cần gì cả**,
-không Docker, không mạng, không API key (31 test còn lại là tích hợp Postgres) — kể cả 32 test tầng app đi
+**Bằng chứng đã hoạt động trong Portage:** 272/304 test chạy **không cần gì cả**,
+không Docker, không mạng, không API key (32 test còn lại là tích hợp Postgres) — kể cả 32 test tầng app đi
 qua thật handler → domain → repository → outbox, vì repository và outbox là
 adapter in-memory cắm vào port.
 
@@ -2090,7 +2090,7 @@ internal/
 ├── worker/                      Relay (at-least-once) + Bus + Sweeper (việc theo GIỜ)  ← tầng 5
 ├── platform/auth/               Principal, port Verifier/Issuer, Static; HashToken (sha256) ← "ai đang gọi" là việc của BIÊN (§20)
 ├── platform/clock/              System (time.Now), Fixed (test)         ← ADAPTER cho Clock
-├── platform/wire/               Memory() / Postgres() → Graph{6 context, Source, Auth/Tokens/Registry, Extractor}; Subscribe() = 31 dòng định tuyến event
+├── platform/wire/               Memory() / Postgres() → Graph{6 context, Source, Auth/Tokens/Registry, Extractor}; Subscribe() = 35 dòng định tuyến event
 │
 cmd/api/main.go                  -dsn → wire.Memory (+ relay trong process) | wire.Postgres → :8080
 cmd/worker/main.go               -dsn (bắt buộc) → wire.Postgres → wire.Subscribe → Relay.Run
@@ -2165,7 +2165,7 @@ scripts/smoke.ps1                cả flow trên binary thật + Postgres thật
 ```
 
 ```
-go test ./...   →  296 test (08/09, + hai route tham chiếu cho UI) — 31 tích hợp chạy khi có PORTAGE_TEST_DSN; 265 còn lại < 2 giây không cần Docker
+go test ./...   →  304 test (08/09, + bảng đọc worklist và hai màn hình theo vai) — 32 tích hợp chạy khi có PORTAGE_TEST_DSN; 272 còn lại < 2 giây không cần Docker
 coverage        →  shared 91% · catalog 89% · pricing 74% · ordering 81% · procurement 81% · logistics 76% · app 71–82% · http 81% · codec 99% · postgres 80% · memory 81% · openai 81% · merchant 89% · auth 89% · wire 95% · worker 87%
 go run          →  cmd/api (in-memory hoặc -dsn) · cmd/worker -dsn · docker compose up -d · scripts/smoke.ps1
 gofmt / vet     →  sạch
@@ -2230,7 +2230,7 @@ CI              →  gofmt, vet, test -race, dependency rule
 | **Domain Service là interface** | `logistics.FreightAllocator` + `ByChargeableWeight`; `ConsolidationBatch.Ship` nhận allocator làm tham số |
 | **Tiền chia đúng từng cent** | `shared.Allocate` — floor + largest remainder, `big.Int`; 87.50 → 29.17 + 58.33 |
 | **Quote vs Actual khép** | `pricing.Reconciliation` từ 3 context; `Variance() = −2.50 USD` trên đơn thật; `GET /reconciliations/{order}` |
-| **Vòng đời §31 chạy hết** | test vàng `wholeFlow` tới `delivered`; smoke 20 event qua 5 context; `Subscribe` 31 dòng = sơ đồ §31 |
+| **Vòng đời §31 chạy hết** | test vàng `wholeFlow` tới `delivered`; smoke 20 event qua 5 context; `Subscribe` 35 dòng = sơ đồ §31 |
 | **Hai aggregate một transaction, có lý do** | `logisticsapp.AddParcelHandler`/`ShipBatchHandler` — parcel status là sổ sách của batch |
 
 ## Chưa code 🔜

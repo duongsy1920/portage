@@ -77,11 +77,11 @@ và cấm mua để bán lại qua affiliate feed. Nên hệ thống **không t�
 shop**: khách/operator nhập tay, hoặc `adapter/openai` đọc từ URL. Đây là ràng
 buộc thiết kế, không phải chú thích.
 
-## Trạng thái (08/09/2026 — P9 xong, đợt variant/size, đợt migrate race)
+## Trạng thái (08/09/2026 — P9 xong, variant/size, migrate race, hai màn hình theo vai)
 
 ```
-5 bounded context + 1 tầng đọc · 36 domain event · 39 route · 31 dòng Subscribe
-296 test (295 PASS + 1 SKIP cố ý) · 265 test chạy < 2 giây không cần Docker
+5 bounded context + 1 tầng đọc · 37 domain event · 41 route · 35 dòng Subscribe
+304 test (303 PASS + 1 SKIP cố ý) · 272 test chạy < 2 giây không cần Docker
 7 test canh kiến trúc bằng go/ast
 ```
 
@@ -100,6 +100,14 @@ người đi mua chỉ có bốn cái uuid. Giờ ordering giữ một bảng ch
 có thật? của sản phẩm nào?) và trả 409 `variant_unknown` / `variant_not_for_product`;
 procurement giữ bảng chiếu đủ chữ rồi **chép** vào `PurchaseTask.Subject` lúc mở
 việc (tên · size/màu · mã shop · link gốc). Chi tiết: `docs/SETUP.md` §9 đợt 17.
+
+**Vừa xong — hai màn hình theo vai.** `web/{customer,staff}.html` là hai trang React
+(thư viện vendor trong `web/vendor/`, **không có bước build**) cho hai công việc thật, thay
+vì một nút cho mỗi endpoint như bảng kiểm cũ. Kèm bảng đọc thứ hai `product_worklist`,
+event `catalog.listing_confirmed`, và hai trường của *yêu cầu* trên bản nháp:
+`RequestedBy` (ai đang đợi) và `RequestedVariant` (họ xin size nào, bằng chữ của họ).
+Hai quy tắc của màn hình: không chữ nào của máy ra tới UI (`web/app/words.js`), và mọi con
+số nói được nó ở đâu ra. Đọc `docs/WALKTHROUGH.md` §23 và `docs/UI-GUIDE.md`.
 
 **Vừa xong — migrate race (đợt 18):** `Migrate` tạo bảng `schema_migrations`
 **ngoài** advisory lock, và `CREATE TABLE IF NOT EXISTS` của PostgreSQL không
@@ -125,14 +133,14 @@ một `adapter/merchant/<shop>.go` thật (chưa shop nào cho API) · cổng th
 |---|---|
 | `docs/HOC.md` | **lộ trình học, buổi 0 tới buổi 9** (buổi 0 = bấm UI trước khi đọc code) + 17 câu tự kiểm tra + nói gì khi phỏng vấn |
 | `docs/SETUP.md` | môi trường, cây thư mục, lệnh hàng ngày, **§9 nhật ký 18 đợt review** |
-| `docs/WALKTHROUGH.md` | đọc code theo thứ tự — 97 file, §0–§22 (§22 = đợt variant/size) |
+| `docs/WALKTHROUGH.md` | đọc code theo thứ tự — 101 file, §0–§23 (§23 = hai màn hình theo vai) |
 | `docs/DDD.md` | sổ tay khái niệm, đối chiếu Symfony |
 | `docs/FLOW-ORDER.md` | một đơn từ đầu tới cuối: ai gọi, ai nghe, bảng nào đổi, hỏng thì sao |
 | `docs/CATALOG.md` | vì sao không dùng affiliate feed, provenance theo nhóm |
 | `docs/GO-CHO-PHP.md` | cú pháp Go tra nhanh cho người viết PHP |
 | `docs/P10-PLAN.md` | **việc đang làm**: operator đặt hộ có ghi tên — file phải sửa, ba cái bẫy, test bắt buộc |
 | `docs/P9-PLAN.md` | plan gốc của P9 (đã xong hết) — giữ để thấy cách chốt quyết định |
-| `docs/UI-GUIDE.md` | **thao tác UI từng bước để chạy thử luồng**: dựng lên, token, 26 bước, 10 nhánh rẽ nên thử, bảng hỏng-thì-xem |
+| `docs/UI-GUIDE.md` | **bốn màn hình và bấm gì trên từng cái**: trang khách, trang nhân viên, mô phỏng, bảng kiểm API; 10 nhánh rẽ nên thử; bảng hỏng-thì-xem |
 
 **`docs/SETUP.md` §9 là chỗ quan trọng nhất khi tiếp tục việc**: 18 đợt review,
 mỗi đợt một bảng "quyết định / bug → chỗ nó nằm". Đọc 2–3 đợt cuối là nắm được
@@ -141,7 +149,7 @@ vì sao code hiện tại trông như vậy.
 ## Lệnh hay dùng
 
 ```bash
-go test ./...                     # 265 test, < 2 giây
+go test ./...                     # 272 test, < 2 giây
 gofmt -l . && go vet ./...        # phải sạch trước khi báo xong
 
 # Có Postgres (28 test tích hợp)

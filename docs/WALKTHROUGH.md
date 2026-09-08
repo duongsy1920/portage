@@ -16,9 +16,9 @@
 > (context thứ hai nói chuyện với context thứ nhất bằng gì), rồi §15 (`ordering`: luật cọc
 > 50 % và điểm không thể quay đầu thành code), rồi §16 (`procurement`: ACL đầu tiên, saga khép kín),
 > rồi §17 (`logistics`: cân thật, chia cước, Quote vs Actual — vòng đời §31 chạy hết).
-> §18 là cửa auth, §19 việc không ai gọi, §20 read model, §21 ACL cho AI, và **§22 là
-> đợt gần nhất**: một chữ của shop (`size`) đi qua ba context — đọc nó nếu muốn thấy
-> cách thêm một event vào hệ thống đang chạy mà không phá số vàng.
+> §18 là cửa auth, §19 việc không ai gọi, §20 read model, §21 ACL cho AI, §22 một chữ của
+> shop (`size`) đi qua ba context, và **§23 là đợt gần nhất**: hai màn hình theo vai, và
+> bảng đọc thứ hai mà chúng sống trên.
 
 ---
 
@@ -829,10 +829,17 @@ Mỗi dòng: file → khái niệm → đọc thêm ở đâu.
 95. internal/domain/ordering/variant.go       bản sao mỏng nhất có thể: có thật không, của sản phẩm nào            §22c
 96. internal/domain/procurement/task.go       Subject — bốn chữ CHÉP vào task lúc mở, không tra lại sau           §22d
 97. internal/adapter/postgres/migrations/0008_variant_subject.sql  hai bảng chiếu + 4 cột subject + cột source    §22d
+── hai màn hình, và bảng đọc chúng sống trên (đợt UI) ──────────────────────────────────────────────────────
+98. internal/app/reporting/worklist.go        WorklistItem + NextStep() — "còn thiếu bước nào" quyết ĐÚNG MỘT LẦN §23c
+99. internal/app/reporting/worklist_projector.go  bốn event, một dòng; chịu sai thứ tự bằng cái khung            §23c
+100. internal/adapter/http/reference.go       GET /categories, /merchants — hai tập đóng để form có select box    §23b
+101. internal/adapter/http/worklist.go        GET /product-queue (nhân viên), GET /me/products (theo chìa khoá)   §23d
 ```
 
-Đọc xong 97 file (≈ 12.400 dòng kể cả comment) là đọc hết code hiện có — từ `curl` tới
-`variance: -2.50 USD`.
+Đọc xong 101 file là đọc hết code hiện có — từ `curl` tới
+`variance: -2.50 USD`. Toàn bộ code không tính test là **18.132 dòng** kể cả comment, đo
+bằng `find internal cmd -name '*.go' ! -name '*_test.go' | xargs wc -l`. Comment chiếm phần
+đáng kể và đó là chủ ý: mỗi quyết định khó đều có lý do viết ngay cạnh nó.
 
 Đọc xong 35 file đầu (≈ 4.500 dòng kể cả comment) là đọc hết ngày 1 — từ `curl` tới dòng
 `sent_at` trong Postgres. Thêm 21 file ngày 2 (≈ 2.500 dòng) là đọc hết code hiện có — tới
@@ -2859,3 +2866,218 @@ Dòng `buy:` là toàn bộ mục đích của đợt này: **một người đ�
 | Chữ tự do vẫn cần **khoá chuẩn hoá**; nhưng đừng chuẩn hoá tới mức đoán hộ shop | bỏ khoảng trắng, **không** đảo thứ tự |
 | Đọc comment cũ trước khi đổi luật: nó có thể đang bảo vệ một ca có thật | `VariantDetails` → `ErrUnnamedVariant` |
 | Thêm event = thêm dòng `Subscribe` + dòng `eventcodec` + hàng test hợp đồng | guard `TestEncode_contractCoversEveryDomainEvent` |
+
+---
+
+## 23. Hai màn hình theo vai, và bảng đọc thứ hai
+
+> Đợt này bắt đầu bằng một câu của anh sau khi bấm thử bản console đầu tiên: *"UI gì mà khó
+> xài dữ vậy ta?"* — kèm một danh sách rất cụ thể những chỗ không hiểu. Toàn bộ mục này là
+> câu trả lời, và cái đáng học không nằm ở CSS.
+
+### 23a. Lỗi gốc: bày ra hình dạng của API, không phải hình dạng của việc
+
+Bản console đầu tiên có một nút cho mỗi endpoint. Bốn nút sáng cùng lúc, một ô để dán uuid,
+và những con số không ai biết ở đâu ra:
+
+```
+[Thêm variant] [Xác nhận listing] [Cân 1250 g] [Publish]        ← bốn nút, đều bấm được
+product_id: [                                    ]              ← uuid, tự tìm mà dán
+```
+
+Ba lỗi trong một hình:
+
+1. **"variant", "listing", "publish"** là từ trong code. Người dùng không nghĩ "thêm
+   variant"; họ nghĩ *"khách gửi cho tôi một link, làm cho nó bán được"*.
+2. **`1250` nằm trong nhãn nút.** Nó là fixture của test vàng, hardcode ở `main.js`. Không
+   ai đọc UI mà biết được điều đó.
+3. **`US 9 / black` xuất hiện từ hư không** khi bấm. Người dùng chưa từng nhập nó.
+
+Và lỗi nặng nhất không nhìn thấy được: nhân viên **không hề biết khách muốn size nào**. Hệ
+thống chưa bao giờ ghi lại điều đó.
+
+### 23b. Trước hết: hai tập đóng, để form có cái mà chọn
+
+Khách phải chọn shop và ngành hàng. Cả hai đã là tập đóng ở phía server từ lâu — sai mã thì
+404 `category_not_found` — nhưng **không có route nào đọc được danh sách**, nên form chỉ còn
+cách hỏi người dùng một uuid.
+
+```go
+// internal/adapter/http/reference.go
+mux.HandleFunc("GET /categories", requireAny(s.listCategories))
+mux.HandleFunc("GET /merchants",  requireAny(s.listMerchants))
+```
+
+Cả hai mở cho **mọi** chìa khoá đã đăng nhập, vì khách cũng phải chọn. Và cả hai đọc thẳng
+repository như `GET /quotes/{id}`: không có invariant nào để giữ, chúng chỉ trả lời *"tôi có
+những lựa chọn nào"*.
+
+Hai chi tiết nhỏ mà nếu thiếu thì form vẫn khó dùng:
+
+| Trả kèm | Vì sao |
+|---|---|
+| `currency` của shop | form khoá tiền tệ theo shop, thay vì để người ta chọn lệch rồi học bằng một 409 |
+| hộp mặc định của ngành hàng | màn hình cân điền sẵn theo nó, và **nói rõ đó là hộp mẫu** |
+| shop đã tạm ngưng vẫn nằm trong danh sách, có nhãn | shop mất tích trông như bug của mình; shop bị treo trông như một quyết định |
+
+Và một bug thật tìm ra ở đây: adapter in-memory của `CategoryRepo.All()` duyệt map Go, mà Go
+**cố tình** ngẫu nhiên hoá thứ tự duyệt map. Postgres thì `ORDER BY code`. Hai adapter không
+đồng ý, nên ngành hàng mặc định của form đổi mỗi lần tải trang. Có test canh cả hai giờ.
+
+### 23c. Bảng đọc thứ hai: "còn việc gì phải làm"
+
+Catalog biết trạng thái một sản phẩm, nhưng chỉ biết dưới dạng **lý do `Publish` nói không**.
+Đủ cho một API và vô dụng cho một màn hình: không thể đưa một 409 cho người rồi bắt họ đoán
+thiếu bước nào trong bốn bước.
+
+Nên bốn sự thật đó được nhớ lại ở tầng đọc, mỗi cái do event của chính nó ghi:
+
+```
+catalog.product_added      → dòng mới, chưa làm gì
+catalog.variant_added      → có size, kèm id + nhãn
+catalog.listing_confirmed  → đã có người xác nhận      ← EVENT MỚI của đợt này
+catalog.product_measured   → đã cân
+catalog.product_published  → xong, rời hàng chờ
+```
+
+`listing_confirmed` phải sinh ra vì **không event nào khác cho biết bước đó đã xong**. Một
+hàng chờ bắt người ta xác nhận lại thứ họ xác nhận một giờ trước là hàng chờ họ thôi tin.
+
+Và `NextStep()` được quyết **đúng một lần**, trong model, không phải trong mỗi màn hình:
+
+```go
+func (w WorklistItem) NextStep() Step {
+	switch {
+	case w.Published:          return StepDone
+	case !w.HasVariant():      return StepVariant
+	case !w.ListingConfirmed:  return StepListing
+	case !w.Measured:          return StepMeasure
+	default:                   return StepPublish
+	}
+}
+```
+
+Hai màn hình mà mỗi bên tự tính "còn thiếu gì" sẽ lệch nhau vào ngày có bước thứ năm, và
+lệch **im lặng**. Một hàm, một bảng test.
+
+Chịu sai thứ tự vẫn bằng cái khung như §20: **event nào cũng được tạo dòng**. Test giao bốn
+event **ngược chiều** — cân trước, rồi size, rồi mới tới cái paste — và dòng vẫn đúng. Bỏ
+qua một measurement cho sản phẩm chưa nghe tên là mất luôn sự thật đó, và màn hình sẽ bắt
+người ta cân lại cái hộp họ đã cân.
+
+`HasVariant()` là hàm, không phải cột: nó chỉ là "danh sách variant không rỗng", và lưu một
+sự thật ở hai chỗ là hai chỗ để bất đồng.
+
+### 23d. Ai được đọc gì
+
+```go
+mux.HandleFunc("GET /product-queue", requireOperator(s.listProductQueue))
+mux.HandleFunc("GET /me/products",   requireCustomer(s.listMyProducts))
+```
+
+`/me/products` **không gọi tên được ai khác**, giống `/me/orders`: id lấy từ chìa khoá, nên
+không có đường nào lộ danh sách của người khác. Và "khách rỗng" không sở hữu gì — nếu
+`ByRequester` nhận id rỗng, nó trả về danh sách trống chứ không trả mọi dòng do operator tự
+thêm. Có test cho đúng câu đó.
+
+### 23e. Hai sự thật về *yêu cầu*, không phải về sản phẩm
+
+```go
+// catalog/product.go
+RequestedBy      shared.ID   // ai đang đợi
+RequestedVariant string      // họ xin loại nào, bằng CHỮ CỦA HỌ
+```
+
+Cả hai **cố tình không nằm trong `Provenance`**. Provenance trả lời *"dữ liệu này từ đâu tới
+và ai bảo đảm"*; hai trường này trả lời *"ai đang đợi và họ xin gì"*. Gộp lại là làm mờ cả
+hai.
+
+`RequestedVariant` là một **điều mong**, không phải một Variant. Shop có thể không bán size
+đó, nên nhân viên vẫn mở trang kiểm rồi tạo variant thật — với ô đã điền sẵn chữ khách viết,
+và điều mong **vẫn hiện bên cạnh** sau đó. Vì "khách xin US 9, mình tạo US 9.5" là chuyện
+phải nói với nhau, và che đi thì không ai nói.
+
+Nó là chữ tự do, và phải là chữ tự do: giày người lớn có hệ `M` và `W` trên cùng một trang,
+giày trẻ có `Y` và `C`, áo có `S/M/L`, điện thoại có dung lượng. Không enum nào phủ hết, và
+enum nào cố phủ sẽ từ chối một size thật vào ngày shop đặt tên mới. Nên UI **dạy** hệ size
+thay vì ép danh sách: cùng số 1 mà `1Y` và `1C` là hai đôi khác nhau.
+
+### 23f. Hai quy tắc của màn hình, và lý do chúng thành quy tắc
+
+Anh nói lại hai điều sau khi xem bản đầu, và chúng thành luật của cả hai trang:
+
+> 1. Dùng từ người không có tech vẫn hiểu.
+> 2. Mọi chi tiết trên UI phải giải thích được tại sao nó ở đó.
+
+Điều (1) thành `web/app/words.js`: một từ điển duy nhất cho mọi mã của máy, kèm `tone` cho
+nhãn màu và, ở chỗ nào cần, một câu `why`. `issued` thành *"còn hiệu lực"*, `open` thành
+*"chưa mua"*, `none` thành *"chưa có gì để gửi"*, `branded` thành *"hàng có thương hiệu"*.
+Mã lạ thì **hiện ra kèm ghi chú**, không giấu — giấu một trạng thái mới là làm nó vô hình
+chứ không phải làm nó biến mất.
+
+Điều (2) thành bảng báo giá tám dòng, mỗi dòng một câu nói nó ở đâu ra, và dòng cước ghi
+thẳng rằng nó **không** tính theo cân thật mà theo số lớn hơn giữa cân thật và cân quy đổi,
+làm tròn lên bước 500 g. Cùng lý do, ô cân bên nhân viên nói *"đây là hộp mẫu của ngành hàng,
+sửa thành số thật"* thay vì im lặng điền `1250`.
+
+Và câu "bấm xong thì khoá nút lại đi" được trả lời khác một chút, vì khoá nút chưa đủ: một
+nút bị khoá vẫn đọc ra là *"cái này tôi không được bấm"*, nó không nói *"cái này xong rồi"*.
+Nên bước đã xong **thay nút bằng thứ nó đã ghi** — `Đã có 1Y · black` — và tiêu điểm nhảy
+sang bước kế tiếp. Số thứ tự có sẵn vì checklist chính là 1 tới 4.
+
+### 23g. React mà không có bước build
+
+`web/vendor/` giữ ba file: React 18, ReactDOM, và `htm` (viết JSX bằng template literal).
+`cmd/api -web` serve thẳng thư mục đó.
+
+| Được | Mất |
+|---|---|
+| component và hook thật, không phải chuỗi HTML | không có TypeScript |
+| không `npm install`, không cần mạng | không dùng được hệ sinh thái npm |
+| sửa file là F5 thấy ngay | phải tự viết những thứ thư viện có sẵn |
+| repo vẫn chỉ cần một bộ công cụ Go | ba file nhị phân nằm trong repo |
+
+Đổi sang Vite sau này là việc của FE, backend không phải sửa gì.
+
+**Thông báo giữa hai vai không dùng websocket.** Mỗi trang hỏi hàng chờ của mình mỗi 4 giây
+rồi so với lần trước. Nghe thô, nhưng nó thật thà với việc bảng đọc vốn đã là nhất quán sau
+cùng: một cú push cũng sẽ tới **trước** khi projection kịp ghi, rồi màn hình lại phải hỏi
+lại. Polling ở đây không phải giải pháp tạm, nó đúng bản chất.
+
+### 23h. Điều khiển trình duyệt thật mới bắt được năm lỗi này
+
+`go test` xanh, `curl` đúng, và cả năm lỗi dưới đây vẫn còn nguyên. Chúng chỉ lộ ra khi cho
+Chrome bấm hết luồng:
+
+| Lỗi | Vì sao đọc code không thấy |
+|---|---|
+| `style="margin-left:auto"` — React đòi object, không phải chuỗi | cú pháp hợp lệ, chỉ vỡ lúc render |
+| Gọi `Field({...})` như hàm nên `useId` của nó nhập vào hook list của component cha | sai quy tắc hooks, chỉ nổ khi số hook đổi giữa hai lần render |
+| `<label>` không nối `for`/`id` với `<input>` | hỏng trình đọc màn hình **và** hỏng `getByLabel`; cùng một nguyên nhân |
+| Dòng tiền `0.00` vẫn hiện vì điều kiện so với `"0"` mà API trả `"0.00"` | cả hai đều là chuỗi hợp lệ |
+| Ngành hàng mặc định đổi mỗi lần tải, do map của Go | trên máy nào cũng chạy, chỉ khác thứ tự |
+
+Cách làm: Chrome có sẵn trên máy, Playwright import bằng đường dẫn tuyệt đối, rồi một script
+bấm mười bước như một người thật — khách dán link, nhân viên nhận thông báo, nhập size, xác
+nhận, cân, đăng bán, khách xin báo giá, đồng ý, nhân viên thu cọc, phiếu đi mua hiện đủ chữ.
+Script đó cũng thu mọi lỗi console và pageerror, nên "sạch" có nghĩa là sạch.
+
+Bài học đáng mang đi: **một UI không có test là một UI chưa ai chạy.** Với backend thì
+`go test ./...` là bằng chứng; với màn hình, bằng chứng duy nhất là có cái gì đó bấm nó.
+
+### 23i. Bài học
+
+| Bài học | Chỗ nó hiện ra |
+|---|---|
+| Bày hình dạng API ra UI là bắt người dùng học kiến trúc của bạn | bản console đầu tiên |
+| Bước đã xong phải **hiện thứ nó ghi**, khoá nút là chưa đủ | `Steps` trong `ui.js` |
+| Con số điền sẵn phải nói nó ở đâu ra, không thì nó là số bịa | ô cân, "hộp mẫu của ngành hàng" |
+| Từ của code rò ra nhãn UI là lỗi, và cần **một** từ điển để chặn | `words.js` |
+| Tập đóng ở domain thì phải có route đọc, không thì form hỏi uuid | `GET /categories`, `GET /merchants` |
+| Select box không bỏ được validate ở server: client gửi gì cũng được | 404 `category_not_found` vẫn ở lại |
+| "Còn thiếu bước nào" quyết một lần trong model, không phải mỗi màn hình một bản | `NextStep()` |
+| Yêu cầu của khách là **điều mong**, giữ nguyên bên cạnh sự thật để so được | `RequestedVariant` |
+| Thứ tự trả về của một danh sách tham chiếu là một phần hợp đồng | `CategoryRepo.All()` |
+| Sửa một migration đã chạy là phải dựng lại DB ở **mọi** máy đã chạy nó | 0009 tách thành 0009 + 0010 |
+| Nhất quán sau cùng ở UI thì xử bằng thử lại, không phải báo đỏ | `retryOn` trong `portage.js` |
+| **Viết docs là một cách kiểm code.** Đang mô tả luật "shop nào cho khách gửi link" thì phát hiện `Merchant.Supports()` chưa ai gọi: trường được ghi, được thông báo bằng event, rồi bỏ quên. Một trường không ai kiểm không phải một luật | `ErrSourcingNotAllowed` |

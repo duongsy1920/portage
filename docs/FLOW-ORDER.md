@@ -53,7 +53,7 @@ chuyện bằng **event** đi qua bảng `outbox` và một cái `Relay` (DDD.md
 lại thành **một dòng phẳng** cho màn hình "đơn của tôi". Nó không quyết định
 gì cả — không có invariant nào để giữ.
 
-Bảng định tuyến thật: `internal/platform/wire/subscribe.go`, **31 dòng**. Đọc
+Bảng định tuyến thật: `internal/platform/wire/subscribe.go`, **35 dòng**. Đọc
 từ trên xuống chính là vòng đời một đơn.
 
 Một event có thể có nhiều người nghe. `procurement.purchase_confirmed` có
@@ -91,13 +91,27 @@ phẩm có giá khác tiền tệ của shop (409 `price_currency`).
 ### Bước 2 — khách dán link
 
 ```
-POST /products {name, merchant_id, category, source_url, price, currency}   khách HOẶC operator
+POST /products {name, merchant_id, category, source_url, price, currency,
+                requested_variant}                                        khách HOẶC operator
   → catalogapp.AddProductHandler
   → catalog.AddProduct(details, now)                 ← AGGREGATE ROOT thứ hai
-  → event catalog.product_added
+  → event catalog.product_added  (mang cả link, giá, ai yêu cầu, xin size nào)
+      nghe: reporting (dòng đầu tiên của hàng chờ việc)
       bảng: products
-      lỗi:  409 merchant_inactive · 409 price_currency · 404 category_not_found · 400 invalid_source_url
+      lỗi:  409 merchant_inactive · 409 sourcing_not_allowed · 409 price_currency
+            404 category_not_found · 400 invalid_source_url
 ```
+
+Thứ tự kiểm có ý nghĩa: shop còn hoạt động không → **nguồn này có được phép không** → giá
+có đúng tiền tệ → ngành hàng có tồn tại. Hai câu đầu là *"bạn có được phép hỏi không"*, hai
+câu sau là *"bạn hỏi gì"*. `sourcing_not_allowed` là 409 chứ không phải 403: chìa khoá của
+khách hợp lệ, chỉ là shop đó không nhận link do khách gửi.
+
+Hai trường của **yêu cầu**, không phải của sản phẩm: `requested_by` lấy từ chìa khoá (khách
+nào đang đợi), và `requested_variant` là size họ xin, bằng chữ của họ. Cả hai cố tình không
+nằm trong `Provenance` — provenance trả lời *dữ liệu từ đâu tới và ai bảo đảm*, hai trường
+này trả lời *ai đang đợi và họ xin gì*. `requested_variant` là một điều mong: shop có thể
+không bán size đó, nên operator vẫn phải kiểm rồi tạo `Variant` thật.
 
 **Ba luật chỉ tầng app kiểm được** (vì cần nhiều hơn một aggregate):
 

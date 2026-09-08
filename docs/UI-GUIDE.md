@@ -1,161 +1,174 @@
-# Thao tác trên UI để chạy thử cả luồng
+# UI-GUIDE.md — bốn màn hình, và bấm cái gì trên từng cái
 
-> Hai màn hình, hai việc khác nhau:
->
-> | | Dùng khi |
-> |---|---|
-> | `web/flow.html` | **hiểu** luồng — mô phỏng, không gọi API, mở bằng double-click |
-> | `web/console.html` | **chạy thử** luồng — gọi API thật, phải mở qua `http://localhost:8080/ui/` |
->
-> File này nói về cái thứ hai. Đã kiểm 06/09/2026: 26 bước xanh, kết thúc ở `variance -2.50 USD`.
+> Repo có **bốn** trang. Hai trang để **làm việc**, hai trang để **hiểu hệ thống**. Lẫn
+> lộn giữa chúng là lý do bản đầu tiên khó dùng, nên đây là chỗ nói rõ trang nào cho ai.
+
+| Trang | Cho ai | Trả lời câu gì |
+|---|---|---|
+| `/ui/customer.html` | khách | *"gửi link món tôi muốn, giá bao nhiêu, hàng đâu rồi"* |
+| `/ui/staff.html` | nhân viên | *"còn việc gì phải làm, và bước tiếp theo là gì"* |
+| `/ui/flow.html` | người học | *"hệ thống chạy ra sao"* — mô phỏng, **không gọi API** |
+| `/ui/console.html` | lập trình viên | *"request nào, mã lỗi gì"* — bảng kiểm API |
+
+`/ui/` là trang chọn, và `http://localhost:8080/` cũng nhảy về đó.
 
 ---
 
 ## 0. Chạy lên
 
-**Cách nhanh nhất — in-memory, một lệnh.** Không cần Docker. Dữ liệu mất khi tắt, và relay outbox
-chạy ngay trong `cmd/api` mỗi 200 ms nên không cần `cmd/worker`:
-
 ```bash
-cd /d/portage
-go run ./cmd/api -web ./web
-# → portage api: console at http://localhost:8080/ui/console.html
+go run ./cmd/api -web ./web          # in-memory: không cần Postgres, mất dữ liệu khi tắt
 ```
 
-**Giống production hơn — Postgres, ba terminal.** Bảng vẫn còn sau khi tắt, và relay do worker thật làm:
+Mở `http://localhost:8080/ui/`. Chế độ này để sẵn hai chìa khoá `dev-operator` và
+`dev-customer`, và có một relay chạy trong process mỗi 200 ms.
+
+Muốn dữ liệu còn sau khi tắt:
 
 ```bash
-docker compose up -d                                   # terminal 1 (một lần)
-DSN="postgres://portage:portage@localhost:5432/portage?sslmode=disable"
-go run ./cmd/api    -dsn "$DSN" -web ./web             # terminal 2
-go run ./cmd/worker -dsn "$DSN" -every 300ms           # terminal 3
+docker compose up -d
+go run ./cmd/api -dsn "postgres://portage:portage@localhost:5432/portage?sslmode=disable" \
+  -web ./web -bootstrap-operator-token chia-dau-tien
+go run ./cmd/worker -dsn "postgres://portage:portage@localhost:5432/portage?sslmode=disable"
 ```
 
-Mở **http://localhost:8080/ui/console.html** (hoặc chỉ `localhost:8080`, nó tự chuyển).
+Ở chế độ `-dsn` **phải** chạy `cmd/worker`, vì relay nằm ở đó. Không có worker thì bảng đọc
+không bao giờ đầy, và mọi màn hình sẽ trống dù request đã thành công.
 
-> **Đừng double-click `console.html`.** Mở bằng `file://` thì module JS không nạp được và fetch
-> không cùng origin — console sẽ hiện dải đỏ nhắc đúng chuyện này. `flow.html` thì double-click được.
+### Trước khi khách dán được link: phải có shop
 
-Cờ `-web` chỉ thêm một file server ở `/ui/` **cạnh** API, cùng cổng. Cùng origin nên không có
-CORS, và token trong `fetch()` đi qua đúng cái `authenticate()` mà `curl` đi qua.
+Khách chọn shop từ một danh sách, không tự gõ. Danh sách đó rỗng cho tới khi nhân viên thêm
+shop, nên bước đầu tiên trên một hệ thống mới là:
+
+```bash
+curl -X POST localhost:8080/merchants \
+  -H 'Authorization: Bearer dev-operator' -H 'Content-Type: application/json' \
+  -d '{"name":"www.nike.com","site":"www.nike.com","currency":"USD","sourcing":["operator","customer"]}'
+```
+
+`sourcing` phải có `customer`, không thì khách không gửi được link cho shop đó. Trang khách
+lọc danh sách theo đúng điều này, **và server cũng chặn**: gửi thẳng bằng `curl` cho một shop
+chỉ nhận `operator` sẽ nhận 409 `sourcing_not_allowed`. Một danh sách đã lọc không phải là
+kiểm soát — `curl` không đọc màn hình.
 
 ---
 
-## 1. Chìa khoá (dải trên cùng)
+## 1. Chìa khoá
 
-Mọi route đều cần `Authorization: Bearer …`; không có token là **401**, sai loại người là **403**.
+Cuối mỗi trang có một thẻ **Chìa khoá**. Nó thay cho đăng nhập: mọi request gắn kèm nó, nên
+"hàng của tôi" và "đơn của tôi" không bao giờ trả về của người khác. Nó cũng là cách hệ
+thống ghi lại **ai** đã xác nhận sản phẩm và **ai** đã nhận tiền.
 
-| Chế độ | Token operator | Token khách |
+| Chìa | Dùng ở đâu | Sai thì |
 |---|---|---|
-| in-memory | `dev-operator` (đã điền sẵn) | `dev-customer` (đã điền sẵn) |
-| Postgres | chạy api thêm `-bootstrap-operator-token <chuỗi-bạn-tự-đặt>` rồi dán chuỗi đó vào | tab **Chìa khoá** → **Phát chìa mới** (kind `customer`) → **Dùng làm token khách** |
+| `dev-operator` | trang nhân viên | 401 nếu trống, 403 nếu dùng chìa khách |
+| `dev-customer` | trang khách | 403 khi vào route của nhân viên |
 
-Bấm **Lưu + kiểm**. Góc phải phải hiện `API ok · token operator ok` với đèn xanh. Nếu đỏ/vàng thì
-xem bảng ở §7. Token được nhớ trong `localStorage`, reload không phải điền lại.
-
----
-
-## 2. Cách nhanh: tab **Chạy luồng**
-
-Bấm **Chạy tới hết** — 26 bước tự chạy, mỗi bước một (hoặc vài) request thật. Xong thì:
-
-- cột trái: 26 dấu ✓, thanh tiến độ đầy
-- bước 26 hiện `variance -2.50 USD`
-- panel **Id của lần chạy này** có đủ merchant / product / variant / quote / order / task / parcel / batch
-
-Muốn học thì bấm **Chạy bước này** từng bước một, và đọc:
-
-- dòng **hint** — bước đó chứng minh điều gì
-- khối **Đã gửi / Nhận về** — JSON thật, không phải ví dụ
-- các dòng `›` — khi bước đang chờ relay hoặc đang thử lại
-
-Bấm vào một bước ở cột trái chỉ **nhảy tới xem**, không chạy lại. **Đặt lại** xoá session và sinh
-`run` mới (mỗi lần chạy phải có `site` và `source_url` khác nhau, vì `merchants.site` là UNIQUE và
-URL trùng sẽ bị cắm cờ nghi trùng làm publish thất bại).
-
-### 26 bước: kết quả đúng trông như thế nào
-
-| # | Bước | Đúng thì thấy |
-|---|---|---|
-| 1 | Đăng ký shop | `shop 01a0…` · site `www.example-<run>.com` |
-| 2 | Khách dán link | `product 01a0…` — gửi bằng token **khách**, nên provenance là customer |
-| 3 | Thêm variant | `variant 01a0…` — phát `catalog.variant_added`, nên relay #1 giao **5** event chứ không phải 4 |
-| 4 | Xác nhận listing | `204` |
-| 5 | Cân và đo thật | `204` |
-| 6 | Publish | `published` |
-| 7 | Chờ worker relay #1 | `đã chờ` |
-| 8 | Xin báo giá | `quote 01a0…`; nếu relay chưa kịp sẽ thấy `còn listing_not_found (lần 1/12)` rồi mới xanh |
-| 9 | Khách đọc báo giá | `branded · 2500 g · tổng 5.393.720 ₫ · cọc 2.696.860 ₫` |
-| 10 | Khách đồng ý | `accepted` |
-| 11 | Chờ worker relay #2 | `đã chờ` |
-| 12 | Đặt hàng | `đơn 01a0…`; có thể thấy `còn quote_not_accepted` một hai lần |
-| 13 | Thu cọc 50 % | `đã thu 2696860 ₫` |
-| 14 | Chờ procurement mở việc mua | `task 01a0… · shop tính bằng USD` sau 1–3 lần thử |
-| 14b | Cột **Mua gì** ở bảng việc | `Air Trainer 90 · US 9 · black`, mã `EX-AT90-9-BLK`, kèm link shop |
-| 15 | Người mua xem việc | `1 việc đang mở` |
-| 16 | Mua xong, nhập biên nhận | `NK-<run>-001 · đã trả 163.22 USD` |
-| 17 | Chờ 4 listener | `đơn purchased · thùng 01a0… đang chờ về kho` |
-| 18 | Cân thùng ở kho | `204` |
-| 19 | Mở lô hàng | `lô 01a0…` |
-| 20 | Xếp thùng, dán kín | `lô closed` |
-| 21 | Ship lô | `chia: đơn 01a0… · 2500 g · 27.50 USD` |
-| 22 | Chờ ordering nghe batch_shipped | `đơn in_transit` |
-| 23 | Khách trả nốt | `đã thu nốt 2696860 ₫` |
-| 24 | Giao tận nhà | `delivered` |
-| 25 | Chờ màn hình khách | `Air Trainer 90 · delivered · đã bay` |
-| 26 | Đối soát | `variance -2.50 USD (ước tính 163.22+25.00 · thật 163.22+27.50)` |
-
-Ba bước ⚙ (7, 11) chỉ **chờ** rồi để bước sau tự thử lại; bốn bước ⚙ còn lại (14, 17, 22, 25)
-**poll** một endpoint đọc thật, nên bạn thấy đúng khoảnh khắc projection được ghi.
+Ở `-dsn` thì không có chìa sẵn: chìa đầu tiên do `-bootstrap-operator-token` cắt, và nó chỉ
+nổ khi bảng chìa còn rỗng. Chìa cho khách thì operator phát qua `POST /tokens`.
 
 ---
 
-## 3. Cách chậm: thao tác tay như người dùng thật
+## 2. Trang khách — ba việc
 
-Vẫn nên chạy runner một lượt trước cho có dữ liệu, rồi tự bấm để cảm nhận. Thứ tự:
+### (a) Gửi link
 
-**Tab Khách → panel “Dán link sản phẩm”**
-1. `Shop (merchant_id)` cần có id — chạy bước 1 ở runner, hoặc dán id cũ.
-2. Sửa `Link` cho khác lần trước (nếu trùng, publish sẽ bị 409 `suspected_duplicate`).
-3. **Gửi cho nhân viên** → góc phải panel hiện `product …`.
+Điền năm ô. Bốn ô đầu là shop, ngành hàng, link, tên, giá. Ô thứ năm là **size hoặc màu bạn
+muốn**, và nó quan trọng hơn trông có vẻ: nhân viên đọc đúng dòng đó để biết mua cái nào.
+Bỏ trống là họ phải hỏi lại.
 
-**Tab Nhân viên → “Sản phẩm nháp → publish”**
-4. Bấm **Publish** *trước* — cố ý sai, để thấy `409 no_variants`.
-5. **Thêm variant** → **Publish** lại → `409 unverified`.
-6. **Xác nhận listing** → **Cân 1250 g** → **Publish** → xanh.
-   *(Panel này không đọc được trạng thái sản phẩm: API không có `GET /products/{id}`. Trạng thái chỉ
-   hiện ra qua chính mã lỗi — đó là CQRS, đọc là việc của read model.)*
+Viết đúng chữ trên trang shop, **kể cả chữ cái của hệ size**:
 
-**Tab Khách → “Báo giá”**
-7. **Xin báo giá** ngay → có thể `404 listing_not_found` (worker chưa relay). Bấm lại sau 1 giây.
-8. Đọc bảng: 150.00 + 13.22 thuế + 25.00 cước = 188.22 USD → ×26.000 → 4.893.720 ₫ + phí 500.000 ₫
-   = **5.393.720 ₫**, cọc **2.696.860 ₫**.
-9. **Đồng ý báo giá**.
+```
+M   nam            W   nữ            Y   thiếu niên        C   trẻ nhỏ
+S/M/L  áo          256GB  dung lượng
+```
 
-**Tab Nhân viên → “Một đơn hàng”** (đơn do runner đặt, hoặc dán `order_id`)
-10. **Tải đơn** → `awaiting_deposit`. Sửa `Số tiền` thành `1000` → **Thu cọc** → `409 wrong_amount`.
-11. Trả lại `2696860` → **Thu cọc** → `deposited`.
+Cùng số 1 mà `1Y` và `1C` là hai đôi khác nhau. Trang nào ghi hai hệ cùng lúc, ví dụ
+`M 8 / W 9.5`, thì copy nguyên cả dòng. Đây là lý do ô này là **chữ tự do** chứ không phải
+danh sách chọn: không bảng size nào phủ hết được.
 
-**Tab Nhân viên → “Việc cần đi mua”**
-12. **Tải danh sách** (rỗng thì đợi worker). Bấm **Chọn** ở dòng của mình để điền `task_id`.
-    Đọc cột **Mua gì**: tên sản phẩm, size/màu, mã của shop và link gốc. Bốn chữ đó
-    procurement **chép** vào task lúc mở — không join sang catalog (WALKTHROUGH §22).
-13. Sửa `Tiền tệ` thành `VND` → **Xác nhận đã mua** → `409 paid_currency`. Trả lại `USD` → xanh.
+Tiền tệ **khoá theo shop**, không chọn được. Shop bán bằng USD thì giá phải là USD.
 
-**Tab Nhân viên → “Kho: thùng chưa bay”**
-14. **Tải danh sách** → một thùng `expected` mang mã đơn shop. Bấm **Cân**.
+### (b) Chờ, rồi xin báo giá
 
-**Tab Nhân viên → “Lô hàng”**
-15. **Mở lô us_forwarder** → **Xếp thùng vào lô** → **Ship lô** → `409 batch_not_closed`.
-16. **Dán kín lô** → **Ship lô** → bảng phần chia cước hiện `2500 g → 27.50 USD`.
+Ngay sau khi gửi, món hiện trong **Hàng của tôi** với trạng thái *"nhân viên đang nhập
+size"*. Trang tự cập nhật mỗi 4 giây, không cần tải lại, và sẽ bật thông báo khi có tiến
+triển. Bốn trạng thái bạn sẽ thấy lần lượt:
 
-**Tab Nhân viên → “Một đơn hàng”**
-17. **Tải đơn** → `in_transit` (sau relay) → **Thu nốt** → **Đã giao** → `delivered`.
+```
+nhân viên đang nhập size  →  đang kiểm đúng sản phẩm  →  đang cân và đo  →  chờ đăng bán
+```
 
-**Tab Khách → “Đơn của tôi”** → **Tải danh sách**: khách thấy trạng thái + vận chuyển, **không** thấy
-mã đơn shop. So với **Nhân viên → “Hàng đợi theo trạng thái”**: cùng một bảng đọc, operator thấy thêm cột đó.
+Khi thành **sẵn sàng báo giá** thì có nút *Xin báo giá*, và ô chọn size đã chọn sẵn đúng cái
+bạn yêu cầu.
 
-**Tab Nhân viên → “Đối soát Quote vs Actual”** → **Tải đối soát** → `-2.50 USD`.
+### (c) Đọc báo giá rồi đồng ý
+
+Báo giá tách thành từng dòng, mỗi dòng nói rõ nó ở đâu ra:
+
+```
+Tiền hàng trên web          giá bạn thấy trên trang shop
+Thuế bán hàng bên Mỹ        shop Mỹ tính thêm khi thanh toán, mình trả hộ
+Cước bay, tính trên 2500 g  KHÔNG theo cân thật: lấy số lớn hơn giữa cân thật và cân
+                            quy đổi từ kích thước hộp, rồi làm tròn lên bước 500 g
+Cộng lại bên Mỹ             ba dòng trên, vẫn bằng tiền của shop
+Quy ra tiền Việt            theo tỷ giá đã KHOÁ vào báo giá này
+Phí dịch vụ mua hộ          phần của bên mình
+Tổng bạn trả                đã gồm hết, không phát sinh sau
+Cọc trước                   một nửa tổng
+```
+
+Bấm *Đồng ý và đặt hàng* là tạo đơn. Báo giá giữ **48 giờ**, hết thì xin lại cái mới.
+
+Đơn hiện ở **Đơn của tôi**, hai cột giữa trả lời hai câu khác nhau: *đơn đang ở đâu* là
+chuyện tiền và cam kết, *kiện hàng* là chuyện cái hộp đang nằm đâu. Chúng đổi vào những lúc
+khác nhau nên tách hai cột.
+
+Cọc và tiền còn lại thì chuyển cho nhân viên; **chưa có cổng thanh toán**, nên họ xác nhận
+tay trong hệ thống.
+
+---
+
+## 3. Trang nhân viên — ba hàng chờ
+
+### (a) Việc cần làm
+
+Mỗi món khách gửi là một thẻ, có **checklist bốn bước đánh số**. Chỉ một bước sáng lên, ba
+bước còn lại mờ. Bước đã xong **hiện thứ nó đã ghi** thay vì thành nút xám, vì "Đã có
+1Y · black" mới là bằng chứng bước đó xảy ra.
+
+| # | Bước | Bạn làm gì | Vì sao có bước này |
+|---|---|---|---|
+| 1 | Khách mua size nào | ô Size **đã điền sẵn** chữ khách viết; mở trang shop kiểm rồi sửa theo chữ của shop nếu khác | không có size thì không đặt được đơn, và mua nhầm hệ size là đổi cả đơn |
+| 2 | Xác nhận đúng sản phẩm | bấm một nút | chữ ký của bạn: khách dán link thì chưa ai kiểm |
+| 3 | Cân và đo thật | bốn số, **điền sẵn theo hộp mẫu của ngành hàng** | trang shop không công bố cân đóng gói; cước tính theo số này |
+| 4 | Đăng bán | bấm một nút | từ đây khách mới xin được báo giá |
+
+Ba điều đáng biết ở đây:
+
+- Số cân điền sẵn là **hộp mẫu của ngành hàng**, chỉ để đỡ gõ. Phải sửa thành số cân thật của
+  hộp trước mặt. Ô đó có dòng tính luôn cân quy đổi để bạn thấy số nào sẽ được dùng.
+- Yêu cầu gốc của khách **vẫn hiện** sau khi bạn tạo size. Nếu lệch nhau, ví dụ khách xin
+  `US 9` mà shop chỉ có `US 9.5`, thì đó là chuyện phải nói với khách, không phải chuyện tự
+  quyết.
+- Khách **không ghi** size thì thẻ nói rõ, và lời khuyên là hỏi lại chứ đừng đoán.
+
+### (b) Đơn chờ thu tiền
+
+Thu cọc trước khi đi mua, thu phần còn lại khi hàng đã bay. **Chỉ bấm khi tiền đã thực sự
+vào tài khoản**, và phải đúng số: thiếu hay thừa một đồng hệ thống đều không nhận, vì cọc
+thiếu không phải một cam kết nhỏ hơn và cọc thừa là một khoản phải hoàn mà không ai xin.
+
+### (c) Việc đi mua
+
+Việc chỉ mở sau khi cọc vào. Mỗi phiếu có đủ thứ để cầm đi mua: tên, size, mã của shop, và
+link để mở. Nhập lại hai thứ sau khi mua xong:
+
+| Ô | Vì sao cần |
+|---|---|
+| Mã đơn ở shop | để đối chiếu khi kiện về kho, và để khiếu nại nếu shop giao sai |
+| Đã trả thật | số **thật** đã trả, không phải số đã báo khách; hệ thống cần cả hai để biết đơn lời hay lỗ |
 
 ---
 
@@ -163,73 +176,70 @@ mã đơn shop. So với **Nhân viên → “Hàng đợi theo trạng thái”
 
 | Thử | Kết quả đúng |
 |---|---|
-| Xoá token operator ở dải trên → **Lưu + kiểm** → bấm bất cứ nút nào | `401 unauthenticated` |
-| Dán token **khách** vào ô operator → **Tải danh sách** ở “Việc cần đi mua” | `403 forbidden` |
-| Xin báo giá ngay sau Publish | `404 listing_not_found`, bấm lại thì xanh |
-| Đặt hàng ngay sau khi đồng ý báo giá (runner bước 12) | `409 quote_not_accepted` rồi tự xanh |
-| Runner **Chạy tới hết** hai lần liên tiếp, cùng session | bước 12 `409 quote_already_used` — một quote một đơn |
-| Sửa `variant_id` trong panel đặt hàng thành một uuid tự bịa | `409 variant_unknown` — ordering chỉ nhận variant nó đã nghe qua `catalog.variant_added` |
-| Dán `variant_id` của một sản phẩm khác | `409 variant_not_for_product` |
-| Thu cọc lệch một đồng | `409 wrong_amount` |
-| “Không mua được” với lý do `hết size US 9` | đơn về `purchase_failed`; **Huỷ đơn** lúc này hoàn **đủ** 2.696.860 ₫ |
-| **Huỷ đơn** sau khi đã `purchased` | hoàn `0 ₫`, `forfeited = true` — mất cọc |
-| **Đã giao** khi chưa **Thu nốt** | `409 balance_unpaid` |
-| Tab Chìa khoá → **Thu hồi** chìa operator cuối cùng | bị từ chối; phát chìa mới trước rồi mới thu hồi |
+| Xoá chìa khoá rồi bấm bất cứ nút nào | 401, và trang nói rõ chưa có chìa |
+| Dán chìa khách vào trang nhân viên | 403 |
+| Gửi link cho một shop chỉ nhận `operator` (bằng `curl`) | 409 `sourcing_not_allowed` — chìa đúng, shop không nhận nguồn đó |
+| Gửi link với giá `115.00` mà chọn VND | *"Số tiền không đúng dạng, tiền Việt không có phần thập phân"* |
+| Gửi **cùng một link** hai lần | vẫn nhận, nhưng cái thứ hai bị cắm cờ nghi trùng và sẽ bị chặn ở bước Đăng bán |
+| Bấm Đăng bán khi chưa có size | *"Phải có ít nhất một size trước khi đăng bán"* |
+| Nhập lại **đúng size và màu** đã có | *"Size và màu này đã có rồi"* |
+| Thêm một size không tên khi đã có size khác | *"Sản phẩm đã có size khác, nên size mới phải có tên"* |
+| Thu cọc lệch một đồng | *"Phải đúng số tiền, không thiếu không thừa"* |
+| Xin báo giá ngay sau khi Đăng bán | có thể thấy *"chưa đăng bán xong, vài giây nữa thử lại"* — đó là relay chưa chạy, không phải lỗi |
+| Đồng ý báo giá rồi đặt luôn | trang tự thử lại vài nhịp nếu relay chưa giao `quote_accepted` |
 
-Tất cả những lỗi trên là **409 — nghiệp vụ từ chối**, không phải bug. Xem `docs/FLOW-ORDER.md` §9
-hoặc tab **Nhánh rẽ** trong `flow.html` để biết vì sao mỗi cái tồn tại.
-
----
-
-## 5. Đọc kết quả ở đâu
-
-- **Tab Call log** — mọi request console gửi: status, thời gian, body đã gửi và nhận. Bấm một dòng để mở JSON.
-- **Terminal worker** (`cmd/worker`) — event đi ra theo thứ tự, đúng số lượng mỗi lượt: 4 / 2 / 2 / 2 / 6 / 3.
-- **Postgres** — nhìn thẳng vào bảng:
-
-```bash
-docker compose exec postgres psql -U portage -d portage -c \
-  "select id, event_name, sent_at is not null as sent from outbox order by id desc limit 12;"
-docker compose exec postgres psql -U portage -d portage -c \
-  "select \"order\", status, tracking, shop_reference from order_summaries order by placed_at desc limit 5;"
-docker compose exec postgres psql -U portage -d portage -c \
-  "select \"order\", quoted_goods_minor, quoted_freight_minor, actual_goods_minor, actual_freight_minor from reconciliations;"
-```
-
-- **`scripts/smoke.ps1`** — cùng luồng đó nhưng không cần trình duyệt; dùng khi muốn biết lỗi ở UI hay ở API.
+Ba dòng cuối là **nhất quán sau cùng** hiện ra ở UI. Chúng không phải bug, và cách trang xử
+lý là tự thử lại chứ không báo đỏ.
 
 ---
 
-## 6. Hỏng thì xem bảng này
+## 5. Hỏng thì xem bảng này
 
-| Triệu chứng | Nguyên nhân |
+| Triệu chứng | Nguyên nhân thường gặp |
 |---|---|
-| Dải đỏ “đang mở bằng `file://`” | mở qua `http://localhost:8080/ui/console.html`, không double-click |
-| Đèn đỏ `Không gọi được API` | `cmd/api` chưa chạy, hoặc chạy cổng khác — sửa ô `API base` |
-| Đèn vàng `token operator sai (401)` | in-memory dùng `dev-operator`; Postgres phải `-bootstrap-operator-token` |
-| Đèn vàng `403` | ô operator đang dán token khách |
-| Bước 8 thử hết 12 lần vẫn `listing_not_found` | Postgres mode mà **quên chạy `cmd/worker`** |
-| Bước 14 không thấy task | cũng là worker; hoặc bước 13 chưa thu cọc thành công |
-| `409 suspected_duplicate` khi Publish | `source_url` trùng lần chạy trước — bấm **Đặt lại** |
-| `400 invalid_hostname` ở bước 1 | ô site bị sửa thành chuỗi không phải hostname |
-| Sửa file trong `web/` mà UI không đổi | Ctrl+F5 (file server trả theo `Last-Modified`) |
-| `404` ở `/ui/...` | thiếu cờ `-web ./web`, hoặc chạy `go run` từ thư mục khác |
+| Trang trắng, console báo module lỗi | mở bằng `file://`. Phải qua `http://…/ui/` |
+| Danh sách shop rỗng | chưa thêm shop, hoặc shop không có `customer` trong `sourcing` |
+| Mọi nút trả 401 | chìa sai, hoặc `-dsn` mà chưa cắt chìa nào |
+| Gửi link xong nhân viên không thấy | ở `-dsn` mà chưa chạy `cmd/worker`; bảng đọc chỉ đầy sau relay |
+| `merchant_not_found` với id vừa dùng | api vừa khởi động lại; chế độ in-memory mất hết dữ liệu |
+| Đơn vẫn "chờ cọc" sau khi thu | thu ở trang nhân viên, khách chỉ xem |
+| Số cân điền sẵn không phải 1250 | nó là hộp mẫu của **ngành hàng bạn chọn**, không phải của món này |
 
 ---
 
-## 7. Source FE
+## 6. Source FE
 
 ```
 web/
-├── flow.html            mô phỏng để hiểu luồng (một file, không phụ thuộc)
-├── console.html         khung của console thật
+├── index.html            trang chọn màn hình
+├── customer.html         trang khách        ─┐
+├── staff.html            trang nhân viên    ├─ React, cùng dùng app/*.js
+├── console.html          bảng kiểm API      ─┘ (vanilla, không React)
+├── flow.html             mô phỏng, một file, không gọi API
+├── vendor/               React + ReactDOM + htm, kèm trong repo
 └── app/
-    ├── console.css      token màu/chữ, dùng chung nhận diện với flow.html
-    ├── api.js           CHỖ DUY NHẤT gọi fetch: gắn token, dịch lỗi, ghi call log, poll/retry
-    ├── steps.js         26 bước = 26 hàm gọi API thật (dùng cho runner)
-    └── main.js          tabs, runner, các màn hình, wiring
+    ├── portage.js        chỗ DUY NHẤT gọi API: gắn chìa, dịch lỗi thành mã
+    ├── words.js          từ điển: mọi mã của máy → chữ người đọc được
+    ├── ui.js             component dùng chung: Top, Card, Field, Steps, Toasts, usePoll
+    ├── screens.css       thiết kế của hai trang làm việc
+    ├── customer.js       trang khách
+    ├── staff.js          trang nhân viên
+    └── api.js, main.js, steps.js, console.css   bảng kiểm API cũ
 ```
 
-Không npm, không build, không framework — cùng tinh thần với backend (`net/http` viết tay).
-Sửa file rồi Ctrl+F5 là thấy. `cmd/api -web <dir>` là toàn bộ phần server của việc này: một
-`http.FileServer` ở `/ui/` cạnh API, cộng một redirect từ `/`.
+Hai quy tắc chạy suốt hai trang làm việc, và chúng là lý do bản đầu tiên bị viết lại:
+
+1. **Không chữ nào của máy ra tới màn hình.** `issued`, `open`, `none`, `branded` có nghĩa
+   với người viết API và vô nghĩa với người dùng. Tất cả đi qua `words.js`.
+2. **Mỗi con số nói được nó ở đâu ra.** Nhìn một số mà phải đi hỏi thì màn hình sai, không
+   phải người dùng sai.
+
+**React nhưng không có bước build.** Ba file trong `web/vendor/` là React 18, ReactDOM và
+`htm` (viết JSX bằng template literal). `cmd/api -web` serve thẳng thư mục này, nên không
+cần `npm install`, không cần mạng, và sửa file là F5 thấy ngay. Đổi lại là không có
+TypeScript và không dùng được hệ sinh thái npm — nếu sau này cần thì chuyển sang Vite,
+backend không phải sửa gì.
+
+**Thông báo giữa hai vai** không dùng websocket. Mỗi trang hỏi hàng chờ của mình mỗi 4 giây
+rồi so với lần trước; khác thì bật toast và tăng số trên badge. Cách này thật thà với việc
+bảng đọc vốn đã là nhất quán sau cùng: một cú push cũng sẽ tới trước khi projection kịp ghi.

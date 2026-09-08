@@ -345,6 +345,33 @@ merchant_ref). Entity con không có repository, nhưng vẫn kể được — 
 vì ordering và procurement cần size mà không được đọc bảng của catalog
 (WALKTHROUGH §22).
 
+### Khách xin size nào — `RequestedVariant` (08/09)
+
+`Variant` là **sự thật về sản phẩm**: shop bán những hình thức này. Còn khách muốn hình thức
+nào là một **yêu cầu**, và hai thứ đó không cùng loại.
+
+Nên bản nháp mang thêm hai trường, cả hai nói về yêu cầu chứ không nói về sản phẩm:
+
+| Trường | Trả lời | Rỗng khi nào |
+|---|---|---|
+| `RequestedBy` | khách nào đang đợi món này | operator tự thêm hàng, chưa ai xin |
+| `RequestedVariant` | họ xin size hoặc màu nào, **bằng chữ của họ** | sản phẩm một loại, hoặc khách không ghi |
+
+Cả hai **không** nằm trong `Provenance`. Provenance trả lời *"dữ liệu này từ đâu tới và ai
+bảo đảm"* — nó là chuyện độ tin. Hai trường này trả lời *"ai đang đợi và họ xin gì"* — chuyện
+đơn hàng. Gộp lại là làm mờ cả hai.
+
+Và `RequestedVariant` **không bao giờ** được coi là tên của một `Variant` có thật. Nó là chữ
+ai đó gõ trước khi có người kiểm shop bán gì. Operator vẫn phải mở trang, rồi tạo `Variant`
+thật — với ô đã điền sẵn chữ đó, và yêu cầu gốc vẫn hiện bên cạnh sau đó, vì *"khách xin
+US 9, mình tạo US 9.5"* là chuyện phải nói với khách.
+
+Đây cũng là lý do thứ hai để size là chữ tự do. Giày người lớn có hệ `M` và `W` in cùng một
+trang; giày trẻ dùng `Y` và `C`; áo dùng `S/M/L`; điện thoại dùng dung lượng. Một enum phủ
+hết thì không tồn tại, và enum nào cố phủ sẽ từ chối một size thật vào ngày shop đặt tên
+mới. Cùng số 1 mà `1Y` và `1C` là hai đôi khác nhau — nên UI **dạy** hệ size thay vì ép
+danh sách chọn.
+
 ---
 
 ## 5. Best practice khi tích hợp feed (áp dụng cho CJ và mọi feed sau này)
@@ -427,7 +454,7 @@ identity sau này.
 | Use case | Làm gì | Luật riêng của tầng app |
 |---|---|---|
 | `RegisterMerchantHandler` | `MerchantDetails` → `Merchant` → Save → outbox | — |
-| `AddProductHandler` | command (+ `SourcedBy`, `Operator`) → `Provenance` → `Product` nháp → phát hiện trùng → Save → outbox | `ErrMerchantInactive` (shop bị treo thì không thêm hàng), `ErrPriceCurrency` (giá phải cùng tiền tệ với shop) |
+| `AddProductHandler` | command (+ `SourcedBy`, `Operator`, `RequestedBy`, `RequestedVariant`) → `Provenance` → `Product` nháp → phát hiện trùng → Save → outbox | `ErrMerchantInactive` (shop bị treo thì không thêm hàng), `ErrSourcingNotAllowed` (shop không nhận nguồn này), `ErrPriceCurrency` (giá phải cùng tiền tệ với shop) |
 | `PublishProductHandler` | load → `Publish(now)` → Save → outbox | — (mọi "không" là của `Product.Publish`) |
 | `DefineCategoryHandler` (05/09) | `CategoryPolicy` → Save → **thông báo** `CategoryDefined` | — ; seed của `wire` cũng đi đường này nên mỗi lần khởi động thông báo lại (consumer idempotent) |
 | `AddVariantHandler` (05/09) | load → `AddVariant` → Save → **outbox** (`variant_added`, 08/09) | — (`ErrDuplicateVariant`, `ErrUnnamedVariant` đều là của aggregate) |
@@ -565,6 +592,7 @@ Còn lại trong `CategoryPolicy`, đều là thuộc tính của **món hàng**
 | **Quyết định treo → code** | cờ nghi trùng (§7, phương án C) là field + 2 method, gộp là workflow tầng app | ✅ |
 | **Event mang đủ trạng thái** (05/09) | `ProductPublished` mang `Price` + `Parcel` + `Source`; `CategoryDefined` mới — vì `pricing` không load được aggregate của catalog (guard 7), event là *tất cả* nó có | ✅ |
 | **Entity con cũng có thể cần event** (08/09) | `VariantAdded` — hai context ngoài cần biết size mà không được đọc bảng của catalog: ordering để từ chối id lạ, procurement để in "US 9 · black" cho người đi mua. Entity con **không** có repository, nhưng vẫn **kể** được | ✅ |
+| **Một trường không ai kiểm thì không phải luật** (08/09) | `Merchant.Supports()` có từ đầu và **không ai gọi**: `sourcing` được ghi, được thông báo bằng `merchant_sourcing_enabled/disabled`, rồi bỏ quên. Giờ `AddProduct` kiểm nó, và có test. Tìm ra khi đang viết docs cho UI: định mô tả một luật mà nó không tồn tại | ✅ |
 | **Chuẩn hoá chữ tự do vừa đủ** (08/09) | khoá chống trùng bỏ mọi khoảng trắng (`M8/W9.5` == `M 8 / W 9.5`) nhưng **không** sắp lại thứ tự (`8 M / 9.5 W` vẫn khác) — đoán hộ shop là đổi nghĩa dữ liệu của họ | ✅ |
 | **Catalog không biết ai nghe** (05/09) | catalog chỉ `Record`; `pricing` dựng `Listing`/`CategoryProfile` từ event qua `internal/contracts` — catalog không có dòng code nào về pricing. Xem WALKTHROUGH.md §14b | ✅ |
 | **Event lớn lên theo consumer** (05/09, chiều muộn) | `procurement` cần biết shop tính tiền gì → `MerchantRegistered` mang thêm `Currency`; đổi struct + codec + `MerchantRegisteredV1` + bảng test cùng lúc, guard `go/ast` bắt nếu quên. Catalog vẫn không biết procurement là ai | ✅ |

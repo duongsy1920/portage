@@ -612,3 +612,171 @@ Symfony Messenger (nó nhìn type-hint của `__invoke` để biết deserialize
 lúc compile. Khi chỉ cần "một hàm cho nhiều kiểu mà không quan tâm kiểu là gì", `any` +
 type switch (như `eventcodec.Encode`) đủ và dễ đọc hơn. Repo cố tình dùng cả hai để bạn
 thấy sự khác biệt.
+
+---
+
+## 12. Debug: `dd()` bên Go là gì
+
+Câu trả lời ngắn: **không có `dd()`**, và không có cả `var_dump`. Cái gần nhất là bốn thứ
+dưới đây, xếp theo mức nên dùng.
+
+### (1) `%+v` — cái bạn sẽ dùng 90 % thời gian
+
+```go
+fmt.Printf("%+v\n", p)      // in struct kèm TÊN field
+fmt.Printf("%#v\n", p)      // in dạng cú pháp Go, dán lại vào code được
+fmt.Printf("%T\n", p)       // in KIỂU, không in giá trị
+```
+
+| Verb | Ra cái gì | Bên PHP gần nhất |
+|---|---|---|
+| `%v` | `{01a0… Air Trainer 90 150.00 USD}` | `print_r($x)` |
+| `%+v` | `{id:01a0… name:Air Trainer 90 price:150.00 USD}` | `print_r` nhưng có tên field |
+| `%#v` | `catalog.Product{id:…, name:"Air Trainer 90"}` | `var_export($x)` |
+| `%T` | `*catalog.Product` | `get_class($x)` |
+
+Điều đáng biết: `%+v` **in được cả field private**. Nó dùng reflection để in, không phải để
+đọc, nên `name` viết thường vẫn hiện ra. Đây là lý do bạn không cần getter chỉ để debug.
+
+### (2) `Snapshot()` — `dd()` dành riêng cho aggregate của repo này
+
+Aggregate ở đây có field private và không có setter, nên thứ bạn thật sự muốn xem là trạng
+thái đầy đủ. Nó có sẵn, và không phải để debug mà để lưu DB — dùng luôn:
+
+```go
+fmt.Printf("%+v\n", p.Snapshot())   // mọi field, kể cả variants và provenance
+```
+
+Trong test thì đó cũng là cách đọc lỗi dễ nhất, và các test trong repo đã in như vậy:
+
+```go
+t.Fatalf("order = %+v", o.Snapshot())
+```
+
+### (3) Trong test: `t.Logf`, và nhớ `-v`
+
+```go
+t.Logf("quote = %+v", q)     // chỉ hiện khi chạy `go test -v`
+t.Fatalf("...")              // in RỒI dừng test đó — đây mới đúng nghĩa "dd"
+```
+
+`t.Log` mà không có `-v` thì Go **giấu** output của test xanh, chỉ hiện của test đỏ. Không
+phải mất, là cố tình.
+
+### (4) "Dump and die" thật sự
+
+```go
+log.Fatalf("hong: %+v", x)   // in ra stderr rồi os.Exit(1) — sát nghĩa dd() nhất
+panic(fmt.Sprintf("%+v", x)) // in kèm STACK TRACE rồi chết
+```
+
+`log.Fatalf` **không** chạy `defer`, nên đừng dùng giữa một transaction. `panic` thì chạy
+`defer`, tức `tx.Rollback()` vẫn nổ — an toàn hơn nếu bạn đang ở trong `InTx`.
+
+### Vì sao Go không có `dd()`, và nên làm gì thay thế
+
+Ở PHP một request là một process ngắn, `dd()` giữa nó là vô hại. Ở Go **một process phục vụ
+mọi request cùng lúc**: `os.Exit` giữa một handler là giết luôn cả những request đang chạy
+của người khác. Đó là lý do thư viện chuẩn không cho bạn một hàm như vậy.
+
+Nên thói quen tương đương ở Go là:
+
+```
+PHP                          Go
+───                          ──
+dd($x) giữa controller       viết một test nhỏ tái hiện đúng ca đó
+var_dump trong vòng lặp      t.Logf trong test, chạy với -v
+xdebug step debugger         dlv (delve): dlv test ./internal/domain/catalog
+tail -f log rồi thử lại      log.Printf ở adapter; ở domain thì viết test
+```
+
+Một chỗ dễ nhớ sai, nên nói rõ: `internal/domain` **được phép** import `log`, vì guard 6
+(`decisions_test.go`) cho cả thư viện chuẩn đi qua. Không có gì chặn bạn `log.Printf` trong
+một aggregate — nó sẽ compile và chạy.
+
+Cái chặn là **thiết kế**, không phải compiler: domain không báo cáo, nó **trả về** lỗi. Một
+`log.Printf` trong aggregate là một sự kiện không ai đọc được trong test, không ai bật tắt
+được, và ghi ra đâu thì phụ thuộc process gọi nó. Nên quy ước ở đây là: muốn biết gì xảy ra
+trong domain thì viết một test, và test đó ở lại làm bằng chứng thay vì biến mất cùng dòng
+log bạn xoá đi.
+
+Guard duy nhất liên quan tới "domain không được nhìn ra ngoài" là **guard 2**, và nó chặn
+`time.Now()` — vì thời gian là dữ liệu vào, phải truyền vào qua tham số `now`, không phải
+thứ domain tự đi lấy.
+
+Còn ở tầng adapter thì repo đã có sẵn hai chỗ để xem, không cần in tay:
+
+- `web/console.html` tab **Nhật ký gọi** — mọi request, mã lỗi, thời gian.
+- log của `cmd/worker` — mỗi event relay một dòng, kèm payload.
+
+### Delve, nếu bạn muốn step debugger
+
+```bash
+go install github.com/go-delve/delve/cmd/dlv@latest
+dlv test ./internal/domain/catalog -- -run TestProduct_publishNeeds
+# (dlv) break catalog.(*Product).Publish
+# (dlv) continue   / next / print p / locals
+```
+
+---
+
+## 13. Framework: vì sao repo này không dùng Gin
+
+Người từ Symfony sang hay hỏi câu này đầu tiên, và Gin là cái tên hay được nhắc nhất. Nó là
+framework HTTP phổ biến nhất của Go: router có param, middleware, `c.JSON()`, và binding kèm
+validate bằng struct tag.
+
+Repo này dùng **`net/http` của thư viện chuẩn**, và đây là toàn bộ lý do.
+
+### Từ Go 1.22, lý do chính để dùng Gin đã mất
+
+Trước 1.22 router chuẩn không phân biệt method và không có path param, nên ai cũng phải lấy
+Gin hoặc chi. Từ 1.22 thì:
+
+```go
+mux.HandleFunc("POST /products/{id}/variants", requireOperator(s.addVariant))
+id := r.PathValue("id")
+```
+
+Đúng hai thứ người ta cần Gin để có. Bạn xem `internal/adapter/http/server.go`, 41 route
+viết như trên.
+
+### Middleware không cần framework
+
+```go
+func requireOperator(h http.HandlerFunc) http.HandlerFunc { return requireKind(h, auth.Operator) }
+```
+
+Một hàm nhận handler, trả handler. Cả cơ chế phân quyền của repo là ba hàm như vậy, và
+`authenticate()` bọc **cả** mux. Bên Gin sẽ là `r.Use(...)` và `r.Group(...)` — gọn hơn khi
+có nhiều nhóm route, nhưng ở đây không đủ nhiều để đáng thêm một dependency.
+
+### Chỗ Gin sẽ **đụng** thiết kế, không phải chuyện gu
+
+Đây là phần quan trọng. Gin bán kèm binding + validate:
+
+```go
+type req struct {
+    Price string `json:"price" binding:"required,numeric"`   // Gin
+}
+```
+
+Repo cố tình **không** validate ở adapter. Adapter chỉ làm ba việc: decode, đọc locale, dịch
+lỗi thành mã. Còn "giá thế nào là hợp lệ" là việc của domain, qua `shared.ParseMoney`. Dùng
+`binding:"..."` là dời luật nghiệp vụ ra biên, và rồi cùng một luật sẽ tồn tại hai bản: một
+trong struct tag, một trong domain. Bản nào sai trước thì không ai biết.
+
+Nói cách khác: Gin làm tốt hơn thứ repo này **không muốn** làm ở đó.
+
+### Vậy khi nào nên dùng Gin
+
+| Nên | Không cần |
+|---|---|
+| Nhiều nhóm route với middleware khác nhau | Vài chục route, ba loại quyền |
+| Muốn binding + validate ngay ở biên | Validate thuộc domain (như repo này) |
+| Cần render HTML template, upload nhiều dạng | API trả JSON, file tĩnh do `http.FileServer` |
+| Team đã quen Gin | Đang học Go và muốn thấy stdlib làm gì |
+
+Và một con số để cân: `go.mod` của repo có **đúng hai** dependency trực tiếp, `uuid` và
+`pgx`. Đó là lý do `go test ./...` xong trong hai giây và CI không cần cache gì. Mỗi
+dependency thêm vào là một thứ phải theo bản vá.

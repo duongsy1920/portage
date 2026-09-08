@@ -47,12 +47,16 @@ gắn vào.
    26 bước của một đơn, mỗi bước hiện màn hình người dùng thật sự thấy, request,
    event ghi vào outbox, và ai nghe event đó. Bấm hỏng cũng không sao, nó là mô
    phỏng.
-2. **Console thật** — `go run ./cmd/api -web ./web` rồi mở
-   `http://localhost:8080/ui/`. Tab **Runner** chạy đúng 26 bước đó nhưng bằng
-   request thật. Xem cột **Nhật ký gọi** để thấy từng request và từng mã lỗi.
-3. **[UI-GUIDE.md](UI-GUIDE.md)** — bảng 26 bước kèm kết quả đúng, 10 nhánh rẽ
-   nên thử bằng tay, và bảng triệu chứng suy ra nguyên nhân khi có gì đó không
-   chạy.
+2. **Hai màn hình thật** — `go run ./cmd/api -web ./web` rồi mở
+   `http://localhost:8080/ui/`. Mở trang **khách** ở một tab và trang **nhân viên** ở tab
+   khác, rồi gửi một link: bạn sẽ thấy việc xuất hiện bên kia, checklist bốn bước, và thông
+   báo bắn qua lại. Đó là vòng đời một đơn nhìn từ phía người dùng.
+3. **Bảng kiểm API** — cùng địa chỉ, trang `console.html`. Tab **Runner** chạy 26 bước bằng
+   request thật, và cột **Nhật ký gọi** cho thấy từng request với từng mã lỗi. Đây là công
+   cụ cho lập trình viên, không phải UI cho người dùng — phân biệt được hai thứ đó cũng là
+   một bài học.
+4. **[UI-GUIDE.md](UI-GUIDE.md)** — bốn màn hình là gì, bấm gì trên từng cái, 10 nhánh rẽ
+   nên thử bằng tay, và bảng triệu chứng suy ra nguyên nhân khi có gì đó không chạy.
 
 **Ba thứ chỉ bấm mới thấy, đọc code rất khó nhận ra:**
 
@@ -172,7 +176,7 @@ Rule). Rồi WALKTHROUGH §4, §6.
    Portage   struct nghiệp vụ SẠCH; phần map xuống DB nằm riêng ở adapter/postgres
 ```
 
-Đổi lại được cái gì? **265 trên 296 test chạy dưới 2 giây, không cần Docker,
+Đổi lại được cái gì? **272 trên 304 test chạy dưới 2 giây, không cần Docker,
 không cần mạng, không cần API key.** Đó không phải khoe — đó là lý do anh sửa
 được code mà không sợ.
 
@@ -286,8 +290,8 @@ Ba câu, mỗi câu đáng nhớ hơn cả đoạn code sinh ra nó:
 
 ## Buổi 8 — Đọc hết repo
 
-WALKTHROUGH §10: **97 file, theo thứ tự**, mỗi dòng ghi rõ file → khái niệm →
-đọc thêm ở đâu. Khoảng 12 400 dòng kể cả comment.
+WALKTHROUGH §10: **101 file, theo thứ tự**, mỗi dòng ghi rõ file → khái niệm →
+đọc thêm ở đâu. Toàn bộ code không tính test là 18 132 dòng kể cả comment.
 
 Đừng đọc một mạch. Chia:
 
@@ -297,11 +301,12 @@ WALKTHROUGH §10: **97 file, theo thứ tự**, mỗi dòng ghi rõ file → kh�
    file 57–86   ngày 3: ba context còn lại, chia cước, đối soát
    file 87–93   P9: cửa auth, sweep, read model, ACL cho AI
    file 94–97   variant/size: một chữ của shop đi qua ba context (§22)
+   file 98–101  bảng đọc worklist + hai màn hình theo vai (§23)
 ```
 
 ---
 
-## Buổi 9 — Hai thứ chỉ học được khi CHẠY THẬT
+## Buổi 9 — Ba thứ chỉ học được khi CHẠY THẬT
 
 Bảy buổi trên học từ code đang có. Buổi này học từ hai lần code đang có **hoá ra
 sai**, và cả hai đều chỉ lộ ra khi bấm thật hoặc chạy thật, không phải khi đọc.
@@ -348,7 +353,24 @@ do ordering **cố tình** không giữ `size`.
    trong `web/app/steps.js` chỗ mã đó được đưa vào danh sách `retryOn`, và tự
    trả lời vì sao nó **thử lại được** mà `variant_not_for_product` thì không.
 
-### (b) Chạy xanh nhiều lần không chứng minh gì về lần đầu — SETUP §9 đợt 18
+### (b) Một UI không có test là một UI chưa ai chạy — WALKTHROUGH §23h
+
+**Đọc:** WALKTHROUGH §23, cả chín mục.
+
+`go test ./...` xanh, `curl` đúng, và năm lỗi vẫn còn nguyên trong hai màn hình: `style`
+truyền chuỗi thay vì object, gọi component như hàm nên sai quy tắc hooks, `<label>` không
+nối với `<input>`, dòng tiền `0.00` vẫn hiện vì so chuỗi với `"0"`, và ngành hàng mặc định
+đổi mỗi lần tải vì adapter in-memory duyệt map Go. Cả năm chỉ lộ ra khi cho Chrome bấm hết
+luồng.
+
+**Làm:**
+
+1. Đọc §23h. Tự trả lời: trong năm lỗi đó, lỗi nào `go vet` bắt được? (Không cái nào.)
+2. Mở `web/app/ui.js`, đổi `<${Field} ...${{...}} />` ở một chỗ thành `${Field({...})}`.
+   Mở trang, xem console. Đó là React error #310, và là lý do component phải được dùng như
+   component chứ không như hàm.
+
+### (c) Chạy xanh nhiều lần không chứng minh gì về lần đầu — SETUP §9 đợt 18
 
 **Đọc:** SETUP.md §9 đợt 18, rồi `internal/adapter/postgres/migrate.go`.
 
@@ -421,12 +443,12 @@ Nói **đúng** phần đã làm. Đoạn dưới là sự thật, kiểm chứn
 
 > Một hệ thống mua hộ xuyên biên giới viết bằng Go theo DDD: **năm bounded
 > context** (catalog, pricing, ordering, procurement, logistics) cộng một tầng
-> đọc, nối nhau bằng **36 domain event qua outbox** và một Published Language —
+> đọc, nối nhau bằng **37 domain event qua outbox** và một Published Language —
 > không context nào import context nào. **Bảy aggregate root**, hai domain
 > service, **hai anti-corruption layer** (một cho API shop, một cho mô hình
 > ngôn ngữ đọc trang web), auth bằng bearer token với port ở tầng biên chứ
 > không ở domain, và một **read model dựng chỉ bằng event** cho màn hình khách.
-> **296 test**, trong đó 265 chạy dưới 2 giây không cần Docker vì domain không
+> **304 test**, trong đó 272 chạy dưới 2 giây không cần Docker vì domain không
 > import gì ngoài stdlib — và có **7 test canh kiến trúc** bằng `go/ast` khiến
 > vi phạm dependency rule là build đỏ. Vòng đời một đơn chạy hết trên **cả**
 > in-memory và Postgres bằng **cùng một test**, và trên **binary thật** bằng
