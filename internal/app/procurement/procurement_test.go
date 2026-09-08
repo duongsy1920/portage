@@ -56,7 +56,10 @@ func variantAdded() contracts.VariantAddedV1 {
 	}
 }
 
-func (w *world) seedCatalog(t *testing.T) {
+// seedShopAndItem is what catalog says about the SHOP and the PRODUCT. The
+// variant is deliberately separate, because the relay makes no promise about
+// which of the two arrives first.
+func (w *world) seedShopAndItem(t *testing.T) {
 	t.Helper()
 	p := procurementapp.NewProjector(w.deps)
 	ctx := context.Background()
@@ -68,6 +71,15 @@ func (w *world) seedCatalog(t *testing.T) {
 			Price: contracts.MoneyV1{Minor: 15000, Currency: "USD"}, Parcel: contracts.ParcelV1{WeightG: 1250, LengthMM: 340, WidthMM: 230, HeightMM: 130}, At: now}); err != nil {
 			t.Fatal(err)
 		}
+	}
+}
+
+func (w *world) seedCatalog(t *testing.T) {
+	t.Helper()
+	w.seedShopAndItem(t)
+	p := procurementapp.NewProjector(w.deps)
+	ctx := context.Background()
+	for range 2 { // idempotent
 		if err := p.OnVariantAdded(ctx, variantAdded()); err != nil {
 			t.Fatal(err)
 		}
@@ -135,6 +147,49 @@ func TestOpenTask_manualShopLeavesTheTaskOpen(t *testing.T) {
 	}
 	if left, _ := w.tasks.Open(ctx); len(left) != 0 {
 		t.Fatalf("still open: %d", len(left))
+	}
+}
+
+// deposit_paid can arrive BEFORE catalog.variant_added: they are two rows in
+// the outbox and the relay promises nothing about order. A paid order must not
+// be held hostage to that race, so the task opens with the words procurement
+// does have — the product name and the page to buy from — and no size.
+//
+// An empty label on the buyer's screen reads as "a product with no size", which
+// is exactly what a one-size product looks like. Refusing to open the task
+// would cancel a PAID order over a few hundred milliseconds.
+func TestOpenTask_opensEvenWhenTheVariantRowHasNotArrived(t *testing.T) {
+	w := newWorld(merchant.Manual{})
+	ctx := context.Background()
+	order := shared.NewID()
+	w.seedShopAndItem(t) // note: no OnVariantAdded
+
+	if err := procurementapp.NewOpenTaskHandler(w.deps).OnDepositPaid(ctx, deposit(order)); err != nil {
+		t.Fatalf("a missing variant row must not fail the event: %v", err)
+	}
+	tasks, _ := w.tasks.Open(ctx)
+	if len(tasks) != 1 {
+		t.Fatalf("open tasks = %d, want the task to open anyway", len(tasks))
+	}
+	s := tasks[0].Subject()
+	if s.ProductName != "Air Trainer 90" || s.Source != sourceURL {
+		t.Fatalf("the words procurement DOES have must still be there: %+v", s)
+	}
+	if s.VariantLabel != "" || s.VariantRef != "" {
+		t.Fatalf("nothing is known about the size yet, so both must be empty: %+v", s)
+	}
+	if got := names(w.outbox.Drain()); len(got) != 1 || got[0] != "procurement.purchase_task_opened" {
+		t.Fatalf("outbox = %v", got)
+	}
+
+	// The dictionary arriving later does NOT rewrite the task: what to buy is
+	// frozen at open time, on purpose.
+	if err := procurementapp.NewProjector(w.deps).OnVariantAdded(ctx, variantAdded()); err != nil {
+		t.Fatal(err)
+	}
+	again, _ := w.tasks.Open(ctx)
+	if again[0].Subject().VariantLabel != "" {
+		t.Fatalf("a task already handed to a person must not change under them: %+v", again[0].Subject())
 	}
 }
 
