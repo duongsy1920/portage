@@ -54,7 +54,8 @@ Mọi route đều ở sau một cửa: `Authorization: Bearer <token>`. Không 
 | `POST /products/from-url` | cả hai | AI đọc trang → nháp `feed`; không key → **503** |
 | `POST /products/{id}/{variants,confirm-listing,measure,publish}` | operator | bốn bước tới publish |
 | `POST /quotes` · `GET /quotes/{id}` | cả hai | báo giá là **ảnh chụp**, hạn 48 h |
-| `POST /quotes/{id}/accept` · `POST /orders` | **khách** | chấp giá và đặt đơn là việc của khách |
+| `POST /quotes/{id}/accept` | cả hai | báo giá không có chủ, nên không có gì để gán cho ai |
+| `POST /orders` | cả hai | khách đặt cho mình; operator đặt hộ phải kèm `customer_id` (**400** nếu thiếu, **403** nếu khách gửi kèm) |
 | `GET /me/orders` | **khách** | đơn của chính mình — "me" là token, không phải tham số |
 | `GET /orders?status=` | operator | hàng đợi việc; status gõ sai → **400** |
 | `GET /orders/{id}` · `POST /orders/{id}/cancel` | chủ đơn hoặc operator | người lạ → **404**, không phải 403 |

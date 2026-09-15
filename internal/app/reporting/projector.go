@@ -108,9 +108,17 @@ func (p *Projector) OnOrderPlaced(ctx context.Context, m contracts.OrderPlacedV1
 	if err != nil {
 		return fail(err)
 	}
+	var placedBy shared.OperatorID
+	if m.PlacedBy != "" {
+		placedBy, err = shared.ParseOperatorID(m.PlacedBy)
+		if err != nil {
+			return fail(err)
+		}
+	}
 
 	return p.update(ctx, id, m.At, func(ctx context.Context, s *OrderSummary) error {
 		s.Customer, s.Product, s.Variant, s.Quote = customer, product, variant, quote
+		s.PlacedBy = placedBy
 		s.Total, s.Deposit = total, deposit
 		s.PlacedAt = m.At
 		// Only order_placed may set the FIRST status. A frame written by a

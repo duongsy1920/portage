@@ -79,6 +79,7 @@ var errorTable = []mapping{
 	{pricing.ErrInvalidLaneCode, http.StatusBadRequest, "invalid_lane_code"},
 	{ordering.ErrEmptyReason, http.StatusBadRequest, "empty_reason"},
 	{ordering.ErrInvalidOrder, http.StatusBadRequest, "invalid_order"},
+	{ordering.ErrCustomerRequired, http.StatusBadRequest, "customer_required"},
 	{procurement.ErrEmptyReason, http.StatusBadRequest, "empty_reason"},
 	{procurement.ErrEmptyReference, http.StatusBadRequest, "empty_reference"},
 	{procurement.ErrInvalidTask, http.StatusBadRequest, "invalid_purchase_task"},

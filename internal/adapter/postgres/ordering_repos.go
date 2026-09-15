@@ -25,7 +25,7 @@ func NewOrderRepo(pool *pgxpool.Pool) *OrderRepo {
 	return &OrderRepo{pool: pool}
 }
 
-const orderColumns = `id, quote, product, variant, customer, total_minor, deposit_minor, currency,
+const orderColumns = `id, quote, product, variant, customer, placed_by, total_minor, deposit_minor, currency,
 	status, balance_paid, refund_minor, forfeited, cancel_reason, placed_at`
 
 func (r *OrderRepo) Save(ctx context.Context, o *ordering.CustomerOrder) error {
@@ -35,15 +35,24 @@ func (r *OrderRepo) Save(ctx context.Context, o *ordering.CustomerOrder) error {
 		v := s.Refund.Minor()
 		refund = &v
 	}
+	// NULL, not the zero uuid: a zero OperatorID reaching this column as
+	// "00000000-…" would read back as a real operator who placed every order
+	// a customer placed themselves (P10-PLAN §4).
+	var placedBy *string
+	if !s.PlacedBy.IsZero() {
+		v := s.PlacedBy.String()
+		placedBy = &v
+	}
 	_, err := db(ctx, r.pool).Exec(ctx, `
 		INSERT INTO orders (`+orderColumns+`)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
 		ON CONFLICT (id) DO UPDATE SET
 			quote = EXCLUDED.quote, product = EXCLUDED.product, variant = EXCLUDED.variant, customer = EXCLUDED.customer,
+			placed_by = EXCLUDED.placed_by,
 			total_minor = EXCLUDED.total_minor, deposit_minor = EXCLUDED.deposit_minor, currency = EXCLUDED.currency,
 			status = EXCLUDED.status, balance_paid = EXCLUDED.balance_paid, refund_minor = EXCLUDED.refund_minor,
 			forfeited = EXCLUDED.forfeited, cancel_reason = EXCLUDED.cancel_reason, placed_at = EXCLUDED.placed_at`,
-		s.ID.String(), s.Quote.String(), s.Product.String(), s.Variant.String(), s.Customer.String(),
+		s.ID.String(), s.Quote.String(), s.Product.String(), s.Variant.String(), s.Customer.String(), placedBy,
 		s.Total.Minor(), s.Deposit.Minor(), s.Total.Currency().Code(),
 		string(s.Status), s.BalancePaid, refund, s.Forfeited, s.CancelReason, s.PlacedAt)
 	if err != nil {
@@ -64,12 +73,13 @@ func (r *OrderRepo) one(ctx context.Context, sql, arg, what string) (*ordering.C
 	row := db(ctx, r.pool).QueryRow(ctx, sql, arg)
 	var (
 		rawID, quote, product, variant, customer, currency, status, reason string
+		placedBy                                                           *string
 		total, deposit                                                     int64
 		balancePaid, forfeited                                             bool
 		refund                                                             *int64
 		placedAt                                                           time.Time
 	)
-	err := row.Scan(&rawID, &quote, &product, &variant, &customer, &total, &deposit, &currency,
+	err := row.Scan(&rawID, &quote, &product, &variant, &customer, &placedBy, &total, &deposit, &currency,
 		&status, &balancePaid, &refund, &forfeited, &reason, &placedAt)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, fmt.Errorf("%s: %w", what, ordering.ErrOrderNotFound)
@@ -101,6 +111,13 @@ func (r *OrderRepo) one(ctx context.Context, sql, arg, what string) (*ordering.C
 	}
 	if refund != nil {
 		snap.Refund = shared.NewMoney(*refund, cur)
+	}
+	if placedBy != nil {
+		op, err := shared.ParseOperatorID(*placedBy)
+		if err != nil {
+			return fail(err)
+		}
+		snap.PlacedBy = op
 	}
 	o, err := ordering.OrderFromSnapshot(snap)
 	if err != nil {

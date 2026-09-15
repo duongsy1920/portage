@@ -27,6 +27,11 @@ type summaryView struct {
 	Status      string `json:"status"`
 	Tracking    string `json:"tracking"`
 
+	// PlacedByID: the operator who placed this order, empty when the customer
+	// placed it themselves. Shown to BOTH screens — hiding who ordered on a
+	// customer's behalf would defeat the reason attribution exists (P10).
+	PlacedByID string `json:"placed_by_id,omitempty"`
+
 	Total   moneyView  `json:"total"`
 	Deposit moneyView  `json:"deposit"`
 	Refund  *moneyView `json:"refund,omitempty"` // only once cancelled
@@ -48,7 +53,7 @@ type summaryView struct {
 func summaryViewOf(s reportingapp.OrderSummary, staff bool) summaryView {
 	v := summaryView{
 		Order: s.Order.String(), ProductID: idText(s.Product), ProductName: s.ProductName, VariantID: idText(s.Variant),
-		Status: string(s.Status), Tracking: string(s.Tracking),
+		Status: string(s.Status), Tracking: string(s.Tracking), PlacedByID: idText(s.PlacedBy.ID),
 		Total: viewOf(s.Total), Deposit: viewOf(s.Deposit),
 		DepositPaid: s.DepositPaid, BalancePaid: s.BalancePaid, Forfeited: s.Forfeited,
 		PlacedAt: s.PlacedAt,

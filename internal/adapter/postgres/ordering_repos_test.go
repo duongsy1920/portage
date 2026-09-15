@@ -56,6 +56,32 @@ func TestOrderRepo_roundTripByIDAndByQuote(t *testing.T) {
 	}
 }
 
+// An operator placed this one on the customer's behalf: placed_by must round
+// trip as a real uuid, not the NULL the customer-placed order above got.
+func TestOrderRepo_roundTripPlacedByAnOperator(t *testing.T) {
+	p := pool(t)
+	ctx := context.Background()
+	repo := postgres.NewOrderRepo(p)
+	o, err := ordering.PlaceOrder(ordering.OrderDetails{
+		Quote: shared.NewID(), Product: shared.NewID(), Variant: shared.NewID(), Customer: shared.NewID(),
+		PlacedBy: shared.NewOperatorID(), Total: vnd("5393720"), Deposit: vnd("2696860"),
+	}, now)
+	if err != nil {
+		t.Fatal(err)
+	}
+	o.PullEvents()
+	if err := repo.Save(ctx, o); err != nil {
+		t.Fatalf("Save: %v", err)
+	}
+	got, err := repo.ByID(ctx, o.ID())
+	if err != nil || !reflect.DeepEqual(got.Snapshot(), o.Snapshot()) {
+		t.Fatalf("round trip: %v\n got %+v\nwant %+v", err, got.Snapshot(), o.Snapshot())
+	}
+	if got.PlacedBy() != o.PlacedBy() || got.PlacedBy().IsZero() {
+		t.Fatalf("placed by = %+v, want %+v", got.PlacedBy(), o.PlacedBy())
+	}
+}
+
 // Ordering's copy is existence and owner, nothing else: it is what lets
 // PlaceOrder refuse a variant id the customer did not get from us.
 func TestOrderingVariantRepo_upsert(t *testing.T) {

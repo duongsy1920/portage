@@ -264,13 +264,15 @@ commit transaction rồi mới trả lỗi — nếu rollback thì quote sẽ "s
 ### Bước 10 — đặt hàng
 
 ```
-POST /orders {quote_id, variant_id}      KHÁCH (không còn field customer_id)
+POST /orders {quote_id, variant_id, customer_id?}   KHÁCH hoặc OPERATOR
   → orderingapp.PlaceOrderHandler
   → ordering.PlaceOrder(details, now)                ← AGGREGATE ROOT
   → event ordering.order_placed
       nghe: pricing (Reconciliation: đơn này dựa trên quote nào), reporting
       bảng: orders (UNIQUE(quote))
-      lỗi:  409 quote_not_accepted (chưa accept HOẶC relay chưa chạy)
+      lỗi:  400 customer_required (operator gọi mà không kèm customer_id)
+            403 forbidden         (khách gọi mà CÓ kèm customer_id — đặt hộ người khác)
+            409 quote_not_accepted (chưa accept HOẶC relay chưa chạy)
             409 quote_already_used  (một quote một đơn)
             409 variant_unknown     (id chưa từng phát HOẶC variant_added chưa relay tới)
             409 variant_not_for_product (variant có thật, nhưng của sản phẩm khác)
@@ -284,7 +286,10 @@ Luật *"một quote một đơn"* được canh **hai lần**: use case hỏi `
 và `UNIQUE(quote)` trong Postgres bắt trường hợp hai request cùng lúc. Luật
 nghiệp vụ ở tầng app; DB là cái lưới cuối.
 
-Chủ đơn là **chủ token**. Không còn field nào để đặt hộ tên người khác.
+Chủ đơn là **chủ token** — trừ khi chủ token là operator, và khi đó `customer_id`
+trong body nói ai mới là chủ (P10, WALKTHROUGH §24). `PlacedBy` trên đơn ghi lại
+nhân viên đã đặt hộ; zero nghĩa là khách tự đặt. Khách gửi kèm `customer_id` là
+đang thử đặt hộ người khác — 403 thẳng, không lặng lẽ bỏ qua.
 
 ### Bước 11 — cọc
 

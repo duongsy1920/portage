@@ -12,12 +12,15 @@ import (
 // The ordering routes: the customer's side of a purchase. Payments arrive as
 // "we received X" — an operator today, a gateway adapter tomorrow, same command.
 
-// There is no customer_id. The order belongs to whoever holds the token, and
-// a field would let one customer order in another's name — which is why the
-// route sits behind requireCustomer: there is nobody else to be.
+// customer_id is in the body for the ONE caller allowed to fill it: an
+// operator placing an order for a customer who is not holding a token
+// (P10-PLAN.md). A customer sending it is not naming themselves — they
+// already are, via the token — they are trying to order in someone else's
+// name, which is refused outright (see placeOrder).
 type placeOrderRequest struct {
-	QuoteID   string `json:"quote_id"`
-	VariantID string `json:"variant_id"`
+	QuoteID    string `json:"quote_id"`
+	VariantID  string `json:"variant_id"`
+	CustomerID string `json:"customer_id"`
 }
 
 // POST /orders → 201 {"id"}.
@@ -36,14 +39,37 @@ func (s *server) placeOrder(w http.ResponseWriter, r *http.Request) {
 		}
 		ids[i] = id
 	}
-	customer, ok := customerOf(r)
-	if !ok {
-		// requireCustomer already guaranteed this; the check stays so that
-		// moving the route fails loudly instead of placing an ownerless order.
-		writeError(w, errForbidden)
-		return
+	cmd := orderingapp.PlaceOrder{Quote: ids[0], Variant: ids[1]}
+	if customer, isCustomer := customerOf(r); isCustomer {
+		// A customer places their own order. Sending customer_id alongside is
+		// an attempt to order in somebody else's name — refused outright, not
+		// silently ignored: silence would let a client believe it worked.
+		if req.CustomerID != "" {
+			writeError(w, errForbidden)
+			return
+		}
+		cmd.Customer = customer
+	} else {
+		operator, ok := operatorOf(r)
+		if !ok {
+			// requireAny already guaranteed one kind or the other; the check
+			// stays so that moving the route fails loudly instead of placing
+			// an ownerless order.
+			writeError(w, errForbidden)
+			return
+		}
+		if req.CustomerID == "" {
+			writeError(w, ordering.ErrCustomerRequired)
+			return
+		}
+		customer, err := shared.ParseID(req.CustomerID)
+		if err != nil {
+			writeError(w, err)
+			return
+		}
+		cmd.Customer, cmd.PlacedBy = customer, operator
 	}
-	id, err := s.place.Handle(r.Context(), orderingapp.PlaceOrder{Quote: ids[0], Variant: ids[1], Customer: customer})
+	id, err := s.place.Handle(r.Context(), cmd)
 	if err != nil {
 		writeError(w, err)
 		return

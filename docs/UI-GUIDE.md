@@ -125,6 +125,9 @@ Bấm *Đồng ý và đặt hàng* là tạo đơn. Báo giá giữ **48 giờ*
 chuyện tiền và cam kết, *kiện hàng* là chuyện cái hộp đang nằm đâu. Chúng đổi vào những lúc
 khác nhau nên tách hai cột.
 
+Nếu một nhân viên đặt đơn này hộ bạn (P10 — ví dụ bạn gọi điện đặt qua nhân viên thay vì tự
+bấm), dòng "nhân viên đặt hộ bạn" hiện ngay dưới tên sản phẩm.
+
 Cọc và tiền còn lại thì chuyển cho nhân viên; **chưa có cổng thanh toán**, nên họ xác nhận
 tay trong hệ thống.
 
@@ -159,6 +162,9 @@ Ba điều đáng biết ở đây:
 Thu cọc trước khi đi mua, thu phần còn lại khi hàng đã bay. **Chỉ bấm khi tiền đã thực sự
 vào tài khoản**, và phải đúng số: thiếu hay thừa một đồng hệ thống đều không nhận, vì cọc
 thiếu không phải một cam kết nhỏ hơn và cọc thừa là một khoản phải hoàn mà không ai xin.
+
+Đơn nào một nhân viên đặt hộ (không phải khách tự bấm) có dòng "đơn đặt hộ (nhân viên)" dưới
+tên sản phẩm — cùng thông tin `PlacedBy` với màn hình khách, không giấu ai đặt.
 
 ### (c) Việc đi mua
 

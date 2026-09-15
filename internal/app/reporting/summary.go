@@ -56,6 +56,7 @@ type OrderSummary struct {
 	Product  shared.ID
 	Variant  shared.ID
 	Quote    shared.ID
+	PlacedBy shared.OperatorID // zero: the customer placed it themselves (P10)
 
 	ProductName string // filled from catalog.product_published, may be empty
 	Status      ordering.OrderStatus

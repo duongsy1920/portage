@@ -258,7 +258,8 @@ function MoneyQueue({ orders, onDone }) {
           <tbody>
             ${orders.map(o => html`
               <tr key=${o.order_id}>
-                <td>${o.product_name || "—"}</td>
+                <td>${o.product_name || "—"}
+                  ${o.placed_by_id && html`<div class="hint">đơn đặt hộ (nhân viên)</div>`}</td>
                 <td style=${{ whiteSpace: "nowrap" }}><b>${money(o.deposit_paid ? o.balance : o.deposit)}</b>
                   <div class="hint">${o.deposit_paid
                     ? "phần còn lại, thu khi hàng đã bay"

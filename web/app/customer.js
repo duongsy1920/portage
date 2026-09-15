@@ -267,7 +267,8 @@ function MyOrders({ orders }) {
               const tr = say(TRACKING, o.tracking);
               return html`
                 <tr key=${o.order_id}>
-                  <td>${o.product_name || "—"}</td>
+                  <td>${o.product_name || "—"}
+                    ${o.placed_by_id && html`<div class="hint">nhân viên đặt hộ bạn</div>`}</td>
                   <td><span class="pill ${st.tone}">${st.words}</span>
                     ${st.why && html`<div class="hint">${st.why}</div>`}</td>
                   <td style=${{ whiteSpace: "nowrap" }}>${money(o.total)}</td>

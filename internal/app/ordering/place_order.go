@@ -14,6 +14,10 @@ type PlaceOrder struct {
 	Quote    shared.ID
 	Variant  shared.ID
 	Customer shared.ID
+
+	// PlacedBy: the operator placing this order on the customer's behalf.
+	// Zero when the customer is placing it themselves.
+	PlacedBy shared.OperatorID
 }
 
 // PlaceOrderHandler enforces the two rules that span aggregates: the quote
@@ -61,7 +65,8 @@ func (h *PlaceOrderHandler) Handle(ctx context.Context, cmd PlaceOrder) (orderin
 				cmd.Variant, v.Product, cmd.Quote, q.Product, ordering.ErrVariantNotForProduct)
 		}
 		o, err := ordering.PlaceOrder(ordering.OrderDetails{
-			Quote: q.Quote, Product: q.Product, Variant: cmd.Variant, Customer: cmd.Customer, Total: q.Total, Deposit: q.Deposit,
+			Quote: q.Quote, Product: q.Product, Variant: cmd.Variant, Customer: cmd.Customer, PlacedBy: cmd.PlacedBy,
+			Total: q.Total, Deposit: q.Deposit,
 		}, now)
 		if err != nil {
 			return err

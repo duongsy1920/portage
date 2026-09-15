@@ -44,6 +44,7 @@ func TestOrderSummaryRepo_roundTripIncludingTheHalfEmptyFrame(t *testing.T) {
 
 	full := frame
 	full.Customer, full.Product, full.Variant, full.Quote = shared.NewID(), shared.NewID(), shared.NewID(), shared.NewID()
+	full.PlacedBy = shared.NewOperatorID() // P10: an operator placed this one
 	full.ProductName, full.Status = "Air Trainer 90", ordering.StatusDelivered
 	full.Total = shared.MustParseMoney("5393720", shared.VND)
 	full.Deposit = shared.MustParseMoney("2696860", shared.VND)

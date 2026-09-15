@@ -124,6 +124,35 @@ func TestPlaceOrder_needsAnAcceptedQuoteAndUsesItOnce(t *testing.T) {
 	}
 }
 
+// An operator may place an order for a customer who is not holding a token
+// (P10-PLAN.md); PlacedBy is how the order remembers that it was not the
+// customer who clicked "buy". A customer placing their own order — every
+// other test in this file — must still record the zero OperatorID.
+func TestPlaceOrder_operatorPlacedOrderRecordsWhoDidIt(t *testing.T) {
+	w := newWorld()
+	ctx := context.Background()
+	w.seed(t)
+	place := orderingapp.NewPlaceOrderHandler(w.deps)
+
+	customer, operator := shared.NewID(), shared.NewOperatorID()
+	id, err := place.Handle(ctx, orderingapp.PlaceOrder{Quote: quote, Variant: variant, Customer: customer, PlacedBy: operator})
+	if err != nil {
+		t.Fatal(err)
+	}
+	o, _ := w.orders.ByID(ctx, id)
+	if o.Customer() != customer || o.PlacedBy() != operator {
+		t.Fatalf("order = %+v, want customer %s placed by %s", o.Snapshot(), customer, operator)
+	}
+	evs := w.outbox.Drain()
+	if len(evs) != 1 {
+		t.Fatalf("outbox = %v", eventNames(evs))
+	}
+	placed, ok := evs[0].(ordering.OrderPlaced)
+	if !ok || placed.PlacedBy != operator {
+		t.Fatalf("event = %+v, want PlacedBy %s", evs[0], operator)
+	}
+}
+
 // The variant is the one thing in the request the customer chose, so it is
 // checked against catalog's own event instead of being believed: an id we
 // never issued is refused, and so is a real variant of a DIFFERENT product —

@@ -5,12 +5,16 @@ import "time"
 // ── ordering → others ────────────────────────────────────────────────────────
 
 // OrderPlacedV1: pricing learns which quote an order is on (Quote vs Actual).
+//
+// PlacedBy is the operator who placed the order for the customer, and it is
+// EMPTY when the customer placed it themselves. Never treat it as required.
 type OrderPlacedV1 struct {
 	ID       string    `json:"id"`
 	Quote    string    `json:"quote"`
 	Product  string    `json:"product"`
 	Variant  string    `json:"variant"`
 	Customer string    `json:"customer"`
+	PlacedBy string    `json:"placed_by"`
 	Total    MoneyV1   `json:"total"`
 	Deposit  MoneyV1   `json:"deposit"`
 	At       time.Time `json:"at"`

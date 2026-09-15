@@ -15,6 +15,7 @@ type OrderPlaced struct {
 	Product  shared.ID
 	Variant  shared.ID
 	Customer shared.ID
+	PlacedBy shared.OperatorID // zero: the customer placed it themselves
 	Total    shared.Money
 	Deposit  shared.Money
 	At       time.Time

@@ -77,12 +77,12 @@ và cấm mua để bán lại qua affiliate feed. Nên hệ thống **không t�
 shop**: khách/operator nhập tay, hoặc `adapter/openai` đọc từ URL. Đây là ràng
 buộc thiết kế, không phải chú thích.
 
-## Trạng thái (08/09/2026 — P9 xong, variant/size, migrate race, hai màn hình theo vai)
+## Trạng thái (15/09/2026 — P9 xong, variant/size, migrate race, hai màn hình theo vai, P10 xong)
 
 ```
 5 bounded context + 1 tầng đọc · 37 domain event · 41 route · 35 dòng Subscribe
-304 test (303 PASS + 1 SKIP cố ý) · 272 test chạy < 2 giây không cần Docker
-7 test canh kiến trúc bằng go/ast
+312 test (311 PASS + 1 SKIP cố ý) · 278 test chạy < 2 giây không cần Docker
+7 test canh kiến trúc bằng go/ast · 13 migration
 ```
 
 | Context | Aggregate root |
@@ -116,14 +116,25 @@ nguyên tử: hai process khởi động cùng lúc trên database trống thì 
 bao giờ thấy. Tìm ra bằng lần chạy thật đầu tiên của `scripts/smoke.sh` trên
 Linux. Có test hồi quy dùng database dùng-một-lần.
 
-**Đang làm — P10:** operator đặt hộ có ghi tên (`docs/P10-PLAN.md`). Anh ấy đã
-chốt phương án này sau khi cân bốn lựa chọn; spec đã kiểm chứng với code thật,
-**đọc nó trước khi sửa** — mô tả ban đầu của phương án dựa trên một tiền lệ không
-tồn tại (`OnBehalfOf` là kiểm quyền sở hữu, không phải đặt hộ).
+**Vừa xong — P10 (đợt 20, 15/09):** operator đặt hộ có ghi tên (`docs/P10-PLAN.md`,
+`WALKTHROUGH.md` §24). `POST /orders` mở cho cả hai loại chìa: khách đặt cho mình,
+operator đặt hộ phải kèm `customer_id` trong body (400 `customer_required` nếu
+thiếu, 403 nếu khách tự gửi kèm — đang thử đặt hộ người khác). `ordering.OrderDetails.PlacedBy`
+(`shared.OperatorID`, zero = khách tự đặt) ghi lại ai đặt hộ; `POST /quotes/{id}/accept`
+mở cho cả hai vì báo giá không có chủ để gán. Migration `0012_placed_by.sql`, nullable,
+không backfill. **Phần tuỳ chọn cũng đã làm luôn** (cùng đợt 20, sau khi hỏi lại):
+`PlacedBy` giờ hiện trên bảng đọc `reporting` (`0013_summary_placed_by.sql`) và trên
+CẢ HAI màn hình — `web/app/customer.js` (dòng "nhân viên đặt hộ bạn") và
+`web/app/staff.js` (dòng "đơn đặt hộ (nhân viên)" trong hàng đợi thu tiền).
+`go test ./...` xanh hai lần (272→278 test không cần Docker, +6; 311 PASS + 1 SKIP
+với `PORTAGE_TEST_DSN`, +7). `scripts/smoke.sh` thật cũng xanh hai lần sau cả hai
+đợt việc, đúng số vàng mọi lần — nhưng qua một Postgres **tạm**, vì cổng 5433 cố
+định của máy Linux này đang bị dự án khác chiếm (`rift-db-1`); xem SETUP §9 đợt 20.
 
 **Còn nợ:** `config/ratecard.yaml` (bảng giá đang là hằng trong `wire.go`) ·
-một `adapter/merchant/<shop>.go` thật (chưa shop nào cho API) · cổng thanh toán.
-(`scripts/smoke.sh` đã hết nợ: chạy thật trên Linux 08/09, xem SETUP §9 đợt 18.)
+một `adapter/merchant/<shop>.go` thật (chưa shop nào cho API) · cổng thanh toán ·
+chạy lại `scripts/smoke.sh` qua `portage-postgres` thật (không phải bản tạm) khi
+cổng 5433 rảnh lại.
 
 **Quyết định 08/09 — HOÃN, đừng đề xuất lại:** một đơn = một variant = **một cái**. Không
 có `Quantity`, và một kiện không chứa được nhiều đơn. Anh biết hai chỗ đó là đơn giản hoá và
@@ -147,7 +158,7 @@ không trên pallet.
 | `docs/FLOW-ORDER.md` | một đơn từ đầu tới cuối: ai gọi, ai nghe, bảng nào đổi, hỏng thì sao |
 | `docs/CATALOG.md` | vì sao không dùng affiliate feed, provenance theo nhóm |
 | `docs/GO-CHO-PHP.md` | cú pháp Go tra nhanh cho người viết PHP |
-| `docs/P10-PLAN.md` | **việc đang làm**: operator đặt hộ có ghi tên — file phải sửa, ba cái bẫy, test bắt buộc |
+| `docs/P10-PLAN.md` | plan gốc của P10 (đã xong, đợt 20) — operator đặt hộ có ghi tên; giữ để thấy cách chốt quyết định |
 | `docs/P9-PLAN.md` | plan gốc của P9 (đã xong hết) — giữ để thấy cách chốt quyết định |
 | `docs/UI-GUIDE.md` | **bốn màn hình và bấm gì trên từng cái**: trang khách, trang nhân viên, mô phỏng, bảng kiểm API; 10 nhánh rẽ nên thử; bảng hỏng-thì-xem |
 

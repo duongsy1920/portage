@@ -79,16 +79,22 @@ func TestAuth_wrongKindIs403(t *testing.T) {
 	}
 }
 
-// POST /orders belongs to the customer. With customer_id gone from the body
-// there is no field left for staff to order in somebody else's name, so the
-// route refuses an operator rather than guessing whose order it would be.
-func TestAuth_customerOnlyRoutesRefuseOperator(t *testing.T) {
+// P10-PLAN.md reopened a decision T1 had closed: an operator may place an
+// order FOR a customer, and accepting a quote never needed a customer in the
+// first place (pricing.Quote carries none). Neither route refuses an operator
+// by KIND any more — POST /orders instead asks for customer_id (400, not
+// 403; TestPlaceOrder_operatorMustNameTheCustomer), and accept just works.
+func TestAuth_orderingRoutesAcceptAnOperatorNamingTheCustomer(t *testing.T) {
 	a := newAPI()
 
-	expectError(t, a.call(t, "POST", "/orders", `{}`, a.asOperator()),
-		http.StatusForbidden, "forbidden")
-	expectError(t, a.call(t, "POST", "/quotes/"+shared.NewID().String()+"/accept", `{}`, a.asOperator()),
-		http.StatusForbidden, "forbidden")
+	// An operator IS let through the door; what stops them here is the
+	// missing customer, not their kind (400, not 403) — well-formed ids so
+	// the check under test is reached instead of tripping on invalid_id.
+	body := `{"quote_id":"` + shared.NewID().String() + `","variant_id":"` + shared.NewID().String() + `"}`
+	expectError(t, a.call(t, "POST", "/orders", body, a.asOperator()), http.StatusBadRequest, "customer_required")
+	if rec := a.call(t, "POST", "/quotes/"+shared.NewID().String()+"/accept", "", a.asOperator()); rec.Code == http.StatusForbidden {
+		t.Fatalf("accept has nothing to attribute, so an operator must get past the door: %d %s", rec.Code, rec.Body)
+	}
 }
 
 // Asking for a price is not staff-only: both kinds get past the door, and

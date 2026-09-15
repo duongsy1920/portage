@@ -1456,3 +1456,51 @@ DSN: 272 PASS + 32 SKIP. 41 route, 35 dòng `Subscribe`, 37 domain event, 11 mig
 giống nhau trên cả Windows và Linux.
 
 Đọc chi tiết: `WALKTHROUGH.md` §23 (chín mục) và `UI-GUIDE.md` (bốn màn hình).
+
+### Đợt 20 (15/09) — P10: đặt hộ có ghi tên, mở lại một quyết định đã đóng
+
+`docs/P10-PLAN.md` đã chốt phương án và kiểm chứng với code thật từ 06/09; đợt này là lúc
+viết code theo đúng phương án đó. Chi tiết đọc code từng dòng: `WALKTHROUGH.md` §24.
+
+| Quyết định / bug | Chỗ nó nằm |
+|---|---|
+| Đây là lần **mở lại** một quyết định đã đóng: T1 (đợt 14) xoá `customer_id` khỏi body với lời hứa *"chủ đơn là chủ token, không còn field nào để đặt hộ tên người khác"*. P10 đưa field trở lại, nhưng phát biểu lại lời hứa hẹp hơn thay vì xoá nó: `customer_id` chỉ operator đọc được, khách gửi kèm là 403 — không phải bị lờ đi | `WALKTHROUGH.md` §24 |
+| Mô tả ban đầu của P10 dựa trên một tiền lệ không tồn tại: nháp đầu đề nghị theo hình dạng `CancelOrder.OnBehalfOf`, nhưng đọc code thì `OnBehalfOf` là **kiểm quyền sở hữu** (điền từ token của chính khách), ngược hướng hoàn toàn với "đặt hộ". Phải kiểm code thật trước khi copy hình dạng một field | `P10-PLAN.md` §1 |
+| Attribution nằm ở **đơn**, không ở báo giá: `pricing.Quote` và `ordering.AcceptedQuote` không có field customer nào cả — accept chỉ là "đồng ý cái giá này". Thêm attribution vào `pricing` sẽ là một migration cho một thông tin mà `order_placed` ngay sau đó ghi tốt hơn | `ordering.OrderDetails.PlacedBy` |
+| `PlacedBy shared.OperatorID`, zero nghĩa là khách tự đặt. Hợp quy ước 9 theo đúng nghĩa đen: mọi đơn trước P10 đều là khách tự đặt, không cần backfill — `0012_placed_by.sql` là `ADD COLUMN` nullable, không default | `order.go`, `0012_placed_by.sql` |
+| Sentinel lệch khỏi bản nháp của plan: đề xuất ban đầu viết `catalog.ErrCustomerRequired` (pattern-match theo `catalog.ErrMerchantRequired`), nhưng lỗi này là của **ordering** — đặt `ordering.ErrCustomerRequired` mới đúng ranh giới context | `domain/ordering/errors.go` |
+| Bẫy zero-UUID (đã gặp ở P9/T2 `idOrNil`): `shared.OperatorID{}.String()` ra uuid toàn số 0, ghi thẳng vào cột hay event sẽ đọc lên thành một nhân viên có thật. Xử lý bằng đúng cặp helper đã có sẵn cho `RequestedBy` (`idOrEmpty` ở codec, con trỏ `nil` ở postgres) — không phải hàng mới | `eventcodec/codec.go`, `postgres/ordering_repos.go` |
+| Adapter phân nhánh theo **loại chìa** (`customerOf`/`operatorOf`), không theo field trong body: khách gửi kèm `customer_id` → 403 thẳng (im lặng bỏ qua sẽ khiến client tưởng nó có tác dụng); operator không kèm → 400 `customer_required` | `http/orders.go` |
+| `POST /quotes/{id}/accept` đổi đúng một dòng (`requireCustomer` → `requireAny`), không thêm gì khác — không có chỗ để ghi attribution ở đó | `http/server.go` |
+| `TestAuth_customerOnlyRoutesRefuseOperator` xoá cả tiền đề: sau P10 không còn route ordering nào chặn operator theo **loại**, chỉ chặn theo **thiếu dữ liệu**. Viết lại thành `TestAuth_orderingRoutesAcceptAnOperatorNamingTheCustomer` | `auth_test.go` |
+| **Phần tuỳ chọn của plan cũng làm luôn, sau khi hỏi lại và được đồng ý:** `PlacedBy` hiện lên bảng đọc `reporting` — cột mới (`0013_summary_placed_by.sql`, cùng luật NULL-không-backfill), `Projector.OnOrderPlaced` parse `m.PlacedBy` bằng đúng kiểu rỗng-là-hợp-lệ như mọi field khác của read model | `reporting/summary.go`, `reporting/projector.go` |
+| Hiện cho **cả hai** màn hình, không riêng operator — giấu ai đặt hộ đơn của chính khách thì đi ngược lý do làm P10. Không hiện UUID thô (không ai đọc được nó); chỉ hiện một dòng chữ tĩnh khi trường khác rỗng — không phải enum nên không cần thêm mục vào `words.js` | `web/app/customer.js`, `web/app/staff.js` |
+
+
+
+**Môi trường, không phải code:** `docker-compose.override.yml` của máy Linux này cố định
+`portage-postgres` ở cổng 5433 (tránh Postgres dev của công ty ở 5432) — đúng như đợt 18 đã
+ghi. Đợt này cổng 5433 bị một container của dự án **khác** (`rift-db-1`) chiếm mất giữa
+chừng, nên cả `docker compose up -d` lẫn `scripts/smoke.sh` nhắm vào `portage-postgres` đều
+không chạm được nó (container báo "healthy" vì healthcheck chạy trong network namespace của
+chính nó — chỉ cổng publish ra host là hỏng). Volume `portage_pgdata` không mất gì. Xác minh
+bằng Postgres **tạm** (`docker run` cổng khác) trong phiên làm việc:
+
+- `go test ./...` (toàn bộ, gồm 28 test tích hợp) — **hai lần**, cả hai xanh (bài học đợt 15:
+  một lần xanh không chứng minh được gì về lần thứ hai).
+- `scripts/smoke.sh` thật — 2 binary + Postgres thật + bearer token thật qua mạng — **hai
+  lần**, cả hai in đúng số vàng: `total 5393720 VND, deposit 2696860`, `variance -2.50 USD`
+  (`quoted 163.22+25.00, actual 163.22+27.50`).
+
+`scripts/smoke.sh` tự nó chưa test riêng nhánh operator-đặt-hộ (đó là việc của
+`TestPlaceOrder_operatorPlacesOnBehalfOfANamedCustomer` và đoạn thêm vào `wholeFlow`) — nó
+chỉ chứng minh đường đi CŨ (khách tự đặt) không bị P10 làm hỏng, qua đúng hai binary thật.
+Chạy lại **thêm hai lần nữa** sau khi làm xong phần tuỳ chọn (bảng đọc + hai màn hình), cùng
+kết quả, số vàng không đổi. Khi cổng 5433 rảnh lại, `docker compose up -d` sẽ khởi động lại
+được `portage-postgres` bình thường, dữ liệu cũ còn nguyên trong volume.
+
+Tổng **312 test** (+7 so với đợt 19: 5 của phần bắt buộc, 2 của phần tuỳ chọn, cộng một test
+đổi tên chứ không phải test mới). Với `PORTAGE_TEST_DSN`: **311 PASS + 1 SKIP**; không DSN:
+278 PASS + 34 SKIP. 41 route (không đổi — hai route có sẵn chỉ đổi wrapper), 35 dòng
+`Subscribe` (không đổi — không event mới), 37 domain event (không đổi — `order_placed` chỉ
+thêm field), 13 migration (+2: `0012` ở ordering, `0013` ở reporting).

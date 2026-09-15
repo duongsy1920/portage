@@ -205,10 +205,13 @@ func NewHandler(d Deps) http.Handler {
 	mux.HandleFunc("POST /products/{id}/publish", requireOperator(s.publishProduct))
 	mux.HandleFunc("POST /quotes", requireAny(s.issueQuote))
 	mux.HandleFunc("GET /quotes/{id}", requireAny(s.getQuote))
-	mux.HandleFunc("POST /quotes/{id}/accept", requireCustomer(s.acceptQuote))
-	// The customer places their own order: with customer_id gone from the
-	// body there is no field left for staff to order in somebody else's name.
-	mux.HandleFunc("POST /orders", requireCustomer(s.placeOrder))
+	// Accept has nothing to attribute (pricing.Quote carries no customer, P10-PLAN
+	// §1) — it is just "agree to this price", so both kinds may do it.
+	mux.HandleFunc("POST /quotes/{id}/accept", requireAny(s.acceptQuote))
+	// A customer places their own order; an operator may place one FOR a
+	// customer, naming them in the body (P10-PLAN.md). placeOrder tells the
+	// two apart by token kind, not by the body alone.
+	mux.HandleFunc("POST /orders", requireAny(s.placeOrder))
 	// Read and cancel are "owner or operator": the wrapper lets both kinds
 	// in, and the ownership rule stays where it belongs — in the handler
 	// (ordering.ErrNotOwner) for cancel, in the read itself for GET.

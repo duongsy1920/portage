@@ -89,8 +89,8 @@ func TestDecode_roundTripsWhatEncodeWrote(t *testing.T) {
 	if ln.Code != "us_forwarder" || ln.Divisor != 5000 || ln.StepG != 500 || ln.Currency != "USD" {
 		t.Errorf("LaneDefinedV1 = %+v", ln)
 	}
-	pl := decode(t, ordering.OrderPlaced{ID: oid2, Quote: qid.ID, Product: pid.ID, Variant: vrt, Customer: cust, Total: vnd("5393720"), Deposit: vnd("2696860"), At: at}).(contracts.OrderPlacedV1)
-	if pl.ID != oid2.String() || pl.Quote != qid.String() || pl.Total.Minor != 5393720 {
+	pl := decode(t, ordering.OrderPlaced{ID: oid2, Quote: qid.ID, Product: pid.ID, Variant: vrt, Customer: cust, PlacedBy: op, Total: vnd("5393720"), Deposit: vnd("2696860"), At: at}).(contracts.OrderPlacedV1)
+	if pl.ID != oid2.String() || pl.Quote != qid.String() || pl.Total.Minor != 5393720 || pl.PlacedBy != op.String() {
 		t.Errorf("OrderPlacedV1 = %+v", pl)
 	}
 	sh := decode(t, logistics.BatchShippedEvent{ID: bid, Lane: "us_forwarder", Freight: usd("87.50"),

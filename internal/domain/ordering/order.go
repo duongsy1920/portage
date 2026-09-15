@@ -98,6 +98,12 @@ type OrderDetails struct {
 	Customer shared.ID
 	Total    shared.Money // home currency, from the quote
 	Deposit  shared.Money // what is due now, from the quote
+
+	// PlacedBy: the operator who placed this order for the customer. Zero
+	// means the customer placed it themselves with their own token — that is
+	// the old behaviour, and every order placed before this field existed is
+	// correctly zero without any backfill (convention 9: zero value is safe).
+	PlacedBy shared.OperatorID
 }
 
 // CustomerOrder is the AGGREGATE ROOT of ordering.
@@ -109,6 +115,7 @@ type CustomerOrder struct {
 	product      shared.ID
 	variant      shared.ID
 	customer     shared.ID
+	placedBy     shared.OperatorID
 	total        shared.Money
 	deposit      shared.Money
 	status       OrderStatus
@@ -143,10 +150,11 @@ func PlaceOrder(d OrderDetails, now time.Time) (*CustomerOrder, error) {
 		return nil, bad("deposit exceeds total")
 	}
 	o := &CustomerOrder{
-		id: NewOrderID(), quote: d.Quote, product: d.Product, variant: d.Variant, customer: d.Customer,
+		id: NewOrderID(), quote: d.Quote, product: d.Product, variant: d.Variant, customer: d.Customer, placedBy: d.PlacedBy,
 		total: d.Total, deposit: d.Deposit, status: StatusAwaitingDeposit, placedAt: now,
 	}
-	o.Record(OrderPlaced{ID: o.id, Quote: o.quote, Product: o.product, Variant: o.variant, Customer: o.customer, Total: o.total, Deposit: o.deposit, At: now})
+	o.Record(OrderPlaced{ID: o.id, Quote: o.quote, Product: o.product, Variant: o.variant, Customer: o.customer, PlacedBy: o.placedBy,
+		Total: o.total, Deposit: o.deposit, At: now})
 	return o, nil
 }
 
@@ -168,6 +176,12 @@ func (o *CustomerOrder) Variant() shared.ID {
 
 func (o *CustomerOrder) Customer() shared.ID {
 	return o.customer
+}
+
+// PlacedBy is the operator who placed this order for the customer, or the
+// zero OperatorID when the customer placed it with their own token.
+func (o *CustomerOrder) PlacedBy() shared.OperatorID {
+	return o.placedBy
 }
 
 func (o *CustomerOrder) Total() shared.Money {
@@ -339,6 +353,7 @@ type OrderSnapshot struct {
 	Product      shared.ID
 	Variant      shared.ID
 	Customer     shared.ID
+	PlacedBy     shared.OperatorID // zero: the customer placed it themselves
 	Total        shared.Money
 	Deposit      shared.Money
 	Status       OrderStatus
@@ -351,7 +366,7 @@ type OrderSnapshot struct {
 
 func (o *CustomerOrder) Snapshot() OrderSnapshot {
 	return OrderSnapshot{
-		ID: o.id, Quote: o.quote, Product: o.product, Variant: o.variant, Customer: o.customer,
+		ID: o.id, Quote: o.quote, Product: o.product, Variant: o.variant, Customer: o.customer, PlacedBy: o.placedBy,
 		Total: o.total, Deposit: o.deposit, Status: o.status, BalancePaid: o.balancePaid,
 		Refund: o.refund.amount, Forfeited: o.refund.forfeited, CancelReason: o.cancelReason, PlacedAt: o.placedAt,
 	}
@@ -380,7 +395,7 @@ func OrderFromSnapshot(s OrderSnapshot) (*CustomerOrder, error) {
 		return nil, bad("delivered with balance unpaid")
 	}
 	return &CustomerOrder{
-		id: s.ID, quote: s.Quote, product: s.Product, variant: s.Variant, customer: s.Customer,
+		id: s.ID, quote: s.Quote, product: s.Product, variant: s.Variant, customer: s.Customer, placedBy: s.PlacedBy,
 		total: s.Total, deposit: s.Deposit, status: s.Status, balancePaid: s.BalancePaid,
 		refund: Refund{amount: s.Refund, forfeited: s.Forfeited}, cancelReason: s.CancelReason, placedAt: s.PlacedAt,
 	}, nil

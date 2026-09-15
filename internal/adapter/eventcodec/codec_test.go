@@ -120,8 +120,13 @@ var contract = []struct {
 		m{"id": qid.String(), "product": pid.String(), "at": atS}},
 
 	// ── ordering ─────────────────────────────────────────────────────────────
+	// Customer-placed: placed_by is empty, never the zero uuid (P10-PLAN §4).
 	{ordering.OrderPlaced{ID: oid2, Quote: qid.ID, Product: pid.ID, Variant: vrt, Customer: cust, Total: vnd("5393720"), Deposit: vnd("2696860"), At: at},
-		m{"id": oid2.String(), "quote": qid.String(), "product": pid.String(), "variant": vrt.String(), "customer": cust.String(),
+		m{"id": oid2.String(), "quote": qid.String(), "product": pid.String(), "variant": vrt.String(), "customer": cust.String(), "placed_by": "",
+			"total": m{"minor": 5393720.0, "currency": "VND"}, "deposit": m{"minor": 2696860.0, "currency": "VND"}, "at": atS}},
+	// Operator-placed: placed_by names them.
+	{ordering.OrderPlaced{ID: oid2, Quote: qid.ID, Product: pid.ID, Variant: vrt, Customer: cust, PlacedBy: op, Total: vnd("5393720"), Deposit: vnd("2696860"), At: at},
+		m{"id": oid2.String(), "quote": qid.String(), "product": pid.String(), "variant": vrt.String(), "customer": cust.String(), "placed_by": op.String(),
 			"total": m{"minor": 5393720.0, "currency": "VND"}, "deposit": m{"minor": 2696860.0, "currency": "VND"}, "at": atS}},
 	{ordering.DepositPaid{ID: oid2, Quote: qid.ID, Product: pid.ID, Variant: vrt, Amount: vnd("2696860"), At: at},
 		m{"id": oid2.String(), "quote": qid.String(), "product": pid.String(), "variant": vrt.String(), "amount": m{"minor": 2696860.0, "currency": "VND"}, "at": atS}},

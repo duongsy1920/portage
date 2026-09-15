@@ -65,7 +65,10 @@ func TestPlaceOrder_recordsAndValidates(t *testing.T) {
 			t.Errorf("zero %s: got %v, want ErrInvalidOrder", name, err)
 		}
 	}
-	if f := reflect.TypeOf(base).NumField(); f != 6 {
+	// PlacedBy is the 7th field, and it is NOT in the loop above: it is
+	// optional by design (zero means the customer placed it themselves), so
+	// there is no "missing PlacedBy" error to assert.
+	if f := reflect.TypeOf(base).NumField(); f != 7 {
 		t.Fatalf("OrderDetails has %d fields; the loop above checks 6 — add the new one", f)
 	}
 	d := base

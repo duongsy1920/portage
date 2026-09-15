@@ -98,6 +98,29 @@ func TestProjector_buildsOneRowFromFiveContexts(t *testing.T) {
 	}
 }
 
+// P10: an operator-placed order records who did it; a customer-placed one
+// (every case above) leaves PlacedBy at its zero value.
+func TestProjector_recordsWhoPlacedTheOrder(t *testing.T) {
+	w := newWorld(t)
+	ctx := context.Background()
+	order, operator := ordering.NewOrderID(), shared.NewOperatorID()
+
+	if err := w.p.OnOrderPlaced(ctx, contracts.OrderPlacedV1{
+		ID: order.String(), Quote: shared.NewID().String(), Product: shared.NewID().String(),
+		Variant: shared.NewID().String(), Customer: shared.NewID().String(), PlacedBy: operator.String(),
+		Total: vnd(5393720), Deposit: vnd(2696860), At: now,
+	}); err != nil {
+		t.Fatal(err)
+	}
+	s, err := w.summaries.ByOrder(ctx, order)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s.PlacedBy != operator {
+		t.Fatalf("placed by = %s, want %s", s.PlacedBy, operator)
+	}
+}
+
 // The relay is at-least-once, so every handler must survive the same event
 // twice — and a RETRY of an old event must not drag the row backwards.
 func TestProjector_isIdempotentAndDoesNotGoBackwards(t *testing.T) {

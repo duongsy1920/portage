@@ -1511,7 +1511,7 @@ toán) biết phải chuyển bao nhiêu mà không đọc lại aggregate.
 
 | Route | Trả | Mã lỗi đáng nhớ |
 |---|---|---|
-| `POST /orders {quote_id, variant_id}` (khách, §18) | 201 `{"id"}` | 403 nếu operator gọi; 409 `quote_not_accepted`, 409 `quote_already_used` |
+| `POST /orders {quote_id, variant_id, customer_id?}` (khách hoặc operator, §18, §24) | 201 `{"id"}` | 400 `customer_required` nếu operator không kèm `customer_id`; 403 nếu khách kèm `customer_id`; 409 `quote_not_accepted`, 409 `quote_already_used` |
 | `GET /orders/{id}` | 200 `orderView` (total, deposit, balance, `refund` chỉ khi đã huỷ) | 404 `order_not_found` — **kể cả khi đơn có thật nhưng của khách khác** (§18d) |
 | `POST /orders/{id}/deposit {amount, currency}` | 204 | 409 `wrong_amount`, 409 `not_awaiting_deposit` |
 | `POST /orders/{id}/balance {amount, currency}` | 204 | 409 `not_in_transit`, `wrong_amount` |
@@ -1519,8 +1519,12 @@ toán) biết phải chuyển bao nhiêu mà không đọc lại aggregate.
 | `POST /orders/{id}/deliver` | 204 | 409 `balance_unpaid` |
 
 Số tiền thanh toán đi qua `normalizeAmount` như mọi số tiền ở biên: `"2.696.860"` với
-`Accept-Language: vi` là 2 696 860 ₫ (test `TestOrders_placePayCancel`). Từ 06/09 **không còn
-`customer_id` trong body**: chủ đơn là chủ token (§18e), nên cũng không còn field nào để đặt hộ tên người khác.
+`Accept-Language: vi` là 2 696 860 ₫ (test `TestOrders_placePayCancel`). Từ 06/09 tới 08/09
+**không có** `customer_id` trong body: chủ đơn là chủ token (§18e), nên không có field nào để
+đặt hộ tên người khác. **§24 (P10) đưa field đó trở lại**, nhưng lật ngược lời hứa cũ thành một
+lời hứa hẹp hơn, không phải bỏ nó: *`customer_id` chỉ operator đọc được — khách gửi kèm là
+403, không phải bị lờ đi.* `cmd.PlacedBy` ghi lại ai đặt hộ (zero = khách tự đặt), và `POST
+/quotes/{id}/accept` mở luôn cho cả hai vì `pricing.Quote` không có gì để gán cho ai (P10-PLAN.md §1).
 
 ### 15e. Postgres — `0003_ordering.sql`
 
@@ -3081,3 +3085,129 @@ Bài học đáng mang đi: **một UI không có test là một UI chưa ai ch�
 | Sửa một migration đã chạy là phải dựng lại DB ở **mọi** máy đã chạy nó | 0009 tách thành 0009 + 0010 |
 | Nhất quán sau cùng ở UI thì xử bằng thử lại, không phải báo đỏ | `retryOn` trong `portage.js` |
 | **Viết docs là một cách kiểm code.** Đang mô tả luật "shop nào cho khách gửi link" thì phát hiện `Merchant.Supports()` chưa ai gọi: trường được ghi, được thông báo bằng event, rồi bỏ quên. Một trường không ai kiểm không phải một luật | `ErrSourcingNotAllowed` |
+
+## 24. Đặt hộ có ghi tên — mở lại một quyết định đã đóng (P10)
+
+> T1 (§18e) xoá `customer_id` khỏi body `POST /orders` với lời hứa: *"chủ đơn là chủ token,
+> không còn field nào để đặt hộ tên người khác"*. P10 đưa field đó trở lại, vì operator cần
+> đặt hộ một khách không cầm chìa. Việc ở đây không phải xoá lời hứa cũ — là phát biểu lại nó
+> hẹp hơn: `customer_id` chỉ operator đọc được; khách gửi kèm là 403, không phải bị lờ đi.
+
+### 24a. Hai điều phải kiểm trước khi sửa, vì mô tả ban đầu dựa trên tiền lệ sai
+
+`P10-PLAN.md` nháp đầu tiên đề nghị nhìn theo hình dạng của `CancelOrder.OnBehalfOf` — nhưng
+kiểm lại code thì `OnBehalfOf` đi **ngược hướng hoàn toàn**: nó là kiểm quyền sở hữu (adapter
+điền từ token của chính khách, để zero khi operator gọi), không phải cách đặt hộ.
+
+Và danh tính khách chỉ vào hệ thống ở **một** chỗ:
+
+```
+pricing.Quote          … không có customer
+ordering.AcceptedQuote … không có customer
+ordering.PlaceOrder    … CUSTOMER — lấy từ token (hoặc từ body, nếu là operator)
+```
+
+Hệ quả: accept không cần biết khách là ai — nó chỉ là "đồng ý cái giá này" — nên attribution
+không thêm vào `pricing`, chỉ thêm vào `ordering.OrderDetails` (đơn là **cam kết**, có tiền đi
+kèm; báo giá thì không).
+
+### 24b. `PlacedBy`: một field, zero là khách tự đặt
+
+```go
+// internal/domain/ordering/order.go
+type OrderDetails struct {
+	…
+	Customer shared.ID
+	PlacedBy shared.OperatorID // zero: khách tự đặt bằng chìa của chính họ
+	…
+}
+```
+
+Zero hợp quy ước 9 (zero value phải an toàn) theo đúng nghĩa đen: mọi đơn trước P10 đều là
+khách tự đặt, nên không cần backfill — `ALTER TABLE orders ADD COLUMN placed_by uuid` (nullable,
+không default, `0012_placed_by.sql`).
+
+### 24c. HTTP: hai nhánh theo LOẠI chìa, không theo field trong body
+
+```go
+// internal/adapter/http/orders.go
+if customer, isCustomer := customerOf(r); isCustomer {
+	if req.CustomerID != "" {           // đang thử đặt hộ người khác
+		writeError(w, errForbidden)     // 403, từ chối THẲNG — im lặng bỏ qua sẽ khiến
+		return                          // client tưởng nó có tác dụng
+	}
+	cmd.Customer = customer
+} else {
+	operator, _ := operatorOf(r)
+	if req.CustomerID == "" {
+		writeError(w, ordering.ErrCustomerRequired) // 400 customer_required
+		return
+	}
+	cmd.Customer, cmd.PlacedBy = parse(req.CustomerID), operator
+}
+```
+
+`TestPlaceOrder_customerCannotOrderInSomebodyElsesName` là test quan trọng nhất của thay đổi
+này — không có nó, cả field `customer_id` là một lỗ hổng.
+
+Sentinel `ErrCustomerRequired` nằm ở `domain/ordering`, không phải một `catalog.Err*` nào —
+nó là lỗi của **ordering**, dù pattern-match ban đầu (đề xuất trong `P10-PLAN.md`) trông giống
+họ hàng với `catalog.ErrMerchantRequired`.
+
+### 24d. Bẫy đã biết: zero UUID xuống DB và xuống event
+
+`shared.OperatorID{}.String()` ra một uuid toàn số 0 — ghi thẳng nó vào cột `placed_by` hay
+vào payload event thì đọc lên thành một nhân viên tên `00000000-…` đặt hộ **mọi** đơn khách tự
+đặt. Đây là đúng lỗi đã gặp ở read model P9/T2 (`idOrNil`). Xử lý bằng đúng cặp helper đã có,
+không phải hàng mới:
+
+```go
+// eventcodec/codec.go — chuỗi rỗng, không phải uuid 0 (idOrEmpty đã tồn tại cho RequestedBy)
+"placed_by": idOrEmpty(e.PlacedBy.ID)
+
+// postgres/ordering_repos.go — nil, không phải chuỗi
+var placedBy *string
+if !s.PlacedBy.IsZero() { v := s.PlacedBy.String(); placedBy = &v }
+```
+
+`idOrEmpty` luôn ghi key `placed_by` (giá trị `""` khi zero) thay vì bỏ hẳn key — đúng
+pattern `requested_by` đã kiểm chứng ở §22/§23, không phải cách khác cũng an toàn nhưng chưa ai
+dùng trong codebase này.
+
+### 24e. Accept: đổi đúng một dòng
+
+```go
+mux.HandleFunc("POST /quotes/{id}/accept", requireAny(s.acceptQuote)) // was requireCustomer
+```
+
+Không thêm attribution — `pricing.Quote` không có chỗ để ghi, và thêm một chỗ nghĩa là một
+migration + đổi wire format cho một thông tin mà `order_placed` ngay sau đó đã ghi tốt hơn.
+
+### 24f. Phần "tuỳ chọn" của plan: hiện `PlacedBy` lên bảng đọc, cho cả hai màn hình
+
+`P10-PLAN.md` §3 đánh dấu việc này là tuỳ chọn — đủ dữ liệu ở `ordering.orders` rồi, bảng đọc
+`reporting` là một **bản sao** cho màn hình, không phải nguồn sự thật. Làm sau khi được hỏi
+và đồng ý, cùng đợt.
+
+Đường đi giống hệt mọi field khác của `OrderSummary` — không có gì mới về kỹ thuật, chỉ là đi
+đúng một vòng đã quen:
+
+```
+contracts.OrderPlacedV1.PlacedBy  (đã có sẵn từ phần bắt buộc)
+  → Projector.OnOrderPlaced: rỗng thì để OperatorID zero, không thì ParseOperatorID
+  → OrderSummary.PlacedBy shared.OperatorID
+  → 0013_summary_placed_by.sql: ADD COLUMN, nullable, không backfill — luật y hệt 0012
+  → summaryView.PlacedByID string, qua idText(s.PlacedBy.ID) — rỗng khi khách tự đặt
+```
+
+Hai quyết định nhỏ đáng ghi:
+
+- **Hiện cho CẢ HAI màn hình**, không riêng operator. `ShopReference` giấu khỏi khách vì nó
+  là mã nội bộ của shop; `PlacedBy` thì ngược lại — giấu nó đi là đúng thứ P10 làm ra để tránh.
+- **Không hiện UUID thô** trên UI. `shared.OperatorID` không có tên, chỉ có id (DDD.md — danh
+  tính nằm ở shared kernel, tên/vai trò thì không), nên một uuid không nói được gì với người
+  đọc. Cả hai màn hình chỉ đổi một dòng chữ tĩnh ("nhân viên đặt hộ bạn" / "đơn đặt hộ (nhân
+  viên)") khi trường khác rỗng — không phải một mã enum nên không cần thêm mục vào `words.js`.
+
+`scripts/smoke.sh` chạy lại hai lần nữa sau phần này, số vàng không đổi — phần này chỉ thêm
+một cột đọc, không chạm luồng ghi.

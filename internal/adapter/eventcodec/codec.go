@@ -126,7 +126,8 @@ func payload(ev shared.Event) (m, error) {
 	// ── Ordering ──────────────────────────────────────────────────────────
 	case ordering.OrderPlaced:
 		return m{"id": e.ID.String(), "quote": e.Quote.String(), "product": e.Product.String(), "variant": e.Variant.String(),
-			"customer": e.Customer.String(), "total": money(e.Total), "deposit": money(e.Deposit), "at": ts(e.At)}, nil
+			"customer": e.Customer.String(), "placed_by": idOrEmpty(e.PlacedBy.ID),
+			"total": money(e.Total), "deposit": money(e.Deposit), "at": ts(e.At)}, nil
 	case ordering.DepositPaid:
 		return m{"id": e.ID.String(), "quote": e.Quote.String(), "product": e.Product.String(), "variant": e.Variant.String(),
 			"amount": money(e.Amount), "at": ts(e.At)}, nil

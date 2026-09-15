@@ -34,7 +34,7 @@ func NewOrderSummaryRepo(pool *pgxpool.Pool) *OrderSummaryRepo {
 	return &OrderSummaryRepo{pool: pool}
 }
 
-const summaryColumns = `"order", customer, product, variant, quote, product_name, status, tracking,
+const summaryColumns = `"order", customer, product, variant, quote, placed_by, product_name, status, tracking,
 	total_minor, deposit_minor, refund_minor, currency,
 	deposit_paid, balance_paid, forfeited, shop_reference,
 	placed_at, delivered_at, cancelled_at, updated_at`
@@ -58,9 +58,10 @@ func (r *OrderSummaryRepo) Save(ctx context.Context, s reportingapp.OrderSummary
 	}
 	_, err := db(ctx, r.pool).Exec(ctx, `
 		INSERT INTO order_summaries (`+summaryColumns+`)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
 		ON CONFLICT ("order") DO UPDATE SET
 			customer = EXCLUDED.customer, product = EXCLUDED.product, variant = EXCLUDED.variant, quote = EXCLUDED.quote,
+			placed_by = EXCLUDED.placed_by,
 			product_name = EXCLUDED.product_name, status = EXCLUDED.status, tracking = EXCLUDED.tracking,
 			total_minor = EXCLUDED.total_minor, deposit_minor = EXCLUDED.deposit_minor,
 			refund_minor = EXCLUDED.refund_minor, currency = EXCLUDED.currency,
@@ -68,7 +69,7 @@ func (r *OrderSummaryRepo) Save(ctx context.Context, s reportingapp.OrderSummary
 			shop_reference = EXCLUDED.shop_reference,
 			placed_at = EXCLUDED.placed_at, delivered_at = EXCLUDED.delivered_at,
 			cancelled_at = EXCLUDED.cancelled_at, updated_at = EXCLUDED.updated_at`,
-		s.Order.String(), idOrNil(s.Customer), idOrNil(s.Product), idOrNil(s.Variant), idOrNil(s.Quote),
+		s.Order.String(), idOrNil(s.Customer), idOrNil(s.Product), idOrNil(s.Variant), idOrNil(s.Quote), idOrNil(s.PlacedBy.ID),
 		s.ProductName, string(s.Status), string(s.Tracking),
 		total, deposit, refund, currency,
 		s.DepositPaid, s.BalancePaid, s.Forfeited, s.ShopReference,
@@ -133,16 +134,16 @@ func (r *OrderSummaryRepo) list(ctx context.Context, where string, args ...any) 
 
 func scanSummary(sc scanner) (reportingapp.OrderSummary, error) {
 	var (
-		rawOrder                            string
-		customer, product, variant, quote   *string
-		name, status, tracking, shopRef     string
-		total, deposit, refund              *int64
-		currency                            *string
-		depositPaid, balancePaid, forfeited bool
-		placed, delivered, cancelled        *time.Time
-		updated                             time.Time
+		rawOrder                                    string
+		customer, product, variant, quote, placedBy *string
+		name, status, tracking, shopRef             string
+		total, deposit, refund                      *int64
+		currency                                    *string
+		depositPaid, balancePaid, forfeited         bool
+		placed, delivered, cancelled                *time.Time
+		updated                                     time.Time
 	)
-	if err := sc.Scan(&rawOrder, &customer, &product, &variant, &quote, &name, &status, &tracking,
+	if err := sc.Scan(&rawOrder, &customer, &product, &variant, &quote, &placedBy, &name, &status, &tracking,
 		&total, &deposit, &refund, &currency,
 		&depositPaid, &balancePaid, &forfeited, &shopRef,
 		&placed, &delivered, &cancelled, &updated); err != nil {
@@ -166,7 +167,7 @@ func scanSummary(sc scanner) (reportingapp.OrderSummary, error) {
 	for _, f := range []struct {
 		raw  *string
 		into *shared.ID
-	}{{customer, &s.Customer}, {product, &s.Product}, {variant, &s.Variant}, {quote, &s.Quote}} {
+	}{{customer, &s.Customer}, {product, &s.Product}, {variant, &s.Variant}, {quote, &s.Quote}, {placedBy, &s.PlacedBy.ID}} {
 		if f.raw == nil {
 			continue
 		}

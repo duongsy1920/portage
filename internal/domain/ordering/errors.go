@@ -30,6 +30,11 @@ var (
 	ErrEmptyReason          = errors.New("a reason is required")
 	ErrInvalidSnapshot      = errors.New("invalid order snapshot")
 
+	// ErrCustomerRequired: an operator placed an order without naming who it
+	// is for. A customer never sees this — their own token names them — so it
+	// only ever comes from the HTTP adapter's operator branch (P10-PLAN §2b).
+	ErrCustomerRequired = errors.New("a customer must be named for this order")
+
 	// ErrNotOwner: this order belongs to another customer.
 	//
 	// It lives in the domain, not the HTTP adapter, because "only the

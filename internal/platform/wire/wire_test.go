@@ -317,6 +317,21 @@ func wholeFlow(t *testing.T, g wire.Graph) {
 	if none := s.listOrders(t, "awaiting_deposit"); len(none) != 0 {
 		t.Fatalf("awaiting_deposit = %+v, want none left", none)
 	}
+
+	// P10: an operator can place an order FOR a customer who never held a
+	// token — same product, a fresh quote, everything above already proved
+	// the numbers are right, so this only has to prove the new path works
+	// and records who did it. A customer trying the same body is refused.
+	quote2 := idOf(t, s.expect(s.call("POST", "/quotes", `{"product_id":"`+product+`","lane":"us_forwarder"}`, s.as("operator")), 201))
+	s.expect(s.call("POST", "/quotes/"+quote2+"/accept", "", s.as("customer")), 204)
+	if sent, err := s.relay.RunOnce(ctx); err != nil || sent != 2 {
+		t.Fatalf("relay after the second quote: sent %d, %v — want quote_issued + quote_accepted", sent, err)
+	}
+	onBehalf := `{"quote_id":"` + quote2 + `","variant_id":"` + variant + `","customer_id":"` + shared.NewID().String() + `"}`
+	if code := errorCode(t, s.call("POST", "/orders", onBehalf, s.as("customer"))); code != "forbidden" {
+		t.Fatalf("a customer sending customer_id = %q, want forbidden", code)
+	}
+	s.expect(s.call("POST", "/orders", onBehalf, s.as("operator")), 201)
 }
 
 func TestMemory_runsTheWholeFlow(t *testing.T) {

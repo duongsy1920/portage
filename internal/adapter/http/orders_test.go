@@ -111,3 +111,54 @@ func TestOrders_placePayCancel(t *testing.T) {
 	expectError(t, a.call(t, "POST", "/orders/"+id+"/cancel", `{"reason":"again"}`, nil), 409, "order_cancelled")
 	expectError(t, a.call(t, "POST", "/orders/"+id+"/deposit", `{"amount":"2696860","currency":"VND"}`, nil), 409, "order_cancelled")
 }
+
+// The one test that matters most in P10-PLAN.md: a customer's own token names
+// them already, so a customer_id in the body can only be an attempt to order
+// in somebody else's name — refused outright, and no order left behind.
+func TestPlaceOrder_customerCannotOrderInSomebodyElsesName(t *testing.T) {
+	a := newAPI()
+	quote, variant := a.seedAcceptedQuote(t)
+	body := `{"quote_id":"` + quote.String() + `","variant_id":"` + variant + `","customer_id":"` + shared.NewID().String() + `"}`
+
+	expectError(t, a.call(t, "POST", "/orders", body, a.asCustomer()), http.StatusForbidden, "forbidden")
+
+	if _, err := a.orders.ByQuote(context.Background(), quote); err == nil {
+		t.Fatal("a refused impersonation attempt must not create an order")
+	}
+}
+
+// An operator ordering for a customer who is not holding a token must say
+// who the customer is — there is no token to fall back on.
+func TestPlaceOrder_operatorMustNameTheCustomer(t *testing.T) {
+	a := newAPI()
+	quote, variant := a.seedAcceptedQuote(t)
+	body := `{"quote_id":"` + quote.String() + `","variant_id":"` + variant + `"}`
+
+	expectError(t, a.call(t, "POST", "/orders", body, a.asOperator()), 400, "customer_required")
+
+	if _, err := a.orders.ByQuote(context.Background(), quote); err == nil {
+		t.Fatal("a rejected order must not have been created")
+	}
+}
+
+// The other side of P10: an operator NAMING a customer places the order for
+// them, and the order remembers who did it.
+func TestPlaceOrder_operatorPlacesOnBehalfOfANamedCustomer(t *testing.T) {
+	a := newAPI()
+	quote, variant := a.seedAcceptedQuote(t)
+	customer := shared.NewID()
+	body := `{"quote_id":"` + quote.String() + `","variant_id":"` + variant + `","customer_id":"` + customer.String() + `"}`
+
+	id := idOf(t, a.call(t, "POST", "/orders", body, a.asOperator()))
+	oid, err := ordering.ParseOrderID(id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	o, err := a.orders.ByID(context.Background(), oid)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if o.Customer() != customer || o.PlacedBy() != a.operatorID {
+		t.Fatalf("order = %+v, want customer %s placed by %s", o.Snapshot(), customer, a.operatorID)
+	}
+}

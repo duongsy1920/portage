@@ -20,6 +20,7 @@ type summaryJSON struct {
 	Total         money  `json:"total"`
 	ShopReference string `json:"shop_reference"`
 	DepositPaid   bool   `json:"deposit_paid"`
+	PlacedByID    string `json:"placed_by_id"`
 }
 
 func summariesOf(t *testing.T, rec interface{ Bytes() []byte }) []summaryJSON {
@@ -47,6 +48,33 @@ func (a *api) seedSummary(t *testing.T, customer shared.ID, status ordering.Orde
 		t.Fatal(err)
 	}
 	return id
+}
+
+// P10: an order placed for a customer by an operator shows who did it, and to
+// BOTH screens — hiding it from the customer's own view would defeat the
+// point of recording it at all.
+func TestOrders_placedByShowsToBothScreens(t *testing.T) {
+	a := newAPI()
+	operator := shared.NewOperatorID()
+	id := ordering.NewOrderID()
+	err := a.summaries.Save(context.Background(), reportingapp.OrderSummary{
+		Order: id, Customer: a.customerID, PlacedBy: operator, Product: shared.NewID(), Variant: shared.NewID(),
+		ProductName: "Air Trainer 90", Status: ordering.StatusAwaitingDeposit,
+		Total: shared.MustParseMoney("5393720", shared.VND), Deposit: shared.MustParseMoney("2696860", shared.VND),
+		PlacedAt: now, UpdatedAt: now,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mine := summariesOf(t, a.call(t, "GET", "/me/orders", "", a.asCustomer()).Body)
+	if len(mine) != 1 || mine[0].PlacedByID != operator.String() {
+		t.Fatalf("customer's own view = %+v, want placed_by_id %s", mine, operator)
+	}
+	staff := summariesOf(t, a.call(t, "GET", "/orders", "", a.asOperator()).Body)
+	if len(staff) != 1 || staff[0].PlacedByID != operator.String() {
+		t.Fatalf("operator queue = %+v, want placed_by_id %s", staff, operator)
+	}
 }
 
 // GET /me/orders is "me" — the token — not a path parameter. There is no way
