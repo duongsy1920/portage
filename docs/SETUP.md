@@ -9,7 +9,7 @@
 > | tra cú pháp Go ↔ PHP | [GO-CHO-PHP.md](GO-CHO-PHP.md) |
 > | đọc code theo thứ tự | [WALKTHROUGH.md](WALKTHROUGH.md) |
 > | lộ trình học + câu tự kiểm | [HOC.md](HOC.md) |
-> | **vì sao code trông như vậy** | **§9 của file này** — 18 đợt review |
+> | **vì sao code trông như vậy** | **§9 của file này** — 20 đợt review |
 
 ---
 
@@ -329,7 +329,7 @@ portage/
         ├── clock/              System (time.Now) và Fixed (test)
         └── wire/               4 test, 94,9 %
             ├── wire.go         Memory() / Postgres() → Graph{...}; seed lane + fx
-            └── subscribe.go    31 dòng định tuyến = vòng đời đơn hàng
+            └── subscribe.go    35 dòng định tuyến = vòng đời đơn hàng
 ```
 
 ### Luật vàng: chiều mũi tên phụ thuộc
@@ -581,8 +581,8 @@ CI có `services: postgres` và set biến này → test tích hợp luôn chạ
 
 ```
 5 bounded context + 1 tầng đọc  ·  37 domain event  ·  41 route
-35 dòng Subscribe  ·  305 test (304 PASS + 1 SKIP cố ý)
-272 test chạy < 2 giây, KHÔNG cần Docker  ·  7 test canh kiến trúc bằng go/ast
+35 dòng Subscribe  ·  312 test (311 PASS + 1 SKIP cố ý)
+278 test chạy < 2 giây, KHÔNG cần Docker  ·  7 test canh kiến trúc bằng go/ast
 ```
 
 | Context | Aggregate root |
@@ -882,7 +882,7 @@ git config --local user.email "duongsy1920@gmail.com"
 
 # 3. Thư viện + xác nhận chạy được
 go mod download        # ~ composer install
-go test ./...          # 272 test, < 2 giây, không cần Docker
+go test ./...          # 278 test, < 2 giây, không cần Docker
 
 # 4. Muốn chạy thật thì thêm Postgres
 docker compose up -d
@@ -892,7 +892,7 @@ bash scripts/smoke.sh
 ---
 ## 9. Nhật ký review 04/09/2026 — bug đã tìm thấy và bài học
 
-> **Đây là chỗ trả lời câu *"vì sao code lại trông như thế này"*.** 18 đợt, mỗi
+> **Đây là chỗ trả lời câu *"vì sao code lại trông như thế này"*.** 20 đợt, mỗi
 > đợt một bảng `quyết định / bug → chỗ nó nằm`. Đọc 2–3 đợt cuối là nắm được
 > tình trạng hiện tại. 24 bug được đánh số — câu tự kiểm rút từ chúng ở
 > [HOC.md](HOC.md).

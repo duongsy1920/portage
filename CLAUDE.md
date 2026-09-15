@@ -152,7 +152,7 @@ không trên pallet.
 | File | Trả lời |
 |---|---|
 | `docs/HOC.md` | **lộ trình học, buổi 0 tới buổi 9** (buổi 0 = bấm UI trước khi đọc code) + 17 câu tự kiểm tra + nói gì khi phỏng vấn |
-| `docs/SETUP.md` | môi trường, cây thư mục, lệnh hàng ngày, **§9 nhật ký 18 đợt review** |
+| `docs/SETUP.md` | môi trường, cây thư mục, lệnh hàng ngày, **§9 nhật ký 20 đợt review** |
 | `docs/WALKTHROUGH.md` | đọc code theo thứ tự — 101 file, §0–§23 (§23 = hai màn hình theo vai) |
 | `docs/DDD.md` | sổ tay khái niệm, đối chiếu Symfony |
 | `docs/FLOW-ORDER.md` | một đơn từ đầu tới cuối: ai gọi, ai nghe, bảng nào đổi, hỏng thì sao |
@@ -162,17 +162,17 @@ không trên pallet.
 | `docs/P9-PLAN.md` | plan gốc của P9 (đã xong hết) — giữ để thấy cách chốt quyết định |
 | `docs/UI-GUIDE.md` | **bốn màn hình và bấm gì trên từng cái**: trang khách, trang nhân viên, mô phỏng, bảng kiểm API; 10 nhánh rẽ nên thử; bảng hỏng-thì-xem |
 
-**`docs/SETUP.md` §9 là chỗ quan trọng nhất khi tiếp tục việc**: 18 đợt review,
+**`docs/SETUP.md` §9 là chỗ quan trọng nhất khi tiếp tục việc**: 20 đợt review,
 mỗi đợt một bảng "quyết định / bug → chỗ nó nằm". Đọc 2–3 đợt cuối là nắm được
 vì sao code hiện tại trông như vậy.
 
 ## Lệnh hay dùng
 
 ```bash
-go test ./...                     # 272 test, < 2 giây
+go test ./...                     # 278 test, < 2 giây
 gofmt -l . && go vet ./...        # phải sạch trước khi báo xong
 
-# Có Postgres (28 test tích hợp)
+# Có Postgres (34 test tích hợp)
 docker compose up -d
 PORTAGE_TEST_DSN="postgres://portage:portage@localhost:5432/portage_test?sslmode=disable" go test ./...
 

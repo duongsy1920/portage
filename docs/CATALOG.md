@@ -6,7 +6,7 @@
 >
 > Ngày: 2026-09-04 · Trạng thái: **v1 đã code xong** — `Merchant`, `CategoryPolicy`,
 > `ParcelSpec`, `FreeShipping`, `Product`/`Variant`/`Provenance`, `SourceURL`,
-> 3 repository interface ✅ · 14 domain event · 42 test, coverage 91%
+> 3 repository interface ✅ · 17 domain event · 47 test
 
 ---
 
@@ -439,9 +439,9 @@ internal/domain/catalog/
 │                        Reprice, FlagDuplicateOf/ClearDuplicateFlag, Publish, Retire
 ├── variant.go        ✅ Variant — entity con; VariantID, VariantDetails; khoá chống
 │                        trùng bỏ MỌI khoảng trắng; unnamed() cho luật "không tên = duy nhất"
-├── events.go         ✅ 16 event: 7 Merchant* + Product Added/Measured/Repriced/
+├── events.go         ✅ 17 event: 7 Merchant* + Product Added/Measured/Repriced/
 │                        FlaggedDuplicate/DuplicateCleared/Published/Retired + CategoryDefined
-│                        + VariantAdded (08/09 — size ra khỏi catalog lần đầu)
+│                        + VariantAdded (size ra khỏi catalog lần đầu) + ListingConfirmed (cho bảng đọc việc)
 └── repository.go     ✅ MerchantRepository, CategoryRepository, ProductRepository — PORT
 ```
 

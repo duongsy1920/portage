@@ -5,6 +5,10 @@
 >
 > Trong code còn có comment `// [PHP]` giải thích tại chỗ. Xoá hết bằng:
 > `grep -rn "// \[PHP\]" internal/` để xem, hoặc dùng lệnh ở cuối file này.
+>
+> **Đọc lần đầu:** §1 → §9 theo thứ tự, khoảng một tiếng rưỡi, **trước khi** mở file `.go` nào
+> (HOC.md buổi 1). §9 là mục quan trọng nhất: PHP dựng lại thế giới mỗi request, Go dựng một
+> lần rồi phục vụ mọi request trên đó. Sau lần đầu, dùng file này như bảng tra.
 
 ---
 
@@ -390,7 +394,7 @@ Go **không có** dependency injection tự động. Không autowire, không con
 Bạn ráp tay, ở đúng một chỗ:
 
 ```go
-// cmd/api/main.go     (🔜 chưa viết, đây là hình dạng)
+// cmd/api/main.go — HÌNH DẠNG RÚT GỌN để học. Bản thật có thêm cờ -dsn/-web, wire.Graph, relay in-memory: WALKTHROUGH §1e
 func main() {
     cfg := config.Load()                              // đọc env
 

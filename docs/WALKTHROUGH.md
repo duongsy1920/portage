@@ -737,7 +737,7 @@ Mỗi dòng: file → khái niệm → đọc thêm ở đâu.
  9. internal/domain/catalog/parcelspec.go    một VO hai vai — độ tin nằm ở Provenance                    CATALOG.md §3, §4
 10. internal/domain/catalog/provenance.go    nguồn dữ liệu theo NHÓM thuộc tính                          CATALOG.md §4
 11. internal/domain/catalog/product.go       aggregate có entity con, Publish 5 điều kiện                 DDD.md §14, §28
-12. internal/domain/catalog/events.go        14 event — thì quá khứ, wire name                            DDD.md §15
+12. internal/domain/catalog/events.go        17 event — thì quá khứ, wire name                            DDD.md §15
 13. internal/domain/catalog/repository.go    PORT: domain khai báo cái nó cần                            DDD.md §16
 14. internal/domain/decisions_test.go        7 guard kiến trúc bằng go/ast                               SETUP.md §6
 15. internal/app/ports.go                    PORT của tầng app: Clock, UnitOfWork, Outbox                DDD.md §20, §30
@@ -1920,7 +1920,7 @@ Guard 6 (*domain chỉ import stdlib + allowlist*) vẫn xanh sau cả T1 — v�
 ```
                     platform/auth
         ┌───────────────────────────────────┐
-        │  Verifier   "token này là ai?"    │  ← 30 route dùng
+        │  Verifier   "token này là ai?"    │  ← mọi route dùng
         │  Issuer     "cắt cho tôi chìa"    │  ← 1 route dùng
         └───────────────┬───────────────────┘
                         │
@@ -2088,7 +2088,7 @@ order at the end: delivered; quote vs actual: quoted 163.22+25.00, actual 163.22
 | Khi cửa bảo đảm điều kiện, **trạng thái sai trở thành không biểu diễn được** — `operator_required` chết tự nhiên | 3 assertion đổi thành 403 |
 | **Hash token, đừng bcrypt nó**: 256 bit ngẫu nhiên khác mật khẩu người đặt | `HashToken` |
 | **Credential cố định trong DB thật = cửa sau**; bootstrap chỉ khi bảng rỗng | `bootstrapOperator` |
-| Interface nhỏ nói lên quyền: `Verifier` cho 30 route, `Issuer` cho 1 | `auth/issue.go` |
+| Interface nhỏ nói lên quyền: `Verifier` cho mọi route, `Issuer` cho 1 | `auth/issue.go` |
 | **Bug của tôi:** thêm bảng nhưng `pgtest` truncate theo danh sách viết tay → test đọc rác của test trước. Sửa: hỏi `pg_tables`, đừng đọc danh sách | `truncateAll` |
 | **Bug của tôi:** script vá báo "PATCH 2 chỗ" mà không đổi gì — đúng cảnh báo đợt 13. Từ nay **đếm lại sau khi chạy rồi mới báo** | — |
 
