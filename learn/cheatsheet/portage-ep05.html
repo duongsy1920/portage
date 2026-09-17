@@ -1,0 +1,101 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Afterimage Plate 3.05 — Điểm không thể quay đầu</title>
+<link rel="stylesheet" href="plate.css">
+<style>
+  /* Rhythm of this plate only — the shared language lives in plate.css. */
+  .specimens { margin-top: 40px; }
+  .spec { display: flex; gap: 22px; align-items: flex-start; }
+  .spec + .spec { margin-top: 30px; }
+  .gutter { width: 128px; flex: none; text-align: right; padding-top: 10px; }
+  .gutter .id { font-family: "Mono"; font-weight: 700; font-size: 13px; letter-spacing: .12em; }
+  .gutter .cap { font-family: "Clinical"; font-weight: 300; font-size: 10.5px; letter-spacing: .18em; color: var(--faint); margin-top: 5px; text-transform: uppercase; }
+  .terms { display: flex; gap: 22px; margin-top: 34px; }
+</style>
+
+<div class="ground"></div>
+
+<header>
+  <div>
+    <h1>Sau ngày này,<em> hoàn tiền hết là lựa chọn.</em></h1>
+    <div class="sub">Luật nghiệp vụ có tiền thật của khách đằng sau — nên nó nằm trong aggregate, không ở tầng service.</div>
+  </div>
+  <div class="plateno">
+    <div class="clinical">Afterimage · Plate 3.05</div>
+    <div class="sys" style="font-size:12px;color:var(--go)">MÙA 3 · TẬP 5</div>
+    <div class="clinical">Điểm không thể quay đầu</div>
+  </div>
+</header>
+<div class="rule"></div>
+
+<section class="specimens">
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--danger)">3.05 · A</div>
+      <div class="cap">trên trục 30 ngày</div>
+    </div>
+    <svg width="1297" height="118" viewBox="0 0 1297 118" fill="none">
+      <defs>
+        <marker id="ah" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="9" refX="10" refY="4.5" orient="auto">
+          <path d="M0,0 L11,4.5 L0,9 z" fill="#35485E"/>
+        </marker>
+        <marker id="ahd" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="9" refX="10" refY="4.5" orient="auto">
+          <path d="M0,0 L11,4.5 L0,9 z" fill="#FF6B6B"/>
+        </marker>
+        <marker id="ahg" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="9" refX="10" refY="4.5" orient="auto">
+          <path d="M0,0 L11,4.5 L0,9 z" fill="#4ADE80"/>
+        </marker>
+      </defs>
+      <text x="0" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#5C6E85">MỘT ĐƠN SỐNG 30 NGÀY, QUA BA BÊN MÌNH KHÔNG ĐIỀU KHIỂN ĐƯỢC</text>
+      <line x1="40" y1="70" x2="1257" y2="70" stroke="#35485E" stroke-width="1.5"/>
+      <circle cx="40" cy="70" r="5" fill="#9D7CD8"/>      <text x="20" y="52" font-family="Sans" font-size="11.5" fill="#9D7CD8">ngày 0 · đặt đơn</text>
+      <circle cx="80" cy="70" r="5" fill="#F2B33D"/>      <text x="60" y="100" font-family="Sans" font-size="11.5" fill="#F2B33D">ngày 1 · cọc 50%</text>
+      <circle cx="120" cy="70" r="7" fill="#FF6B6B"/>
+      <line x1="120" y1="28" x2="120" y2="112" stroke="#FF6B6B" stroke-width="1.5" stroke-dasharray="4 4"/>      <text x="136" y="44" font-family="Sans" font-size="12.5" font-weight="700" fill="#FF6B6B">ngày 2 · mua ở shop Mỹ — KHÔNG QUAY ĐẦU ĐƯỢC NỮA</text>
+      <circle cx="404" cy="70" r="5" fill="#4ADE80"/>      <text x="384" y="100" font-family="Sans" font-size="11.5" fill="#4ADE80">ngày 9 · gom lô Denver</text>
+      <circle cx="1257" cy="70" r="5" fill="#4ADE80"/>      <text x="1120" y="100" font-family="Sans" font-size="11.5" fill="#4ADE80">ngày 30 · giao tận nhà</text>      <text x="430" y="44" font-family="Sans" font-size="12.5" fill="#93A4B8">Trước vạch đỏ: huỷ đơn là hoàn cọc.</text>      <text x="430" y="62" font-family="Sans" font-size="12.5" fill="#93A4B8">Sau vạch đỏ: tiền đã ở shop Mỹ, hàng đang bay.</text>
+    </svg>
+  </div>
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--money)">3.05 · B</div>
+      <div class="cap">luật viết ra được</div>
+    </div>
+    <svg width="1297" height="100" viewBox="0 0 1297 100" fill="none">
+      <text x="0" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#5C6E85">internal/domain/ordering/order.go:225 — BA DÒNG ĐẦU LÀ TOÀN BỘ CƠ CHẾ AN TOÀN</text>
+      <rect x="0" y="24" width="760" height="70" rx="3" fill="#141C26" stroke="#F2B33D"/>      <text x="18" y="50" font-family="Mono" font-size="14.5" font-weight="700" fill="#F2B33D">if o.status != StatusAwaitingDeposit {</text>      <text x="18" y="74" font-family="Mono" font-size="14.5" fill="#93A4B8">    return … ErrNotAwaitingDeposit</text>      <text x="790" y="46" font-family="Sans" font-size="13.5" fill="#E8EFF6">Sai trạng thái thì trả error và không đổi gì.</text>      <text x="790" y="70" font-family="Sans" font-size="13.5" fill="#93A4B8">Tên lỗi đi thẳng vào bảng mã: khách nhận 409 kèm lý do,</text>      <text x="790" y="92" font-family="Sans" font-size="13.5" fill="#93A4B8">không phải 500 “có gì đó sai”.</text>
+    </svg>
+  </div>
+</section>
+
+<section class="terms">
+  <div class="term" style="--accent: var(--danger)">
+    <div class="w">điểm không thể quay đầu</div>
+    <div class="d">Mốc mà sau đó một hành động không undo được. Ở đây là lúc đã trả tiền cho shop Mỹ.</div>
+    <div class="s"><b>bên Symfony</b>Không có khái niệm sẵn — thường chỉ là một cột status và hy vọng không ai set bậy.</div>
+  </div>
+  <div class="term" style="--accent: var(--money)">
+    <div class="w">refuse</div>
+    <div class="d">Aggregate từ chối bằng error có tên, không bằng exception chung chung.</div>
+    <div class="s"><b>bên Symfony</b>throw new DomainException — nhưng ở đây mỗi lý do một tên riêng.</div>
+  </div>
+  <div class="term" style="--accent: var(--ordering)">
+    <div class="w">một cửa</div>
+    <div class="d">Không có setter, không có UPDATE thẳng từ tầng app. Mọi đổi trạng thái đi qua method.</div>
+    <div class="s"><b>bên Symfony</b>private setter giúp được, nhưng repository vẫn có thể UPDATE thẳng.</div>
+  </div>
+</section>
+
+<div class="rule" style="margin-top:34px"></div>
+<footer>
+  <div class="counts">
+    <div class="count"><div class="n" style="color:var(--ordering)">30</div><div class="l">ngày một đơn sống</div></div>
+    <div class="count"><div class="n" style="color:var(--money)">50</div><div class="l">phần trăm cọc</div></div>
+    <div class="count"><div class="n" style="color:var(--danger)">1</div><div class="l">mốc không quay đầu được</div></div>
+  </div>
+  <div class="ask">
+    <div class="h">Phỏng vấn sẽ hỏi</div>
+    <div class="q">Điểm không thể quay đầu trong nghiệp vụ của bạn nằm ở đâu?<br>Vì sao luật đó phải nằm trong aggregate?<br>Aggregate từ chối thì tầng HTTP biết trả mã nào?</div>
+  </div>
+</footer>
+</html>

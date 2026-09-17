@@ -1,0 +1,111 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Afterimage Plate 2.04 — Repository là cổng</title>
+<link rel="stylesheet" href="plate.css">
+<style>
+  /* Rhythm of this plate only — the shared language lives in plate.css. */
+  .specimens { margin-top: 40px; }
+  .spec { display: flex; gap: 22px; align-items: flex-start; }
+  .spec + .spec { margin-top: 30px; }
+  .gutter { width: 128px; flex: none; text-align: right; padding-top: 10px; }
+  .gutter .id { font-family: "Mono"; font-weight: 700; font-size: 13px; letter-spacing: .12em; }
+  .gutter .cap { font-family: "Clinical"; font-weight: 300; font-size: 10.5px; letter-spacing: .18em; color: var(--faint); margin-top: 5px; text-transform: uppercase; }
+  .terms { display: flex; gap: 22px; margin-top: 34px; }
+</style>
+
+<div class="ground"></div>
+
+<header>
+  <div>
+    <h1>Domain viết interface,<em> và dừng ở đó.</em></h1>
+    <div class="sub">Chiều phụ thuộc bị đảo — và có bảy bài test canh, nên nó không dựa vào trí nhớ ai cả.</div>
+  </div>
+  <div class="plateno">
+    <div class="clinical">Afterimage · Plate 2.04</div>
+    <div class="sys" style="font-size:12px;color:var(--go)">MÙA 2 · TẬP 4</div>
+    <div class="clinical">Repository là cổng</div>
+  </div>
+</header>
+<div class="rule"></div>
+
+<section class="specimens">
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--go)">2.04 · A</div>
+      <div class="cap">ai khai, ai cài</div>
+    </div>
+    <svg width="1297" height="130" viewBox="0 0 1297 130" fill="none">
+      <defs>
+        <marker id="ah" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="9" refX="10" refY="4.5" orient="auto">
+          <path d="M0,0 L11,4.5 L0,9 z" fill="#35485E"/>
+        </marker>
+        <marker id="ahd" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="9" refX="10" refY="4.5" orient="auto">
+          <path d="M0,0 L11,4.5 L0,9 z" fill="#FF6B6B"/>
+        </marker>
+        <marker id="ahg" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="9" refX="10" refY="4.5" orient="auto">
+          <path d="M0,0 L11,4.5 L0,9 z" fill="#4ADE80"/>
+        </marker>
+      </defs>
+      <text x="0" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#5C6E85">internal/domain/catalog/repository.go:34 — CHỈ IMPORT STDLIB</text>
+      <rect x="0" y="24" width="620" height="98" rx="3" fill="#141C26" stroke="#00ADD8"/>      <text x="18" y="50" font-family="Mono" font-size="14.5" fill="#E8EFF6">type MerchantRepository interface {</text>      <text x="18" y="74" font-family="Mono" font-size="14.5" fill="#93A4B8">    ByID(ctx, id) (*Merchant, error)  …</text>      <text x="18" y="98" font-family="Mono" font-size="14.5" fill="#E8EFF6">}</text>      <text x="18" y="118" font-family="Sans" font-size="12" fill="#5C6E85">không Doctrine, không pgx, không biết database nào tồn tại</text>
+      <path d="M626 72 L 664 72" stroke="#4ADE80" stroke-width="1.6" marker-end="url(#ahg)"/>
+      <rect x="670" y="30" width="300" height="62" rx="3" fill="#141C26" stroke="#4ADE80"/>
+      <text x="820" y="56" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13" fill="#4ADE80">adapter/postgres</text>
+      <text x="820" y="76" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">cài đặt thật</text>
+      <rect x="997" y="30" width="300" height="62" rx="3" fill="#141C26" stroke="#4ADE80"/>
+      <text x="1147" y="56" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13" fill="#4ADE80">adapter/memory</text>
+      <text x="1147" y="76" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">cũng cài đặt thật</text>      <text x="670" y="112" font-family="Sans" font-size="12.5" fill="#93A4B8">Đổi cái nào là đổi một dòng trong main() — domain không đọc lại một chữ.</text>
+    </svg>
+  </div>
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--ok)">2.04 · B</div>
+      <div class="cap">luật vàng có test</div>
+    </div>
+    <svg width="1297" height="96" viewBox="0 0 1297 96" fill="none">
+      <text x="0" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#5C6E85">internal/domain/decisions_test.go — 7 TEST VIẾT BẰNG go/ast</text>
+      <rect x="0" y="24" width="420" height="62" rx="3" fill="#141C26" stroke="#4ADE80"/>
+      <text x="210" y="50" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13" fill="#4ADE80">internal/domain</text>
+      <text x="210" y="70" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">chỉ stdlib + uuid</text>
+      <rect x="450" y="24" width="420" height="62" rx="3" fill="rgba(255,107,107,.07)" stroke="#FF6B6B"/>
+      <text x="660" y="50" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13" fill="#FF6B6B">import cái khác</text>
+      <text x="660" y="70" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">build đỏ, không phải lời nhắc</text>
+      <rect x="900" y="24" width="397" height="62" rx="3" fill="#141C26" stroke="#00ADD8"/>
+      <text x="1098" y="50" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13" fill="#00ADD8">278 test / 2 giây</text>
+      <text x="1098" y="70" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">không cần Docker</text>
+    </svg>
+  </div>
+</section>
+
+<section class="terms">
+  <div class="term" style="--accent: var(--go)">
+    <div class="w">port</div>
+    <div class="d">Interface do phía cần khai báo, để phía làm cắm vào. Repository là một cái port.</div>
+    <div class="s"><b>bên Symfony</b>Interface của bạn cũng là port — nhưng container tự cắm nên ít khi phải nghĩ tới chiều.</div>
+  </div>
+  <div class="term" style="--accent: var(--ok)">
+    <div class="w">adapter</div>
+    <div class="d">Bản cài đặt của port, nằm ở vòng ngoài. Postgres, bộ nhớ, HTTP đều là adapter.</div>
+    <div class="s"><b>bên Symfony</b>ServiceEntityRepository — nhưng ở đó domain biết Doctrine tồn tại.</div>
+  </div>
+  <div class="term" style="--accent: var(--money)">
+    <div class="w">luật vàng</div>
+    <div class="d">internal/domain chỉ import stdlib và <span class="sys" style="font-size:12.5px">uuid</span>. Bảy bài test canh bằng go/ast.</div>
+    <div class="s"><b>bên Symfony</b>Deptrac hoặc PHPAT làm được điều tương tự — nhưng phải cài thêm.</div>
+  </div>
+</section>
+
+<div class="rule" style="margin-top:34px"></div>
+<footer>
+  <div class="counts">
+    <div class="count"><div class="n" style="color:var(--ok)">7</div><div class="l">test canh kiến trúc</div></div>
+    <div class="count"><div class="n" style="color:var(--go)">48</div><div class="l">dòng var _ khẳng định</div></div>
+    <div class="count"><div class="n" style="color:var(--money)">278</div><div class="l">test chạy dưới 2 giây</div></div>
+    <div class="count"><div class="n" style="color:var(--faint)">0</div><div class="l">import database trong domain</div></div>
+  </div>
+  <div class="ask">
+    <div class="h">Phỏng vấn sẽ hỏi</div>
+    <div class="q">Repository trong DDD khác repository của Doctrine ở chỗ nào?<br>Đảo chiều phụ thuộc để làm gì?<br>Làm sao ép luật kiến trúc mà không dựa vào kỷ luật?</div>
+  </div>
+</footer>
+</html>

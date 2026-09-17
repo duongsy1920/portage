@@ -1,0 +1,165 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Afterimage Plate 1.02 — Đọc một dòng Go</title>
+<link rel="stylesheet" href="plate.css">
+<style>
+  /* Rhythm of this plate only — the shared language lives in plate.css. */
+  .specimens { margin-top: 40px; }
+  .spec { display: flex; gap: 22px; align-items: flex-start; }
+  .spec + .spec { margin-top: 30px; }
+  .gutter { width: 128px; flex: none; text-align: right; padding-top: 12px; }
+  .gutter .id { font-family: "Mono"; font-weight: 700; font-size: 13px; letter-spacing: .12em; }
+  .gutter .cap { font-family: "Clinical"; font-weight: 300; font-size: 10.5px; letter-spacing: .18em; color: var(--faint); margin-top: 5px; text-transform: uppercase; }
+  .chain { margin-top: 34px; }
+  .terms { display: flex; gap: 22px; margin-top: 34px; }
+</style>
+
+<div class="ground"></div>
+
+<header>
+  <div>
+    <h1>Tên trước,<em> kiểu sau.</em></h1>
+    <div class="sub">Bốn luật đủ để đọc mọi khai báo trong repo — và một cái bẫy mang tên <em style="font-style:normal;color:var(--danger)">private</em>.</div>
+  </div>
+  <div class="plateno">
+    <div class="clinical">Afterimage · Plate 1.02</div>
+    <div class="sys" style="font-size:12px;color:var(--go)">MÙA 1 · TẬP 2</div>
+    <div class="clinical">Đọc một dòng Go</div>
+  </div>
+</header>
+<div class="rule"></div>
+
+<section class="specimens">
+
+  <!-- SPECIMEN A — a field -->
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--go)">1.02 · A</div>
+      <div class="cap">một field</div>
+    </div>
+    <svg width="1297" height="118" viewBox="0 0 1297 118" fill="none">
+      <text x="0" y="26" font-family="Mono" font-weight="700" font-size="26" fill="#00ADD8">minor</text>
+      <text x="140.4" y="26" font-family="Mono" font-weight="700" font-size="26" fill="#F2B33D">int64</text>
+
+      <path d="M39 38 L39 62 L57 62" stroke="#00ADD8" stroke-width="1.3" opacity=".5"/>
+      <circle cx="39" cy="62" r="3" fill="#00ADD8"/>
+      <text x="66" y="66" font-family="Sans" font-size="14" fill="#E8EFF6">tên field — cái đang được đặt tên</text>
+
+      <path d="M179 38 L179 96 L197 96" stroke="#F2B33D" stroke-width="1.3" opacity=".5"/>
+      <circle cx="179" cy="96" r="3" fill="#F2B33D"/>
+      <text x="206" y="100" font-family="Sans" font-size="14" fill="#E8EFF6">kiểu của nó. Đọc là “minor thuộc kiểu int64”.</text>
+
+      <text x="700" y="66" font-family="Clinical" font-weight="300" font-size="10.5" letter-spacing="2.2" fill="#5C6E85">BÊN PHP NGƯỢC LẠI</text>
+      <text x="700" y="100" font-family="Mono" font-size="17" fill="#B39DFF">private int $minor;</text>
+    </svg>
+  </div>
+
+  <!-- SPECIMEN B — a method signature -->
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--ok)">1.02 · B</div>
+      <div class="cap">chữ ký hàm</div>
+    </div>
+    <svg width="1297" height="228" viewBox="0 0 1297 228" fill="none">
+      <text x="0" y="26" font-family="Mono" font-size="26" fill="#5C6E85">func </text>
+      <text x="78" y="26" font-family="Mono" font-weight="700" font-size="26" fill="#4ADE80">(m Money)</text>
+      <text x="234" y="26" font-family="Mono" font-weight="700" font-size="26" fill="#00ADD8">Add</text>
+      <text x="280.8" y="26" font-family="Mono" font-size="26" fill="#5C6E85">(</text>
+      <text x="296.4" y="26" font-family="Mono" font-weight="700" font-size="26" fill="#00ADD8">o Money</text>
+      <text x="405.6" y="26" font-family="Mono" font-size="26" fill="#5C6E85">) </text>
+      <text x="436.8" y="26" font-family="Mono" font-weight="700" font-size="26" fill="#F2B33D">(Money, error)</text>
+      <text x="671" y="26" font-family="Mono" font-size="26" fill="#5C6E85">{</text>
+
+      <path d="M148 38 L148 62 L166 62" stroke="#4ADE80" stroke-width="1.3" opacity=".5"/>
+      <circle cx="148" cy="62" r="3" fill="#4ADE80"/>
+      <text x="175" y="66" font-family="Sans" font-size="14" fill="#E8EFF6">gắn hàm này vào kiểu Money — <tspan fill="#5C6E85">receiver, tập 4</tspan></text>
+
+      <path d="M257 38 L257 100 L275 100" stroke="#00ADD8" stroke-width="1.3" opacity=".5"/>
+      <circle cx="257" cy="100" r="3" fill="#00ADD8"/>
+      <text x="284" y="104" font-family="Sans" font-size="14" fill="#E8EFF6">tên hàm. Chữ A viết HOA nên package khác gọi được.</text>
+
+      <path d="M351 38 L351 138 L369 138" stroke="#00ADD8" stroke-width="1.3" opacity=".5"/>
+      <circle cx="351" cy="138" r="3" fill="#00ADD8"/>
+      <text x="378" y="142" font-family="Sans" font-size="14" fill="#E8EFF6">tham số: tên o, kiểu Money. Vẫn tên trước, kiểu sau.</text>
+
+      <path d="M546 38 L546 176 L564 176" stroke="#F2B33D" stroke-width="1.3" opacity=".5"/>
+      <circle cx="546" cy="176" r="3" fill="#F2B33D"/>
+      <text x="573" y="180" font-family="Sans" font-size="14" fill="#E8EFF6">trả về hai thứ cùng lúc: kết quả và lỗi — <tspan fill="#5C6E85">tập 3</tspan></text>
+
+      <text x="0" y="212" font-family="Sans" font-size="14.5" fill="#93A4B8">Đọc thành lời: “Hàm <tspan fill="#E8EFF6">Add</tspan>, thuộc về <tspan fill="#E8EFF6">Money</tspan>, nhận một Money tên o, trả về một Money và một error.”</text>
+    </svg>
+  </div>
+</section>
+
+<!-- VISIBILITY -->
+<section class="chain">
+  <svg width="1459" height="112" viewBox="0 0 1459 112" fill="none">
+    <defs>
+      <marker id="ah" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="9" refX="10" refY="4.5" orient="auto">
+        <path d="M0,0 L11,4.5 L0,9 z" fill="#4ADE80"/>
+      </marker>
+      <marker id="ahd" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="9" refX="10" refY="4.5" orient="auto">
+        <path d="M0,0 L11,4.5 L0,9 z" fill="#FF6B6B"/>
+      </marker>
+    </defs>
+
+    <text x="0" y="11" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#5C6E85">CÁI BẪY — RIÊNG TƯ TÍNH THEO PACKAGE, KHÔNG THEO STRUCT</text>
+
+    <rect x="0" y="24" width="470" height="80" rx="4" fill="none" stroke="#00ADD8" stroke-dasharray="6 5" opacity=".75"/>
+    <text x="12" y="42" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#00ADD8">PACKAGE SHARED</text>
+
+    <rect x="16" y="50" width="204" height="42" rx="3" fill="#141C26" stroke="#35485E"/>
+    <text x="118" y="70" text-anchor="middle" font-family="Mono" font-weight="700" font-size="14" fill="#E8EFF6">money.go</text>
+    <text x="118" y="85" text-anchor="middle" font-family="Sans" font-size="11" fill="#5C6E85">minor, currency</text>
+
+    <rect x="248" y="50" width="204" height="42" rx="3" fill="#141C26" stroke="#35485E"/>
+    <text x="350" y="70" text-anchor="middle" font-family="Mono" font-weight="700" font-size="14" fill="#E8EFF6">currency.go</text>
+    <text x="350" y="85" text-anchor="middle" font-family="Sans" font-size="11" fill="#5C6E85">đọc thẳng m.minor</text>
+
+    <path d="M244 71 L 230 71" stroke="#4ADE80" stroke-width="1.6" marker-end="url(#ah)"/>
+
+    <rect x="556" y="42" width="386" height="58" rx="3" fill="rgba(255,107,107,.07)" stroke="#FF6B6B" stroke-dasharray="5 4"/>
+    <text x="749" y="66" text-anchor="middle" font-family="Mono" font-weight="700" font-size="14" fill="#FF6B6B">package ordering</text>
+    <text x="749" y="86" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">gọi Minor() được · chạm minor thì không biên dịch</text>
+
+    <path d="M552 71 L 486 71" stroke="#FF6B6B" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#ahd)"/>
+    <path d="M512 63 L 526 79 M526 63 L 512 79" stroke="#FF6B6B" stroke-width="2"/>
+
+    <text x="990" y="60" font-family="Sans" font-size="14" fill="#E8EFF6">Cùng package thì đọc được field chữ thường.</text>
+    <text x="990" y="82" font-family="Sans" font-size="14" fill="#93A4B8">Đây là chỗ <tspan fill="#B39DFF">private</tspan> của PHP và chữ thường của Go <tspan fill="#FF6B6B">không giống nhau</tspan>.</text>
+  </svg>
+</section>
+
+<!-- TERMS -->
+<section class="terms">
+  <div class="term" style="--accent: var(--go)">
+    <div class="w">composite literal</div>
+    <div class="d">Money{minor: 5, currency: usd} vừa tạo vừa gán field, ngay tại chỗ.</div>
+    <div class="s"><b>bên Symfony</b>new Money(minor: 5, currency: $usd) — named arguments, bỏ chữ new đi là ra.</div>
+  </div>
+  <div class="term" style="--accent: var(--money)">
+    <div class="w">:=</div>
+    <div class="d">Vừa khai báo biến vừa gán, kiểu tự suy ra. Chỉ dùng được bên trong hàm.</div>
+    <div class="s"><b>bên Symfony</b>$m = new Money(...) — PHP không cần khai báo kiểu nên không có thứ tương đương.</div>
+  </div>
+  <div class="term" style="--accent: var(--danger)">
+    <div class="w">package</div>
+    <div class="d">Đơn vị riêng tư của Go. Chữ thường giấu khỏi package khác, không giấu khỏi file bên cạnh.</div>
+    <div class="s"><b>bên Symfony</b>private giấu khỏi cả class khác. Muốn chặt như vậy trong Go thì phải tách package.</div>
+  </div>
+</section>
+
+<div class="rule" style="margin-top:34px"></div>
+<footer>
+  <div class="counts">
+    <div class="count"><div class="n" style="color:var(--go)">4</div><div class="l">luật, đọc được cả repo</div></div>
+    <div class="count"><div class="n" style="color:var(--danger)">0</div><div class="l">từ khoá public / private</div></div>
+    <div class="count"><div class="n" style="color:var(--ok)">88</div><div class="l">dòng: struct → method đầu</div></div>
+    <div class="count"><div class="n" style="color:var(--money)">17</div><div class="l">func trong money.go</div></div>
+  </div>
+  <div class="ask">
+    <div class="h">Phỏng vấn sẽ hỏi</div>
+    <div class="q">Vì sao Go viết kiểu sau tên biến?<br>Chữ thường giấu được khỏi ai, và không giấu được khỏi ai?<br>Go tạo object kiểu gì, khi không có từ khoá <span class="sys" style="font-size:13px;color:var(--dim)">new</span>?</div>
+  </div>
+</footer>
+</html>

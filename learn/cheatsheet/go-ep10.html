@@ -1,0 +1,113 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Afterimage Plate 1.10 — Đồng thời</title>
+<link rel="stylesheet" href="plate.css">
+<style>
+  /* Rhythm of this plate only — the shared language lives in plate.css. */
+  .specimens { margin-top: 40px; }
+  .spec { display: flex; gap: 22px; align-items: flex-start; }
+  .spec + .spec { margin-top: 30px; }
+  .gutter { width: 128px; flex: none; text-align: right; padding-top: 10px; }
+  .gutter .id { font-family: "Mono"; font-weight: 700; font-size: 13px; letter-spacing: .12em; }
+  .gutter .cap { font-family: "Clinical"; font-weight: 300; font-size: 10.5px; letter-spacing: .18em; color: var(--faint); margin-top: 5px; text-transform: uppercase; }
+  .terms { display: flex; gap: 22px; margin-top: 34px; }
+</style>
+
+<div class="ground"></div>
+
+<header>
+  <div>
+    <h1>Repo này có<em> 0 channel.</em></h1>
+    <div class="sub">Dữ liệu dùng chung thì khoá, chuyển giao việc thì channel — chọn theo hình dạng bài toán.</div>
+  </div>
+  <div class="plateno">
+    <div class="clinical">Afterimage · Plate 1.10</div>
+    <div class="sys" style="font-size:12px;color:var(--go)">MÙA 1 · TẬP 10</div>
+    <div class="clinical">Đồng thời</div>
+  </div>
+</header>
+<div class="rule"></div>
+
+<section class="specimens">
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--go)">1.10 · A</div>
+      <div class="cap">đếm trong repo</div>
+    </div>
+    <svg width="1297" height="118" viewBox="0 0 1297 118" fill="none">
+      <text x="0" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#5C6E85">MỌI BÀI DẠY GO MỞ ĐẦU BẰNG CHANNEL. HỆ THẬT NÀY CHẠY BẰNG KHOÁ.</text>
+
+      <rect x="0" y="24" width="420" height="86" rx="3" fill="#141C26" stroke="#00ADD8"/>
+      <text x="210" y="70" text-anchor="middle" font-family="Mono" font-weight="700" font-size="34" fill="#00ADD8">3</text>
+      <text x="210" y="96" text-anchor="middle" font-family="Sans" font-size="12.5" fill="#93A4B8">goroutine</text>
+
+      <rect x="440" y="24" width="420" height="86" rx="3" fill="#141C26" stroke="#FF6B6B"/>
+      <text x="650" y="70" text-anchor="middle" font-family="Mono" font-weight="700" font-size="34" fill="#FF6B6B">25</text>
+      <text x="650" y="96" text-anchor="middle" font-family="Sans" font-size="12.5" fill="#93A4B8">sync.Mutex</text>
+
+      <rect x="880" y="24" width="417" height="86" rx="3" fill="none" stroke="#35485E" stroke-dasharray="5 4"/>
+      <text x="1088" y="70" text-anchor="middle" font-family="Mono" font-weight="700" font-size="34" fill="#5C6E85">0</text>
+      <text x="1088" y="96" text-anchor="middle" font-family="Sans" font-size="12.5" fill="#5C6E85">channel — và phỏng vấn vẫn sẽ hỏi</text>
+    </svg>
+  </div>
+
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--money)">1.10 · B</div>
+      <div class="cap">chọn theo hình dạng</div>
+    </div>
+    <svg width="1297" height="166" viewBox="0 0 1297 166" fill="none">
+      <text x="0" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#FF6B6B">DÙNG sync.Mutex</text>
+      <text x="661" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#F2B33D">DÙNG channel</text>
+
+      <rect x="0" y="24" width="636" height="134" rx="3" fill="#141C26" stroke="#FF6B6B"/>
+      <text x="20" y="52" font-family="Sans" font-weight="700" font-size="14" fill="#E8EFF6">nhiều goroutine cùng chạm một dữ liệu</text>
+      <text x="20" y="78" font-family="Sans" font-size="13" fill="#93A4B8">một map trong bộ nhớ, một bộ đếm</text>
+      <text x="20" y="104" font-family="Sans" font-size="13" fill="#93A4B8">hỏng kiểu: quên mở khoá thì treo, quên khoá thì dữ liệu hỏng</text>
+      <text x="20" y="134" font-family="Mono" font-size="13.5" fill="#4ADE80">go test -race</text>
+      <text x="150" y="134" font-family="Sans" font-size="13" fill="#5C6E85">dò ra cả hai</text>
+
+      <rect x="661" y="24" width="636" height="134" rx="3" fill="#141C26" stroke="#F2B33D"/>
+      <text x="681" y="52" font-family="Sans" font-weight="700" font-size="14" fill="#E8EFF6">chuyển giao việc từ goroutine này sang cái kia</text>
+      <text x="681" y="78" font-family="Sans" font-size="13" fill="#93A4B8">hàng đợi việc, kết quả trả về, tín hiệu dừng</text>
+      <text x="681" y="104" font-family="Sans" font-size="13" fill="#93A4B8">hỏng kiểu: không ai lấy thì treo, đóng hai lần thì panic</text>
+      <text x="681" y="134" font-family="Mono" font-size="13.5" fill="#F2B33D">ch &lt;- job</text>
+      <text x="790" y="134" font-family="Sans" font-size="13" fill="#5C6E85">bỏ vào ·</text>
+      <text x="860" y="134" font-family="Mono" font-size="13.5" fill="#F2B33D">&lt;-ch</text>
+      <text x="920" y="134" font-family="Sans" font-size="13" fill="#5C6E85">lấy ra</text>
+    </svg>
+  </div>
+</section>
+
+<section class="terms">
+  <div class="term" style="--accent: var(--go)">
+    <div class="w">goroutine</div>
+    <div class="d">Một việc chạy song song, nhẹ tới mức chạy vài trăm nghìn cái cùng lúc vẫn bình thường.</div>
+    <div class="s"><b>bên Symfony</b>Không có. Process PHP-FPM tốn vài megabyte, goroutine chỉ tốn hai kilobyte.</div>
+  </div>
+  <div class="term" style="--accent: var(--danger)">
+    <div class="w">sync.Mutex</div>
+    <div class="d">Khoá cho biến dùng chung: ai vào thì khoá, xong thì mở. <span class="sys" style="font-size:12.5px">defer</span> lo việc mở.</div>
+    <div class="s"><b>bên Symfony</b>Chưa từng cần. Hai request là hai process, không chia sẻ gì để mà giẫm lên nhau.</div>
+  </div>
+  <div class="term" style="--accent: var(--money)">
+    <div class="w">channel</div>
+    <div class="d">Hàng đợi có kiểu, an toàn sẵn, để chuyển việc giữa các goroutine. Repo không dùng cái nào.</div>
+    <div class="s"><b>bên Symfony</b>Gần với message queue hơn là với thứ gì trong PHP.</div>
+  </div>
+</section>
+
+<div class="rule" style="margin-top:34px"></div>
+<footer>
+  <div class="counts">
+    <div class="count"><div class="n" style="color:var(--go)">3</div><div class="l">goroutine</div></div>
+    <div class="count"><div class="n" style="color:var(--danger)">25</div><div class="l">chỗ khoá</div></div>
+    <div class="count"><div class="n" style="color:var(--faint)">0</div><div class="l">channel</div></div>
+    <div class="count"><div class="n" style="color:var(--ok)">1</div><div class="l">câu trả lời đúng khi phỏng vấn</div></div>
+  </div>
+  <div class="ask">
+    <div class="h">Phỏng vấn sẽ hỏi</div>
+    <div class="q">Khi nào dùng channel, khi nào dùng mutex?<br>Channel không có bộ đệm khác channel có bộ đệm ở chỗ nào?<br>Deadlock trong Go xảy ra kiểu gì?</div>
+  </div>
+</footer>
+</html>

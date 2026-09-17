@@ -1,0 +1,148 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Afterimage Plate 1.09 — defer, panic, recover</title>
+<link rel="stylesheet" href="plate.css">
+<style>
+  /* Rhythm of this plate only — the shared language lives in plate.css. */
+  .specimens { margin-top: 40px; }
+  .spec { display: flex; gap: 22px; align-items: flex-start; }
+  .spec + .spec { margin-top: 30px; }
+  .gutter { width: 128px; flex: none; text-align: right; padding-top: 10px; }
+  .gutter .id { font-family: "Mono"; font-weight: 700; font-size: 13px; letter-spacing: .12em; }
+  .gutter .cap { font-family: "Clinical"; font-weight: 300; font-size: 10.5px; letter-spacing: .18em; color: var(--faint); margin-top: 5px; text-transform: uppercase; }
+  .terms { display: flex; gap: 22px; margin-top: 34px; }
+</style>
+
+<div class="ground"></div>
+
+<header>
+  <div>
+    <h1>Thoát kiểu gì<em> cũng chạy.</em></h1>
+    <div class="sub">Và một panic ở đây không phải hỏng một request — là hỏng cả hệ.</div>
+  </div>
+  <div class="plateno">
+    <div class="clinical">Afterimage · Plate 1.09</div>
+    <div class="sys" style="font-size:12px;color:var(--go)">MÙA 1 · TẬP 9</div>
+    <div class="clinical">defer, panic, recover</div>
+  </div>
+</header>
+<div class="rule"></div>
+
+<section class="specimens">
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--go)">1.09 · A</div>
+      <div class="cap">thoát kiểu gì cũng chạy</div>
+    </div>
+    <svg width="1297" height="176" viewBox="0 0 1297 176" fill="none">
+      <defs>
+        <marker id="ah" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="9" refX="10" refY="4.5" orient="auto">
+          <path d="M0,0 L11,4.5 L0,9 z" fill="#35485E"/>
+        </marker>
+        <marker id="ahd" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="9" refX="10" refY="4.5" orient="auto">
+          <path d="M0,0 L11,4.5 L0,9 z" fill="#FF6B6B"/>
+        </marker>
+        <marker id="ahg" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="9" refX="10" refY="4.5" orient="auto">
+          <path d="M0,0 L11,4.5 L0,9 z" fill="#4ADE80"/>
+        </marker>
+      </defs>
+      <text x="0" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#5C6E85">BA ĐƯỜNG THOÁT, MỘT CHỖ DỌN DẸP — ĐÓ LÀ LÝ DO KHOÁ KHÔNG BAO GIỜ KẸT</text>
+
+      <rect x="0" y="40" width="330" height="54" rx="3" fill="#141C26" stroke="#00ADD8"/>
+      <text x="165" y="64" text-anchor="middle" font-family="Mono" font-weight="700" font-size="14" fill="#00ADD8">mu.Lock()</text>
+      <text x="165" y="83" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">mở khoá vào</text>
+
+      <rect x="0" y="102" width="330" height="54" rx="3" fill="#141C26" stroke="#F2B33D"/>
+      <text x="165" y="126" text-anchor="middle" font-family="Mono" font-weight="700" font-size="14" fill="#F2B33D">defer mu.Unlock()</text>
+      <text x="165" y="145" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">hẹn: chạy lúc hàm thoát</text>
+
+      <path d="M336 98 L 380 98" stroke="#35485E" stroke-width="1.6" marker-end="url(#ah)"/>
+
+      <rect x="386" y="28" width="330" height="42" rx="3" fill="#141C26" stroke="#4ADE80"/>
+      <text x="551" y="54" text-anchor="middle" font-family="Sans" font-size="12.5" fill="#4ADE80">return bình thường</text>
+      <rect x="386" y="78" width="330" height="42" rx="3" fill="#141C26" stroke="#F2B33D"/>
+      <text x="551" y="104" text-anchor="middle" font-family="Sans" font-size="12.5" fill="#F2B33D">return giữa chừng vì lỗi</text>
+      <rect x="386" y="128" width="330" height="42" rx="3" fill="rgba(255,107,107,.07)" stroke="#FF6B6B"/>
+      <text x="551" y="154" text-anchor="middle" font-family="Sans" font-size="12.5" fill="#FF6B6B">panic</text>
+
+      <path d="M722 49 L 766 82" stroke="#4ADE80" stroke-width="1.4" marker-end="url(#ahg)"/>
+      <path d="M722 99 L 766 99" stroke="#4ADE80" stroke-width="1.4" marker-end="url(#ahg)"/>
+      <path d="M722 149 L 766 116" stroke="#4ADE80" stroke-width="1.4" marker-end="url(#ahg)"/>
+
+      <rect x="772" y="68" width="525" height="62" rx="3" fill="rgba(74,222,128,.08)" stroke="#4ADE80"/>
+      <text x="1034" y="95" text-anchor="middle" font-family="Mono" font-weight="700" font-size="14" fill="#4ADE80">mu.Unlock() vẫn chạy</text>
+      <text x="1034" y="116" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">cả ba đường đều qua đây — không phải nhớ mở khoá ở từng chỗ return</text>
+    </svg>
+  </div>
+
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--danger)">1.09 · B</div>
+      <div class="cap">panic tốn gì</div>
+    </div>
+    <svg width="1297" height="118" viewBox="0 0 1297 118" fill="none">
+      <text x="0" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#FF6B6B">MỘT PANIC KHÔNG AI CHẶN — HAI THẾ GIỚI KHÁC NHAU</text>
+
+      <rect x="0" y="24" width="636" height="86" rx="3" fill="#141C26" stroke="#B39DFF"/>
+      <text x="318" y="54" text-anchor="middle" font-family="Mono" font-weight="700" font-size="14" fill="#B39DFF">PHP: chết một process</text>
+      <text x="318" y="76" text-anchor="middle" font-family="Sans" font-size="12" fill="#93A4B8">request sau vẫn chạy như chưa có gì</text>
+      <text x="318" y="98" text-anchor="middle" font-family="Sans" font-size="12" fill="#5C6E85">vì mỗi request một thế giới riêng — tập 1</text>
+
+      <rect x="661" y="24" width="636" height="86" rx="3" fill="rgba(255,107,107,.07)" stroke="#FF6B6B"/>
+      <text x="979" y="54" text-anchor="middle" font-family="Mono" font-weight="700" font-size="14" fill="#FF6B6B">Go: chết cả tiến trình</text>
+      <text x="979" y="76" text-anchor="middle" font-family="Sans" font-size="12" fill="#93A4B8">mọi request đang dở đều mất</text>
+      <text x="979" y="98" text-anchor="middle" font-family="Sans" font-size="12" fill="#5C6E85">vì một tiến trình phục vụ tất cả — cũng là tập 1</text>
+    </svg>
+  </div>
+
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--money)">1.09 · C</div>
+      <div class="cap">recover một lần duy nhất</div>
+    </div>
+    <svg width="1297" height="106" viewBox="0 0 1297 106" fill="none">
+      <text x="0" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#5C6E85">adapter/postgres/postgres.go:91 — DỌN DẸP RỒI PANIC LẠI, KHÔNG NUỐT LỖI</text>
+      <rect x="0" y="24" width="700" height="74" rx="3" fill="#141C26" stroke="#F2B33D"/>
+      <text x="20" y="50" font-family="Mono" font-size="14" fill="#93A4B8">if p := recover(); p != nil {</text>
+      <text x="20" y="70" font-family="Mono" font-size="14" fill="#93A4B8">    _ = tx.Rollback(ctx)</text>
+      <text x="20" y="90" font-family="Mono" font-weight="700" font-size="14" fill="#FF6B6B">    panic(p)   // ném lại đúng cái vừa bắt</text>
+
+      <text x="740" y="46" font-family="Sans" font-size="13.5" fill="#E8EFF6">recover() chỉ chạy được bên trong defer.</text>
+      <text x="740" y="70" font-family="Sans" font-size="13.5" fill="#93A4B8">Không có nó: tiến trình chết mà transaction vẫn mở,</text>
+      <text x="740" y="90" font-family="Sans" font-size="13.5" fill="#93A4B8">database giữ khoá cho tới lúc hết giờ.</text>
+    </svg>
+  </div>
+</section>
+
+<section class="terms">
+  <div class="term" style="--accent: var(--go)">
+    <div class="w">defer</div>
+    <div class="d">Hoãn một lệnh tới lúc hàm thoát. Thoát kiểu gì cũng chạy, kể cả đang panic.</div>
+    <div class="s"><b>bên Symfony</b>finally — nhưng gắn vào từng lệnh, không phải một khối riêng.</div>
+  </div>
+  <div class="term" style="--accent: var(--danger)">
+    <div class="w">panic</div>
+    <div class="d">Dừng hàm và đi ngược lên, chạy mọi defer trên đường. Không ai chặn thì cả tiến trình chết.</div>
+    <div class="s"><b>bên Symfony</b>gần fatal error hơn exception — và ở Go nó không chỉ giết một request.</div>
+  </div>
+  <div class="term" style="--accent: var(--money)">
+    <div class="w">recover</div>
+    <div class="d">Bắt một panic, nhưng chỉ chạy được bên trong defer. Ở đây dùng để rollback rồi panic lại.</div>
+    <div class="s"><b>bên Symfony</b>catch — nhưng recover không phải để đi tiếp, chỉ để kịp dọn dẹp.</div>
+  </div>
+</section>
+
+<div class="rule" style="margin-top:34px"></div>
+<footer>
+  <div class="counts">
+    <div class="count"><div class="n" style="color:var(--go)">95</div><div class="l">lệnh defer</div></div>
+    <div class="count"><div class="n" style="color:var(--danger)">33</div><div class="l">chỗ panic</div></div>
+    <div class="count"><div class="n" style="color:var(--money)">1</div><div class="l">chỗ recover trong code chạy thật</div></div>
+    <div class="count"><div class="n" style="color:var(--faint)">5</div><div class="l">chỗ recover, nhưng trong test</div></div>
+  </div>
+  <div class="ask">
+    <div class="h">Phỏng vấn sẽ hỏi</div>
+    <div class="q">defer chạy vào lúc nào, và theo thứ tự nào khi có nhiều cái?<br>Vì sao panic ở Go nguy hiểm hơn fatal error ở PHP?<br>Khi nào được dùng recover?</div>
+  </div>
+</footer>
+</html>

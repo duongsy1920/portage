@@ -1,0 +1,186 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Afterimage Plate 1.01 — Vòng đời tiến trình</title>
+<link rel="stylesheet" href="plate.css">
+<style>
+  /* Rhythm of this plate only — the shared language lives in plate.css. */
+  .specimens { margin-top: 44px; }
+  .spec { display: flex; gap: 22px; align-items: center; }
+  .spec + .spec { margin-top: 34px; }
+  .gutter { width: 128px; flex: none; text-align: right; }
+  .gutter .id { font-family: "Mono"; font-weight: 700; font-size: 13px; letter-spacing: .12em; }
+  .gutter .cap { font-family: "Clinical"; font-weight: 300; font-size: 10.5px; letter-spacing: .18em; color: var(--faint); margin-top: 5px; text-transform: uppercase; }
+  .chain { margin-top: 46px; }
+  .terms { display: flex; gap: 22px; margin-top: 46px; }
+</style>
+
+<div class="ground"></div>
+
+<header>
+  <div>
+    <h1>PHP chết sau mỗi request.<br><em>Go thì không.</em></h1>
+    <div class="sub">Một khác biệt duy nhất, và bốn hệ quả bạn sẽ gặp ở mọi file Go.</div>
+  </div>
+  <div class="plateno">
+    <div class="clinical">Afterimage · Plate 1.01</div>
+    <div class="sys" style="font-size:12px;color:var(--go)">MÙA 1 · TẬP 1</div>
+    <div class="clinical">Vòng đời tiến trình</div>
+  </div>
+</header>
+<div class="rule"></div>
+
+<section class="specimens">
+
+  <!-- SPECIMEN A — PHP-FPM -->
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--php)">1.01 · A</div>
+      <div class="cap">php-fpm</div>
+    </div>
+    <svg width="1297" height="132" viewBox="0 0 1297 132" fill="none">
+      <defs>
+        <marker id="ah" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="9" refX="10" refY="4.5" orient="auto">
+          <path d="M0,0 L11,4.5 L0,9 z" fill="#35485E"/>
+        </marker>
+        <marker id="ahd" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="9" refX="10" refY="4.5" orient="auto">
+          <path d="M0,0 L11,4.5 L0,9 z" fill="#FF6B6B"/>
+        </marker>
+      </defs>
+
+      <rect x="0" y="26" width="170" height="80" rx="3" fill="#141C26" stroke="#35485E"/>
+      <text x="85" y="72" text-anchor="middle" font-family="Mono" font-weight="700" font-size="15" fill="#93A4B8">request</text>
+
+      <line x1="176" y1="66" x2="212" y2="66" stroke="#35485E" stroke-width="1.6" marker-end="url(#ah)"/>
+
+      <rect x="218" y="26" width="228" height="80" rx="3" fill="#141C26" stroke="#B39DFF"/>
+      <text x="332" y="61" text-anchor="middle" font-family="Mono" font-weight="700" font-size="15" fill="#B39DFF">php-fpm worker</text>
+      <text x="332" y="83" text-anchor="middle" font-family="Sans" font-size="12" fill="#5C6E85">một process riêng</text>
+
+      <line x1="452" y1="66" x2="488" y2="66" stroke="#35485E" stroke-width="1.6" marker-end="url(#ah)"/>
+
+      <rect x="494" y="26" width="262" height="80" rx="3" fill="#141C26" stroke="#B39DFF"/>
+      <text x="625" y="61" text-anchor="middle" font-family="Mono" font-weight="700" font-size="15" fill="#B39DFF">Kernel::boot()</text>
+      <text x="625" y="83" text-anchor="middle" font-family="Sans" font-size="12" fill="#5C6E85">autoload · dựng container</text>
+
+      <line x1="762" y1="66" x2="798" y2="66" stroke="#35485E" stroke-width="1.6" marker-end="url(#ah)"/>
+
+      <rect x="804" y="26" width="214" height="80" rx="3" fill="#141C26" stroke="#B39DFF"/>
+      <text x="911" y="61" text-anchor="middle" font-family="Mono" font-weight="700" font-size="15" fill="#B39DFF">Controller</text>
+      <text x="911" y="83" text-anchor="middle" font-family="Sans" font-size="12" fill="#5C6E85">Doctrine · response</text>
+
+      <line x1="1024" y1="66" x2="1060" y2="66" stroke="#FF6B6B" stroke-width="1.6" marker-end="url(#ahd)"/>
+
+      <rect x="1066" y="26" width="231" height="80" rx="3" fill="rgba(255,107,107,.07)" stroke="#FF6B6B" stroke-dasharray="5 4"/>
+      <text x="1181" y="61" text-anchor="middle" font-family="Mono" font-weight="700" font-size="15" fill="#FF6B6B">TIẾN TRÌNH CHẾT</text>
+      <text x="1181" y="83" text-anchor="middle" font-family="Sans" font-size="12" fill="#5C6E85">mọi biến biến mất</text>
+
+      <text x="0" y="14" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#5C6E85">MỖI REQUEST DỰNG LẠI TOÀN BỘ — RỒI BỎ ĐI</text>
+    </svg>
+  </div>
+
+  <!-- SPECIMEN B — Go -->
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--go)">1.01 · B</div>
+      <div class="cap">go</div>
+    </div>
+    <svg width="1297" height="132" viewBox="0 0 1297 132" fill="none">
+      <rect x="0" y="20" width="946" height="94" rx="5" fill="none" stroke="#00ADD8" stroke-dasharray="6 5" opacity=".75"/>
+      <text x="14" y="14" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#00ADD8">THẾ GIỚI DỰNG MỘT LẦN — SỐNG SUỐT ĐỜI TIẾN TRÌNH</text>
+
+      <rect x="18" y="38" width="176" height="58" rx="3" fill="#141C26" stroke="#35485E"/>
+      <text x="106" y="66" text-anchor="middle" font-family="Mono" font-weight="700" font-size="14" fill="#93A4B8">go build</text>
+      <text x="106" y="84" text-anchor="middle" font-family="Sans" font-size="11" fill="#5C6E85">một file nhị phân</text>
+
+      <line x1="200" y1="67" x2="236" y2="67" stroke="#35485E" stroke-width="1.6" marker-end="url(#ah)"/>
+
+      <rect x="242" y="38" width="330" height="58" rx="3" fill="#141C26" stroke="#00ADD8"/>
+      <text x="407" y="66" text-anchor="middle" font-family="Mono" font-weight="700" font-size="14" fill="#00ADD8">main() chạy MỘT LẦN</text>
+      <text x="407" y="84" text-anchor="middle" font-family="Sans" font-size="11" fill="#5C6E85">dựng pool DB · handler · router</text>
+
+      <line x1="578" y1="67" x2="614" y2="67" stroke="#35485E" stroke-width="1.6" marker-end="url(#ah)"/>
+
+      <rect x="620" y="38" width="308" height="58" rx="3" fill="#141C26" stroke="#4ADE80"/>
+      <text x="774" y="66" text-anchor="middle" font-family="Mono" font-weight="700" font-size="14" fill="#4ADE80">ListenAndServe</text>
+      <text x="774" y="84" text-anchor="middle" font-family="Sans" font-size="11" fill="#5C6E85">đứng chờ, không chết</text>
+
+      <line x1="952" y1="67" x2="994" y2="67" stroke="#00ADD8" stroke-width="1.6" marker-end="url(#ah)"/>
+
+      <rect x="1000" y="24" width="297" height="27" rx="13.5" fill="#141C26" stroke="#00ADD8"/>
+      <text x="1148" y="42" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13" fill="#00ADD8">request 1 → goroutine</text>
+      <rect x="1000" y="57" width="297" height="27" rx="13.5" fill="#141C26" stroke="#00ADD8"/>
+      <text x="1148" y="75" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13" fill="#00ADD8">request 2 → goroutine</text>
+      <rect x="1000" y="90" width="297" height="27" rx="13.5" fill="#141C26" stroke="#00ADD8"/>
+      <text x="1148" y="108" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13" fill="#00ADD8">request 3 → goroutine</text>
+
+      <text x="1000" y="14" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#5C6E85">DÙNG CHUNG THẾ GIỚI BÊN TRÁI</text>
+    </svg>
+  </div>
+</section>
+
+<!-- CONSEQUENCE CHAIN -->
+<section class="chain">
+  <svg width="1459" height="104" viewBox="0 0 1459 104" fill="none">
+    <text x="0" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#5C6E85">HỆ QUẢ — MỌI THỨ CÒN LẠI ĐỀU SUY RA TỪ ĐÂY</text>
+
+    <rect x="0" y="24" width="292" height="66" rx="3" fill="#1B2632" stroke="#00ADD8"/>
+    <text x="146" y="55" text-anchor="middle" font-family="Mono" font-weight="700" font-size="14" fill="#00ADD8">tiến trình sống lâu</text>
+    <text x="146" y="75" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">không chết sau request</text>
+
+    <path d="M298 43 L 346 43" stroke="#35485E" stroke-width="1.6" marker-end="url(#ah)"/>
+    <path d="M298 71 L 346 71" stroke="#35485E" stroke-width="1.6" marker-end="url(#ah)"/>
+
+    <rect x="352" y="21" width="300" height="34" rx="3" fill="#141C26" stroke="#35485E"/>
+    <text x="502" y="43" text-anchor="middle" font-family="Sans" font-size="13" fill="#E8EFF6">bộ nhớ dùng chung</text>
+    <rect x="352" y="60" width="300" height="34" rx="3" fill="#141C26" stroke="#35485E"/>
+    <text x="502" y="82" text-anchor="middle" font-family="Sans" font-size="13" fill="#E8EFF6">việc phải huỷ được</text>
+
+    <path d="M658 38 L 706 38" stroke="#FF6B6B" stroke-width="1.6" marker-end="url(#ahd)"/>
+    <path d="M658 77 L 706 77" stroke="#F2B33D" stroke-width="1.6" marker-end="url(#ah)"/>
+
+    <rect x="712" y="21" width="336" height="34" rx="3" fill="rgba(255,107,107,.08)" stroke="#FF6B6B"/>
+    <text x="880" y="43" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13.5" fill="#FF6B6B">sync.Mutex</text>
+    <rect x="712" y="60" width="336" height="34" rx="3" fill="rgba(242,179,61,.08)" stroke="#F2B33D"/>
+    <text x="880" y="82" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13.5" fill="#F2B33D">context.Context</text>
+
+    <path d="M1054 57 L 1102 57" stroke="#35485E" stroke-width="1.6" marker-end="url(#ah)"/>
+
+    <rect x="1108" y="24" width="351" height="66" rx="3" fill="#1B2632" stroke="#4ADE80"/>
+    <text x="1283" y="52" text-anchor="middle" font-family="Mono" font-weight="700" font-size="14" fill="#4ADE80">main() ráp tay</text>
+    <text x="1283" y="73" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">không container, không autowire</text>
+  </svg>
+</section>
+
+<!-- TERMS -->
+<section class="terms">
+  <div class="term">
+    <div class="w">goroutine</div>
+    <div class="d">Một việc chạy song song, nhẹ tới mức chạy vài trăm nghìn cái cùng lúc vẫn bình thường.</div>
+    <div class="s"><b>bên Symfony</b>Không có. Process PHP-FPM tốn vài megabyte, goroutine chỉ tốn hai kilobyte.</div>
+  </div>
+  <div class="term" style="--accent: var(--danger)">
+    <div class="w">sync.Mutex</div>
+    <div class="d">Khoá cho biến dùng chung: ai vào thì khoá, xong thì mở. <span class="sys" style="font-size:12.5px">defer</span> lo việc mở, khỏi sợ quên.</div>
+    <div class="s"><b>bên Symfony</b>Chưa từng cần. Hai request là hai process, không chia sẻ gì để mà giẫm lên nhau.</div>
+  </div>
+  <div class="term" style="--accent: var(--money)">
+    <div class="w">context.Context</div>
+    <div class="d">ctx mang lệnh dừng và hạn chót đi xuống mọi hàm bên dưới nó.</div>
+    <div class="s"><b>bên Symfony</b>PHP không có. <span class="sys" style="font-size:12px">max_execution_time</span> giết cả script, không dừng riêng một việc.</div>
+  </div>
+</section>
+
+<div class="rule" style="margin-top:46px"></div>
+<footer>
+  <div class="counts">
+    <div class="count"><div class="n" style="color:var(--go)">3</div><div class="l">goroutine</div></div>
+    <div class="count"><div class="n" style="color:var(--danger)">25</div><div class="l">sync.Mutex</div></div>
+    <div class="count"><div class="n" style="color:var(--money)">361</div><div class="l">context.Context</div></div>
+    <div class="count"><div class="n" style="color:var(--faint)">0</div><div class="l">channel · không dùng</div></div>
+  </div>
+  <div class="ask">
+    <div class="h">Phỏng vấn sẽ hỏi</div>
+    <div class="q">Goroutine khác thread của hệ điều hành ở chỗ nào?<br><span class="sys" style="font-size:13px;color:var(--dim)">go test -race</span> dò ra cái gì, và vì sao Go cần nó?<br>context.Context giải quyết vấn đề gì mà PHP không có?</div>
+  </div>
+</footer>
+</html>

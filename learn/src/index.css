@@ -1,0 +1,8 @@
+@import "tailwindcss";
+
+/* JetBrains Mono ligates != into ≠ and := into ≔. Beautiful in an editor, wrong
+   in a lesson: the viewer must see the characters they will actually type. */
+* {
+  font-variant-ligatures: none;
+  font-feature-settings: "liga" 0, "calt" 0;
+}

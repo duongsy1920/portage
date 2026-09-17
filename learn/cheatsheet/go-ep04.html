@@ -1,0 +1,157 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Afterimage Plate 1.04 — Receiver</title>
+<link rel="stylesheet" href="plate.css">
+<style>
+  /* Rhythm of this plate only — the shared language lives in plate.css. */
+  .specimens { margin-top: 40px; }
+  .spec { display: flex; gap: 22px; align-items: flex-start; }
+  .spec + .spec { margin-top: 32px; }
+  .gutter { width: 128px; flex: none; text-align: right; padding-top: 10px; }
+  .gutter .id { font-family: "Mono"; font-weight: 700; font-size: 13px; letter-spacing: .12em; }
+  .gutter .cap { font-family: "Clinical"; font-weight: 300; font-size: 10.5px; letter-spacing: .18em; color: var(--faint); margin-top: 5px; text-transform: uppercase; }
+  .terms { display: flex; gap: 22px; margin-top: 36px; }
+</style>
+
+<div class="ground"></div>
+
+<header>
+  <div>
+    <h1>Một dấu sao,<em> hai hành vi.</em></h1>
+    <div class="sub">Receiver là <em style="font-style:normal;color:var(--php)">$this</em> của Go — nhưng bạn phải nói trước là mình có định sửa hay không.</div>
+  </div>
+  <div class="plateno">
+    <div class="clinical">Afterimage · Plate 1.04</div>
+    <div class="sys" style="font-size:12px;color:var(--go)">MÙA 1 · TẬP 4</div>
+    <div class="clinical">Receiver</div>
+  </div>
+</header>
+<div class="rule"></div>
+
+<section class="specimens">
+
+  <!-- A — the one character -->
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--go)">1.04 · A</div>
+      <div class="cap">khác một ký tự</div>
+    </div>
+    <svg width="1297" height="120" viewBox="0 0 1297 120" fill="none">
+      <text x="0" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#00ADD8">GIÁ TRỊ — GO CHÉP CẢ STRUCT, BẢN GỐC AN TOÀN</text>
+      <rect x="0" y="24" width="628" height="86" rx="3" fill="#141C26" stroke="#00ADD8"/>
+      <text x="20" y="56" font-family="Mono" font-weight="700" font-size="17" fill="#E8EFF6">func (<tspan fill="#00ADD8">m Money</tspan>) Add(o Money) (Money, error)</text>
+      <text x="20" y="84" font-family="Sans" font-size="13" fill="#93A4B8">sửa gì cũng chỉ sửa bản sao · <tspan fill="#4ADE80">value object bất biến miễn phí</tspan></text>
+
+      <text x="669" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#F2B33D">CON TRỎ — NHẬN ĐỊA CHỈ BẢN GỐC, SỬA LÀ SỬA THẬT</text>
+      <rect x="669" y="24" width="628" height="86" rx="3" fill="#141C26" stroke="#F2B33D"/>
+      <text x="689" y="56" font-family="Mono" font-weight="700" font-size="17" fill="#E8EFF6">func (<tspan fill="#F2B33D">e *Events</tspan>) Record(ev Event)</text>
+      <text x="689" y="84" font-family="Sans" font-size="13" fill="#93A4B8">phải cộng dồn được · <tspan fill="#F2B33D">đúng hành vi mặc định của object PHP</tspan></text>
+    </svg>
+  </div>
+
+  <!-- B — the copy, drawn -->
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--ok)">1.04 · B</div>
+      <div class="cap">bản sao đi đâu</div>
+    </div>
+    <svg width="1297" height="176" viewBox="0 0 1297 176" fill="none">
+      <defs>
+        <marker id="ah" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="9" refX="10" refY="4.5" orient="auto">
+          <path d="M0,0 L11,4.5 L0,9 z" fill="#35485E"/>
+        </marker>
+        <marker id="ahg" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="9" refX="10" refY="4.5" orient="auto">
+          <path d="M0,0 L11,4.5 L0,9 z" fill="#4ADE80"/>
+        </marker>
+      </defs>
+      <text x="0" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#5C6E85">m.Add(o) VỚI RECEIVER GIÁ TRỊ</text>
+
+      <rect x="0" y="24" width="300" height="64" rx="3" fill="#141C26" stroke="#00ADD8"/>
+      <text x="150" y="48" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13" fill="#00ADD8">m = 150.00</text>
+      <text x="150" y="70" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">bản gốc, ở chỗ gọi</text>
+
+      <path d="M306 56 L 342 56" stroke="#35485E" stroke-width="1.6" marker-end="url(#ah)"/>
+      <text x="324" y="44" text-anchor="middle" font-family="Clinical" font-weight="300" font-size="9.5" letter-spacing="1.6" fill="#5C6E85">CHÉP</text>
+
+      <rect x="348" y="24" width="300" height="64" rx="3" fill="#141C26" stroke="#35485E" stroke-dasharray="5 4"/>
+      <text x="498" y="48" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13" fill="#93A4B8">m (bản sao)</text>
+      <text x="498" y="70" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#5C6E85">sống trong method, rồi mất</text>
+
+      <path d="M654 56 L 690 56" stroke="#35485E" stroke-width="1.6" marker-end="url(#ah)"/>
+
+      <rect x="696" y="24" width="300" height="64" rx="3" fill="#141C26" stroke="#4ADE80"/>
+      <text x="846" y="48" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13" fill="#4ADE80">Money{175.00}</text>
+      <text x="846" y="70" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">giá trị mới trả về</text>
+
+      <path d="M150 94 L 150 122" stroke="#4ADE80" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#ahg)"/>
+      <rect x="0" y="128" width="300" height="42" rx="3" fill="rgba(74,222,128,.08)" stroke="#4ADE80"/>
+      <text x="150" y="154" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13" fill="#4ADE80">m vẫn là 150.00</text>
+
+      <text x="1030" y="46" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#5C6E85">QUY TẮC CHỌN</text>
+      <text x="1030" y="74" font-family="Sans" font-size="13.5" fill="#E8EFF6">Value object → <tspan font-family="Mono" fill="#00ADD8">(m Money)</tspan></text>
+      <text x="1030" y="100" font-family="Sans" font-size="13.5" fill="#E8EFF6">Có trạng thái → <tspan font-family="Mono" fill="#F2B33D">(e *Events)</tspan></text>
+      <text x="1030" y="140" font-family="Sans" font-size="13" fill="#93A4B8">Trộn hai loại trên cùng</text>
+      <text x="1030" y="160" font-family="Sans" font-size="13" fill="#93A4B8">một kiểu là mùi code xấu.</text>
+    </svg>
+  </div>
+
+  <!-- C — the bug everyone writes once -->
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--danger)">1.04 · C</div>
+      <div class="cap">cái bẫy</div>
+    </div>
+    <svg width="1297" height="104" viewBox="0 0 1297 104" fill="none">
+      <text x="0" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#FF6B6B">AI HỌC GO CŨNG VIẾT ĐÚNG MỘT LẦN — TRÌNH BIÊN DỊCH KHÔNG BẮT ĐƯỢC</text>
+
+      <rect x="0" y="24" width="470" height="66" rx="3" fill="rgba(255,107,107,.07)" stroke="#FF6B6B"/>
+      <text x="235" y="54" text-anchor="middle" font-family="Mono" font-weight="700" font-size="15" fill="#E8EFF6">func (c Counter) Inc() { c.n++ }</text>
+      <text x="235" y="76" text-anchor="middle" font-family="Sans" font-size="12" fill="#FF6B6B">thiếu dấu sao</text>
+
+      <rect x="502" y="24" width="256" height="66" rx="3" fill="#141C26" stroke="#35485E"/>
+      <text x="630" y="52" text-anchor="middle" font-family="Mono" font-weight="700" font-size="14" fill="#4ADE80">go build</text>
+      <text x="630" y="74" text-anchor="middle" font-family="Sans" font-size="12" fill="#93A4B8">không báo gì</text>
+
+      <rect x="774" y="24" width="256" height="66" rx="3" fill="#141C26" stroke="#35485E"/>
+      <text x="902" y="52" text-anchor="middle" font-family="Mono" font-weight="700" font-size="14" fill="#4ADE80">go vet</text>
+      <text x="902" y="74" text-anchor="middle" font-family="Sans" font-size="12" fill="#93A4B8">cũng không báo gì</text>
+
+      <rect x="1046" y="24" width="251" height="66" rx="3" fill="rgba(255,107,107,.07)" stroke="#FF6B6B"/>
+      <text x="1171" y="52" text-anchor="middle" font-family="Mono" font-weight="700" font-size="14" fill="#FF6B6B">chạy thật</text>
+      <text x="1171" y="74" text-anchor="middle" font-family="Sans" font-size="12" fill="#93A4B8">c.n bằng 0 mãi mãi</text>
+    </svg>
+  </div>
+</section>
+
+<!-- TERMS -->
+<section class="terms">
+  <div class="term" style="--accent: var(--go)">
+    <div class="w">receiver</div>
+    <div class="d">Cụm đứng trước tên hàm, gắn hàm vào một kiểu. Chính là <span class="sys" style="font-size:12.5px">$this</span>, nhưng do bạn đặt tên.</div>
+    <div class="s"><b>bên Symfony</b>$this — tên cố định, không chọn được, và luôn sửa được.</div>
+  </div>
+  <div class="term" style="--accent: var(--go)">
+    <div class="w">value receiver</div>
+    <div class="d">Không có dấu sao. Go chép cả struct, method không sửa được bản gốc. <b style="color:var(--ok)">176 chỗ</b> trong domain.</div>
+    <div class="s"><b>bên Symfony</b>như thể clone $this mỗi lần gọi — phải tự kỷ luật mới làm được.</div>
+  </div>
+  <div class="term" style="--accent: var(--money)">
+    <div class="w">pointer receiver</div>
+    <div class="d">Có dấu sao. Method nhận địa chỉ bản gốc, sửa vào đó là sửa thật. <b style="color:var(--money)">120 chỗ</b> trong domain.</div>
+    <div class="s"><b>bên Symfony</b>hành vi mặc định của mọi object PHP — không có lựa chọn nào khác.</div>
+  </div>
+</section>
+
+<div class="rule" style="margin-top:36px"></div>
+<footer>
+  <div class="counts">
+    <div class="count"><div class="n" style="color:var(--ok)">176</div><div class="l">receiver giá trị</div></div>
+    <div class="count"><div class="n" style="color:var(--money)">120</div><div class="l">receiver con trỏ</div></div>
+    <div class="count"><div class="n" style="color:var(--go)">1</div><div class="l">ký tự làm nên khác biệt</div></div>
+  </div>
+  <div class="ask">
+    <div class="h">Phỏng vấn sẽ hỏi</div>
+    <div class="q">Khi nào dùng receiver con trỏ, khi nào dùng receiver giá trị?<br>Vì sao một method gán vào field mà không đổi được gì?<br>Receiver giá trị có làm chậm không, khi struct lớn?</div>
+  </div>
+</footer>
+</html>

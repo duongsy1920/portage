@@ -1,0 +1,69 @@
+/* Shared stylesheet for every Afterimage plate.
+   Extracted from the first plate: the learning pair contract says all static
+   sheets use one visual language, and twenty-four copies of a stylesheet is
+   twenty-four chances to drift. Per-plate colour accents stay in the HTML. */
+
+  @font-face { font-family: "Mono"; src: url("fonts/JetBrainsMono-Regular.ttf"); font-weight: 400; }
+  @font-face { font-family: "Mono"; src: url("fonts/JetBrainsMono-Bold.ttf"); font-weight: 700; }
+  @font-face { font-family: "Sans"; src: url("fonts/WorkSans-Regular.ttf"); font-weight: 400; }
+  @font-face { font-family: "Sans"; src: url("fonts/WorkSans-Bold.ttf"); font-weight: 700; }
+  @font-face { font-family: "Clinical"; src: url("fonts/Jura-Light.ttf"); font-weight: 300; }
+
+  :root {
+    --bg: #080B10; --lift: #0E141C; --surface: #141C26; --hi: #1B2632;
+    --line: #243243; --lineHi: #35485E;
+    --text: #E8EFF6; --dim: #93A4B8; --faint: #5C6E85;
+    --go: #00ADD8; --php: #B39DFF; --ok: #4ADE80; --danger: #FF6B6B; --money: #F2B33D;
+    --ordering: #9D7CD8;
+    /* Each plate sets --accent per card; the shared rules only read it. */
+  }
+  @page { size: 420mm 297mm; margin: 0; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1587px; height: 1123px; background: var(--bg); }
+  body {
+    font-family: "Sans"; color: var(--text);
+    padding: 56px 64px 46px;
+    display: flex; flex-direction: column;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* A ruled ground: the plate sits on graph paper, faintly. */
+  .ground {
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(var(--lift) 1px, transparent 1px),
+      linear-gradient(90deg, var(--lift) 1px, transparent 1px);
+    background-size: 53px 53px;
+    opacity: .55; pointer-events: none;
+  }
+
+  /* JetBrains Mono ligates != into ≠ and <- into ←. Beautiful in an editor,
+     wrong on a teaching plate: the reader must see the characters they will type. */
+  .sys, .term .w, [font-family="Mono"], svg text { font-variant-ligatures: none; font-feature-settings: "liga" 0, "calt" 0; }
+  .rule { height: 1px; background: var(--line); }
+  .clinical { font-family: "Clinical"; font-weight: 300; letter-spacing: .22em; font-size: 11px; color: var(--faint); text-transform: uppercase; }
+  .sys { font-family: "Mono"; font-weight: 700; letter-spacing: .06em; }
+
+  header { display: flex; align-items: flex-end; justify-content: space-between; padding-bottom: 26px; }
+  h1 { font-family: "Mono"; font-weight: 700; font-size: 41px; letter-spacing: -.012em; line-height: 1.06; }
+  h1 em { font-style: normal; color: var(--go); }
+  .sub { font-family: "Sans"; font-size: 15px; color: var(--dim); margin-top: 10px; letter-spacing: .005em; }
+  .plateno { text-align: right; line-height: 1.9; }
+
+
+  .term {
+    flex: 1; background: var(--surface); border: 1px solid var(--line);
+    border-left: 4px solid var(--accent, var(--go)); border-radius: 3px; padding: 22px 24px 24px;
+  }
+  .term .w { font-family: "Mono"; font-weight: 700; font-size: 20px; color: var(--accent, var(--go)); }
+  .term .d { font-size: 14.5px; line-height: 1.58; color: var(--text); margin-top: 12px; }
+  .term .s { font-size: 13.5px; line-height: 1.58; color: var(--php); margin-top: 14px; }
+  .term .s b { font-family: "Clinical"; font-weight: 300; letter-spacing: .18em; font-size: 9.5px; color: var(--faint); display: block; margin-bottom: 3px; text-transform: uppercase; }
+
+  footer { margin-top: auto; padding-top: 30px; display: flex; gap: 40px; align-items: flex-start; }
+  .counts { display: flex; gap: 46px; }
+  .count .n { font-family: "Mono"; font-weight: 700; font-size: 38px; line-height: 1; }
+  .count .l { font-family: "Clinical"; font-weight: 300; font-size: 10.5px; letter-spacing: .16em; color: var(--faint); margin-top: 10px; text-transform: uppercase; }
+  .ask { margin-left: auto; text-align: right; }
+  .ask .h { font-family: "Clinical"; font-weight: 300; font-size: 10px; letter-spacing: .2em; color: var(--money); text-transform: uppercase; }
+  .ask .q { font-size: 13.5px; color: var(--dim); line-height: 1.95; margin-top: 9px; }

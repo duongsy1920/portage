@@ -1,0 +1,112 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Afterimage Plate 2.01 — Mô hình thiếu máu</title>
+<link rel="stylesheet" href="plate.css">
+<style>
+  /* Rhythm of this plate only — the shared language lives in plate.css. */
+  .specimens { margin-top: 40px; }
+  .spec { display: flex; gap: 22px; align-items: flex-start; }
+  .spec + .spec { margin-top: 30px; }
+  .gutter { width: 128px; flex: none; text-align: right; padding-top: 10px; }
+  .gutter .id { font-family: "Mono"; font-weight: 700; font-size: 13px; letter-spacing: .12em; }
+  .gutter .cap { font-family: "Clinical"; font-weight: 300; font-size: 10.5px; letter-spacing: .18em; color: var(--faint); margin-top: 5px; text-transform: uppercase; }
+  .terms { display: flex; gap: 22px; margin-top: 34px; }
+</style>
+
+<div class="ground"></div>
+
+<header>
+  <div>
+    <h1>Luật nghiệp vụ<em> rơi đi đâu?</em></h1>
+    <div class="sub">Entity toàn getter setter — và cùng một luật bị chép ra bốn nơi, rồi lệch nhau.</div>
+  </div>
+  <div class="plateno">
+    <div class="clinical">Afterimage · Plate 2.01</div>
+    <div class="sys" style="font-size:12px;color:var(--go)">MÙA 2 · TẬP 1</div>
+    <div class="clinical">Mô hình thiếu máu</div>
+  </div>
+</header>
+<div class="rule"></div>
+<section class="specimens">
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--php)">2.01 · A</div>
+      <div class="cap">chỗ luật rơi ra</div>
+    </div>
+    <svg width="1297" height="158" viewBox="0 0 1297 158" fill="none">
+      <defs>
+        <marker id="ah" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="9" refX="10" refY="4.5" orient="auto">
+          <path d="M0,0 L11,4.5 L0,9 z" fill="#35485E"/>
+        </marker>
+        <marker id="ahd" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="9" refX="10" refY="4.5" orient="auto">
+          <path d="M0,0 L11,4.5 L0,9 z" fill="#FF6B6B"/>
+        </marker>
+        <marker id="ahg" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="9" refX="10" refY="4.5" orient="auto">
+          <path d="M0,0 L11,4.5 L0,9 z" fill="#4ADE80"/>
+        </marker>
+      </defs>
+      <text x="0" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#FF6B6B">MỘT LUẬT, BỐN BẢN SAO — VÀ MỘT BẢN QUÊN MẤT</text>
+      <rect x="330" y="24" width="640" height="54" rx="3" fill="#141C26" stroke="#F2B33D"/>
+      <text x="650" y="51" text-anchor="middle" font-family="Mono" font-weight="700" font-size="14" fill="#F2B33D">“chỉ cọc được khi đơn vừa đặt”</text>
+      <path d="M430 84 L 200 106" stroke="#35485E" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#ah)"/>      <path d="M600 84 L 530 106" stroke="#35485E" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#ah)"/>
+      <path d="M700 84 L 860 106" stroke="#35485E" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#ah)"/>      <path d="M870 84 L 1160 106" stroke="#FF6B6B" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#ahd)"/>
+      <rect x="0" y="112" width="300" height="44" rx="3" fill="#141C26" stroke="#B39DFF"/>
+      <text x="150" y="134" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13" fill="#B39DFF">Controller</text>
+      <rect x="330" y="112" width="300" height="44" rx="3" fill="#141C26" stroke="#B39DFF"/>
+      <text x="480" y="134" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13" fill="#B39DFF">Service</text>
+      <rect x="660" y="112" width="300" height="44" rx="3" fill="#141C26" stroke="#B39DFF"/>
+      <text x="810" y="134" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13" fill="#B39DFF">Validator</text>
+      <rect x="990" y="112" width="307" height="44" rx="3" fill="rgba(255,107,107,.07)" stroke="#FF6B6B"/>
+      <text x="1143" y="134" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13" fill="#FF6B6B">Job chạy nền</text>
+      <text x="1143" y="150" text-anchor="middle" font-family="Sans" font-size="11" fill="#FF6B6B">quên mất luật này</text>
+    </svg>
+  </div>
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--go)">2.01 · B</div>
+      <div class="cap">chỗ nó nên nằm</div>
+    </div>
+    <svg width="1297" height="126" viewBox="0 0 1297 126" fill="none">
+      <text x="0" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#5C6E85">internal/domain/ordering/order.go:225 — LUẬT NẰM NGAY TRÊN DỮ LIỆU</text>
+      <rect x="0" y="24" width="760" height="94" rx="3" fill="#141C26" stroke="#00ADD8"/>
+      <text x="20" y="50" font-family="Mono" font-size="14.5" fill="#E8EFF6">func (o *CustomerOrder) PayDeposit(amount, now) error {</text>
+      <text x="20" y="74" font-family="Mono" font-weight="700" font-size="14.5" fill="#F2B33D">    if o.status != StatusAwaitingDeposit { return … }</text>
+      <text x="20" y="98" font-family="Mono" font-size="14.5" fill="#4ADE80">    o.status = StatusDeposited; o.Record(DepositPaid{…})</text>
+      <text x="800" y="50" font-family="Sans" font-size="13.5" fill="#E8EFF6">Tên method là tên việc nghiệp vụ, không phải setStatus.</text>
+      <text x="800" y="76" font-family="Sans" font-size="13.5" fill="#93A4B8">Luật kiểm ngay dòng đầu. Không có setter để mà lách.</text>
+      <text x="800" y="102" font-family="Sans" font-size="13.5" fill="#93A4B8">Một cửa duy nhất, nên không có bản sao nào lệch được.</text>
+    </svg>
+  </div>
+</section>
+
+<section class="terms">
+  <div class="term" style="--accent: var(--danger)">
+    <div class="w">mô hình thiếu máu</div>
+    <div class="d">Entity chỉ có getter và setter, còn luật nghiệp vụ nằm rải ở tầng service.</div>
+    <div class="s"><b>bên Symfony</b>Đúng cái Doctrine và form đẩy bạn tới. Nó chạy được — chỉ là luật không ở cùng dữ liệu.</div>
+  </div>
+  <div class="term" style="--accent: var(--ordering)">
+    <div class="w">aggregate root</div>
+    <div class="d">Cụm dữ liệu phải luôn đúng cùng nhau, và chỉ sửa được qua một cửa.</div>
+    <div class="s"><b>bên Symfony</b>Không có khái niệm tương đương sẵn; gần nhất là một Entity gốc mà bạn tự kỷ luật không setter.</div>
+  </div>
+  <div class="term" style="--accent: var(--go)">
+    <div class="w">một cửa</div>
+    <div class="d">Field viết thường nên package khác không chạm được. Muốn đổi gì cũng phải gọi method.</div>
+    <div class="s"><b>bên Symfony</b>private của PHP chặt hơn ở mức class, nhưng không ai ép bạn bỏ setter cả.</div>
+  </div>
+</section>
+
+<div class="rule" style="margin-top:34px"></div>
+<footer>
+  <div class="counts">
+    <div class="count"><div class="n" style="color:var(--ok)">0</div><div class="l">setter công khai trên aggregate</div></div>
+    <div class="count"><div class="n" style="color:var(--ordering)">1</div><div class="l">cửa vào mỗi aggregate</div></div>
+    <div class="count"><div class="n" style="color:var(--danger)">4</div><div class="l">nơi luật hay bị chép ra</div></div>
+  </div>
+  <div class="ask">
+    <div class="h">Phỏng vấn sẽ hỏi</div>
+    <div class="q">Mô hình thiếu máu là gì, và vì sao nó phổ biến đến vậy?<br>Đặt luật vào entity thì tầng service còn làm gì?<br>Vì sao không nên có setter công khai trên aggregate?</div>
+  </div>
+</footer>
+</html>

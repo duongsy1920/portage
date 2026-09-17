@@ -1,0 +1,109 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Afterimage Plate 2.02 — Value Object và Entity</title>
+<link rel="stylesheet" href="plate.css">
+<style>
+  /* Rhythm of this plate only — the shared language lives in plate.css. */
+  .specimens { margin-top: 40px; }
+  .spec { display: flex; gap: 22px; align-items: flex-start; }
+  .spec + .spec { margin-top: 30px; }
+  .gutter { width: 128px; flex: none; text-align: right; padding-top: 10px; }
+  .gutter .id { font-family: "Mono"; font-weight: 700; font-size: 13px; letter-spacing: .12em; }
+  .gutter .cap { font-family: "Clinical"; font-weight: 300; font-size: 10.5px; letter-spacing: .18em; color: var(--faint); margin-top: 5px; text-transform: uppercase; }
+  .terms { display: flex; gap: 22px; margin-top: 34px; }
+</style>
+
+<div class="ground"></div>
+
+<header>
+  <div>
+    <h1>Cái gì cần <em>ID</em>, cái gì không.</h1>
+    <div class="sub">Một câu hỏi tách xong mọi kiểu trong domain: đổi nó bằng một cái y hệt, có ai nhận ra không?</div>
+  </div>
+  <div class="plateno">
+    <div class="clinical">Afterimage · Plate 2.02</div>
+    <div class="sys" style="font-size:12px;color:var(--go)">MÙA 2 · TẬP 2</div>
+    <div class="clinical">Value Object và Entity</div>
+  </div>
+</header>
+<div class="rule"></div>
+
+<section class="specimens">
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--money)">2.02 · A</div>
+      <div class="cap">một câu hỏi</div>
+    </div>
+    <svg width="1297" height="168" viewBox="0 0 1297 168" fill="none">
+      <defs>
+        <marker id="ah" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="9" refX="10" refY="4.5" orient="auto">
+          <path d="M0,0 L11,4.5 L0,9 z" fill="#35485E"/>
+        </marker>
+        <marker id="ahd" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="9" refX="10" refY="4.5" orient="auto">
+          <path d="M0,0 L11,4.5 L0,9 z" fill="#FF6B6B"/>
+        </marker>
+        <marker id="ahg" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="9" refX="10" refY="4.5" orient="auto">
+          <path d="M0,0 L11,4.5 L0,9 z" fill="#4ADE80"/>
+        </marker>
+      </defs>
+      <rect x="330" y="20" width="640" height="50" rx="3" fill="#141C26" stroke="#F2B33D"/>
+      <text x="650" y="45" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13" fill="#F2B33D">“Đổi nó bằng một cái y hệt — có ai nhận ra không?”</text>
+      <path d="M500 76 L 200 100" stroke="#4ADE80" stroke-width="1.6" marker-end="url(#ahg)"/>      <path d="M620 76 L 560 100" stroke="#35485E" stroke-width="1.6" marker-end="url(#ah)"/>      <path d="M700 76 L 900 100" stroke="#35485E" stroke-width="1.6" marker-end="url(#ah)"/>      <path d="M800 76 L 1180 100" stroke="#35485E" stroke-width="1.6" marker-end="url(#ah)"/>
+      <rect x="0" y="106" width="300" height="54" rx="3" fill="#141C26" stroke="#4ADE80"/>
+      <text x="150" y="128" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13" fill="#4ADE80">150.00 USD</text>
+      <text x="150" y="148" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">không ai nhận ra</text>
+      <rect x="330" y="106" width="300" height="54" rx="3" fill="#141C26" stroke="#4ADE80"/>
+      <text x="480" y="128" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13" fill="#4ADE80">500 gram</text>
+      <text x="480" y="148" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">không ai nhận ra</text>
+      <rect x="660" y="106" width="300" height="54" rx="3" fill="#141C26" stroke="#9D7CD8"/>
+      <text x="810" y="128" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13" fill="#9D7CD8">đơn hàng #A17</text>
+      <text x="810" y="148" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">khách nhận ra ngay</text>
+      <rect x="990" y="106" width="307" height="54" rx="3" fill="#141C26" stroke="#9D7CD8"/>
+      <text x="1143" y="128" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13" fill="#9D7CD8">kiện đang bay</text>
+      <text x="1143" y="148" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">kho nhận ra ngay</text>
+      <text x="0" y="14" font-family="Clinical" font-size="10" fill="#4ADE80">KHÔNG AI NHẬN RA → VALUE OBJECT</text>      <text x="700" y="14" font-family="Clinical" font-size="10" fill="#9D7CD8">CÓ NGƯỜI NHẬN RA → ENTITY</text>
+    </svg>
+  </div>
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--go)">2.02 · B</div>
+      <div class="cap">go cho không</div>
+    </div>
+    <svg width="1297" height="108" viewBox="0 0 1297 108" fill="none">
+      <text x="0" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#5C6E85">internal/domain/shared/money.go:201 — BẤT BIẾN MÀ KHÔNG PHẢI CỐ GẮNG</text>
+      <rect x="0" y="24" width="700" height="72" rx="3" fill="#141C26" stroke="#00ADD8"/>      <text x="20" y="52" font-family="Mono" font-size="15" font-weight="700" fill="#E8EFF6">func (m Money) Add(o Money) (Money, error)</text>      <text x="20" y="78" font-family="Sans" font-size="12.5" fill="#93A4B8">không có dấu sao → Go chép cả struct → method không sửa được bản gốc</text>      <text x="740" y="52" font-family="Sans" font-size="13.5" fill="#93A4B8">Value Object bên PHP phải tự kỷ luật: bỏ setter, tự clone.</text>      <text x="740" y="78" font-family="Sans" font-size="13.5" fill="#4ADE80">Ở đây kiểu dữ liệu tự lo — luật tập 4 mùa 1.</text>
+    </svg>
+  </div>
+</section>
+
+<section class="terms">
+  <div class="term" style="--accent: var(--ok)">
+    <div class="w">value object</div>
+    <div class="d">Bằng nhau khi mọi field bằng nhau. Không có ID, không sửa được sau khi tạo.</div>
+    <div class="s"><b>bên Symfony</b>Brick\\Money, hoặc một class #[Embeddable] không có setter.</div>
+  </div>
+  <div class="term" style="--accent: var(--ordering)">
+    <div class="w">entity</div>
+    <div class="d">Có danh tính riêng, sống qua nhiều lần thay đổi. Hai cái cùng giá trị vẫn là hai cái khác nhau.</div>
+    <div class="s"><b>bên Symfony</b>Entity của Doctrine — nhưng ở đó ID do ORM sinh, còn ở đây là kiểu riêng.</div>
+  </div>
+  <div class="term" style="--accent: var(--go)">
+    <div class="w">typed ID</div>
+    <div class="d">Mỗi loại một kiểu: truyền nhầm <span class="sys" style="font-size:12.5px">QuoteID</span> vào chỗ cần <span class="sys" style="font-size:12.5px">OrderID</span> thì không biên dịch được.</div>
+    <div class="s"><b>bên Symfony</b>Làm được, nhưng phải viết lại constructor cho từng loại.</div>
+  </div>
+</section>
+
+<div class="rule" style="margin-top:34px"></div>
+<footer>
+  <div class="counts">
+    <div class="count"><div class="n" style="color:var(--ok)">6</div><div class="l">value object trong shared</div></div>
+    <div class="count"><div class="n" style="color:var(--ordering)">9</div><div class="l">kiểu ID riêng</div></div>
+    <div class="count"><div class="n" style="color:var(--faint)">0</div><div class="l">value object có ID</div></div>
+  </div>
+  <div class="ask">
+    <div class="h">Phỏng vấn sẽ hỏi</div>
+    <div class="q">Value Object khác Entity ở chỗ nào?<br>Vì sao Value Object nên bất biến?<br>Money có nên có ID không, và vì sao?</div>
+  </div>
+</footer>
+</html>

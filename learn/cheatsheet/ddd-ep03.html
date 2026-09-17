@@ -1,0 +1,113 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Afterimage Plate 2.03 — Aggregate và invariant</title>
+<link rel="stylesheet" href="plate.css">
+<style>
+  /* Rhythm of this plate only — the shared language lives in plate.css. */
+  .specimens { margin-top: 40px; }
+  .spec { display: flex; gap: 22px; align-items: flex-start; }
+  .spec + .spec { margin-top: 30px; }
+  .gutter { width: 128px; flex: none; text-align: right; padding-top: 10px; }
+  .gutter .id { font-family: "Mono"; font-weight: 700; font-size: 13px; letter-spacing: .12em; }
+  .gutter .cap { font-family: "Clinical"; font-weight: 300; font-size: 10.5px; letter-spacing: .18em; color: var(--faint); margin-top: 5px; text-transform: uppercase; }
+  .terms { display: flex; gap: 22px; margin-top: 34px; }
+</style>
+
+<div class="ground"></div>
+
+<header>
+  <div>
+    <h1>Một cụm dữ liệu,<em> một cửa vào.</em></h1>
+    <div class="sub">Và invariant là thứ quyết định ranh giới cụm đó nằm ở đâu.</div>
+  </div>
+  <div class="plateno">
+    <div class="clinical">Afterimage · Plate 2.03</div>
+    <div class="sys" style="font-size:12px;color:var(--go)">MÙA 2 · TẬP 3</div>
+    <div class="clinical">Aggregate và invariant</div>
+  </div>
+</header>
+<div class="rule"></div>
+
+<section class="specimens">
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--ordering)">2.03 · A</div>
+      <div class="cap">một cửa</div>
+    </div>
+    <svg width="1297" height="188" viewBox="0 0 1297 188" fill="none">
+      <defs>
+        <marker id="ah" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="9" refX="10" refY="4.5" orient="auto">
+          <path d="M0,0 L11,4.5 L0,9 z" fill="#35485E"/>
+        </marker>
+        <marker id="ahd" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="9" refX="10" refY="4.5" orient="auto">
+          <path d="M0,0 L11,4.5 L0,9 z" fill="#FF6B6B"/>
+        </marker>
+        <marker id="ahg" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="9" refX="10" refY="4.5" orient="auto">
+          <path d="M0,0 L11,4.5 L0,9 z" fill="#4ADE80"/>
+        </marker>
+      </defs>
+
+      <rect x="330" y="20" width="640" height="150" rx="4" fill="none" stroke="#9D7CD8" stroke-dasharray="6 5" opacity=".75"/>      <text x="344" y="38" font-family="Clinical" font-size="10" fill="#9D7CD8">AGGREGATE CustomerOrder</text>
+      <rect x="350" y="48" width="600" height="48" rx="3" fill="#141C26" stroke="#9D7CD8"/>
+      <text x="650" y="72" text-anchor="middle" font-family="Mono" font-weight="700" font-size="14" fill="#9D7CD8">CustomerOrder — root</text>
+      <rect x="350" y="108" width="290" height="46" rx="3" fill="#141C26" stroke="#35485E"/>
+      <text x="495" y="131" text-anchor="middle" font-family="Sans" font-weight="700" font-size="12" fill="#35485E">trạng thái · cọc · số dư</text>
+      <rect x="660" y="108" width="290" height="46" rx="3" fill="#141C26" stroke="#35485E"/>
+      <text x="805" y="131" text-anchor="middle" font-family="Sans" font-weight="700" font-size="12" fill="#35485E">lý do huỷ · hoàn tiền</text>
+      <path d="M300 72 L 344 72" stroke="#00ADD8" stroke-width="1.6" marker-end="url(#ah)"/>
+      <rect x="0" y="48" width="290" height="48" rx="3" fill="#141C26" stroke="#00ADD8"/>
+      <text x="145" y="72" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13" fill="#00ADD8">tầng app</text>
+      <path d="M1010 130 L 966 130" stroke="#FF6B6B" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#ahd)"/>
+      <rect x="1016" y="106" width="281" height="48" rx="3" fill="rgba(255,107,107,.07)" stroke="#FF6B6B"/>
+      <text x="1156" y="125" text-anchor="middle" font-family="Mono" font-weight="700" font-size="12" fill="#FF6B6B">chạm thẳng field</text>
+      <text x="1156" y="145" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">không có cách nào</text>      <text x="1016" y="60" font-family="Sans" font-size="12.5" fill="#93A4B8">Field viết thường nên</text>      <text x="1016" y="80" font-family="Sans" font-size="12.5" fill="#93A4B8">package khác không chạm được.</text>
+    </svg>
+  </div>
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--money)">2.03 · B</div>
+      <div class="cap">cách chia</div>
+    </div>
+    <svg width="1297" height="96" viewBox="0 0 1297 96" fill="none">
+      <text x="0" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#5C6E85">INVARIANT QUYẾT ĐỊNH RANH GIỚI</text>
+      <rect x="0" y="24" width="620" height="62" rx="3" fill="#141C26" stroke="#4ADE80"/>
+      <text x="310" y="50" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13" fill="#4ADE80">phải đúng CÙNG LÚC</text>
+      <text x="310" y="70" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">→ ở chung một aggregate</text>
+      <rect x="660" y="24" width="637" height="62" rx="3" fill="#141C26" stroke="#F2B33D"/>
+      <text x="978" y="50" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13" fill="#F2B33D">được phép lệch một lúc</text>
+      <text x="978" y="70" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">→ tách ra, nối bằng event</text>
+    </svg>
+  </div>
+</section>
+
+<section class="terms">
+  <div class="term" style="--accent: var(--ordering)">
+    <div class="w">aggregate</div>
+    <div class="d">Một cụm dữ liệu phải luôn đúng cùng nhau, chỉ sửa được qua một cửa.</div>
+    <div class="s"><b>bên Symfony</b>Gần nhất là một Entity gốc mà bạn tự kỷ luật không đặt setter.</div>
+  </div>
+  <div class="term" style="--accent: var(--money)">
+    <div class="w">invariant</div>
+    <div class="d">Một điều phải đúng ngay lập tức, không được phép sai dù chỉ một khoảnh khắc.</div>
+    <div class="s"><b>bên Symfony</b>Thường rơi vào Validator — mà Validator chạy trước khi ghi, không phải lúc ghi.</div>
+  </div>
+  <div class="term" style="--accent: var(--go)">
+    <div class="w">một transaction một aggregate</div>
+    <div class="d">Phải sửa hai aggregate cùng lúc nghĩa là chia sai, hoặc cần một event.</div>
+    <div class="s"><b>bên Symfony</b>wrapInTransaction quanh nhiều entity là chuyện thường — và cũng là chỗ khoá hay chạm nhau.</div>
+  </div>
+</section>
+
+<div class="rule" style="margin-top:34px"></div>
+<footer>
+  <div class="counts">
+    <div class="count"><div class="n" style="color:var(--ordering)">7</div><div class="l">aggregate root trong repo</div></div>
+    <div class="count"><div class="n" style="color:var(--ok)">0</div><div class="l">setter công khai</div></div>
+    <div class="count"><div class="n" style="color:var(--money)">1</div><div class="l">aggregate mỗi transaction</div></div>
+  </div>
+  <div class="ask">
+    <div class="h">Phỏng vấn sẽ hỏi</div>
+    <div class="q">Aggregate root để làm gì?<br>Invariant khác validation ở chỗ nào?<br>Vì sao một transaction chỉ nên đụng một aggregate?</div>
+  </div>
+</footer>
+</html>

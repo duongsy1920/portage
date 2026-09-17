@@ -1,0 +1,140 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Afterimage Plate 1.08 — slice và map</title>
+<link rel="stylesheet" href="plate.css">
+<style>
+  /* Rhythm of this plate only — the shared language lives in plate.css. */
+  .specimens { margin-top: 40px; }
+  .spec { display: flex; gap: 22px; align-items: flex-start; }
+  .spec + .spec { margin-top: 30px; }
+  .gutter { width: 128px; flex: none; text-align: right; padding-top: 10px; }
+  .gutter .id { font-family: "Mono"; font-weight: 700; font-size: 13px; letter-spacing: .12em; }
+  .gutter .cap { font-family: "Clinical"; font-weight: 300; font-size: 10.5px; letter-spacing: .18em; color: var(--faint); margin-top: 5px; text-transform: uppercase; }
+  .terms { display: flex; gap: 22px; margin-top: 34px; }
+</style>
+
+<div class="ground"></div>
+
+<header>
+  <div>
+    <h1>Một <em>array</em> của PHP,<em> ba thứ của Go.</em></h1>
+    <div class="sub">Ba cái bẫy, và cả ba đều suy ra từ thứ đã học ở tập trước.</div>
+  </div>
+  <div class="plateno">
+    <div class="clinical">Afterimage · Plate 1.08</div>
+    <div class="sys" style="font-size:12px;color:var(--go)">MÙA 1 · TẬP 8</div>
+    <div class="clinical">slice và map</div>
+  </div>
+</header>
+<div class="rule"></div>
+
+<section class="specimens">
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--danger)">1.08 · A</div>
+      <div class="cap">bẫy một</div>
+    </div>
+    <svg width="1297" height="126" viewBox="0 0 1297 126" fill="none">
+      <text x="0" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#FF6B6B">CẢ HAI DÒNG ĐỀU BIÊN DỊCH ĐƯỢC</text>
+      <rect x="0" y="24" width="636" height="88" rx="3" fill="rgba(255,107,107,.07)" stroke="#FF6B6B"/>
+      <text x="20" y="56" font-family="Mono" font-weight="700" font-size="16" fill="#E8EFF6">append(e.pending, ev)</text>
+      <text x="20" y="80" font-family="Sans" font-size="13" fill="#FF6B6B">kết quả bị vứt — danh sách không thêm được gì</text>
+      <text x="20" y="102" font-family="Sans" font-size="12.5" fill="#5C6E85">chạy im lặng, đơn hàng mất event, không có lỗi nào để lần</text>
+      <rect x="661" y="24" width="636" height="88" rx="3" fill="#141C26" stroke="#4ADE80"/>
+      <text x="681" y="56" font-family="Mono" font-weight="700" font-size="16" fill="#E8EFF6"><tspan fill="#4ADE80">e.pending = </tspan>append(e.pending, ev)</text>
+      <text x="681" y="80" font-family="Sans" font-size="13" fill="#4ADE80">đúng: phải gán lại</text>
+      <text x="681" y="102" font-family="Sans" font-size="12.5" fill="#5C6E85">vì slice là struct nhỏ, bị chép khi truyền đi — đúng luật tập 4</text>
+    </svg>
+  </div>
+
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--money)">1.08 · B</div>
+      <div class="cap">bẫy hai</div>
+    </div>
+    <svg width="1297" height="118" viewBox="0 0 1297 118" fill="none">
+      <defs>
+        <marker id="ah" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="9" refX="10" refY="4.5" orient="auto">
+          <path d="M0,0 L11,4.5 L0,9 z" fill="#35485E"/>
+        </marker>
+        <marker id="ahd" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="9" refX="10" refY="4.5" orient="auto">
+          <path d="M0,0 L11,4.5 L0,9 z" fill="#FF6B6B"/>
+        </marker>
+        <marker id="ahg" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="9" refX="10" refY="4.5" orient="auto">
+          <path d="M0,0 L11,4.5 L0,9 z" fill="#4ADE80"/>
+        </marker>
+      </defs>
+      <text x="0" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#5C6E85">MAP DUYỆT NGẪU NHIÊN — BUG THẬT Ở adapter/memory/category_repo.go</text>
+
+      <rect x="0" y="26" width="400" height="72" rx="3" fill="#141C26" stroke="#F2B33D"/>
+      <text x="200" y="54" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13.5" fill="#F2B33D">for _, p := range r.byCode</text>
+      <text x="200" y="78" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">thứ tự khác nhau mỗi lần chạy</text>
+      <path d="M406 62 L 444 62" stroke="#FF6B6B" stroke-width="1.6" marker-end="url(#ahd)"/>
+
+      <rect x="450" y="26" width="420" height="72" rx="3" fill="rgba(255,107,107,.07)" stroke="#FF6B6B"/>
+      <text x="660" y="54" text-anchor="middle" font-family="Sans" font-weight="700" font-size="13.5" fill="#FF6B6B">ô chọn danh mục đổi mặc định</text>
+      <text x="660" y="78" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">sau mỗi lần tải trang, dưới tay người đang dùng</text>
+      <path d="M876 62 L 914 62" stroke="#4ADE80" stroke-width="1.6" marker-end="url(#ahg)"/>
+
+      <rect x="920" y="26" width="377" height="72" rx="3" fill="#141C26" stroke="#4ADE80"/>
+      <text x="1108" y="54" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13.5" fill="#4ADE80">sort.Slice(out, …)</text>
+      <text x="1108" y="78" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">cần thứ tự thì phải tự sort</text>
+    </svg>
+  </div>
+
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--go)">1.08 · C</div>
+      <div class="cap">một array, ba thứ</div>
+    </div>
+    <svg width="1297" height="120" viewBox="0 0 1297 120" fill="none">
+      <text x="0" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#B39DFF">PHP CÓ MỘT array</text>
+      <text x="480" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#00ADD8">GO CÓ BA THỨ KHÁC NHAU</text>
+
+      <text x="0" y="44" font-family="Mono" font-size="15" fill="#B39DFF">[1, 2, 3]</text>
+      <text x="480" y="44" font-family="Mono" font-weight="700" font-size="15" fill="#00ADD8">[]Event</text>
+      <text x="700" y="44" font-family="Sans" font-size="13" fill="#93A4B8">slice — danh sách, thêm bằng append</text>
+
+      <text x="0" y="76" font-family="Mono" font-size="15" fill="#B39DFF">['a' =&gt; 1]</text>
+      <text x="480" y="76" font-family="Mono" font-weight="700" font-size="15" fill="#00ADD8">[5]Event</text>
+      <text x="700" y="76" font-family="Sans" font-size="13" fill="#93A4B8">array — độ dài cố định, hiếm dùng</text>
+
+      <text x="480" y="108" font-family="Mono" font-weight="700" font-size="15" fill="#00ADD8">map[string]int</text>
+      <text x="700" y="108" font-family="Sans" font-size="13" fill="#93A4B8">mảng kết hợp — và duyệt thì ngẫu nhiên</text>
+
+      <text x="0" y="108" font-family="Sans" font-size="12.5" fill="#5C6E85">PHP không bắt chọn.</text>
+    </svg>
+  </div>
+</section>
+
+<section class="terms">
+  <div class="term" style="--accent: var(--danger)">
+    <div class="w">append</div>
+    <div class="d">Trả về slice mới, không sửa slice cũ. Quên gán lại là mất dữ liệu, và không có lỗi nào báo.</div>
+    <div class="s"><b>bên Symfony</b>$a[] = $x; — sửa thẳng vào mảng, không phải gán lại.</div>
+  </div>
+  <div class="term" style="--accent: var(--go)">
+    <div class="w">slice</div>
+    <div class="d">Ba con số: con trỏ tới mảng thật, độ dài, sức chứa. Là struct nên bị chép khi truyền đi.</div>
+    <div class="s"><b>bên Symfony</b>array — PHP không phân biệt slice với mảng cố định.</div>
+  </div>
+  <div class="term" style="--accent: var(--money)">
+    <div class="w">map</div>
+    <div class="d">Mảng kết hợp. Duyệt theo thứ tự ngẫu nhiên, cố ý — cần thứ tự thì phải sort.</div>
+    <div class="s"><b>bên Symfony</b>mảng kết hợp giữ thứ tự chèn, luôn luôn.</div>
+  </div>
+</section>
+
+<div class="rule" style="margin-top:34px"></div>
+<footer>
+  <div class="counts">
+    <div class="count"><div class="n" style="color:var(--danger)">1</div><div class="l">dòng quên gán lại là mất event</div></div>
+    <div class="count"><div class="n" style="color:var(--money)">0</div><div class="l">cách bắt map giữ thứ tự</div></div>
+    <div class="count"><div class="n" style="color:var(--go)">3</div><div class="l">kiểu thay cho một array của PHP</div></div>
+  </div>
+  <div class="ask">
+    <div class="h">Phỏng vấn sẽ hỏi</div>
+    <div class="q">Vì sao append phải gán lại kết quả?<br>Vì sao Go xáo thứ tự khi duyệt map?<br>Slice và array khác nhau ở chỗ nào?</div>
+  </div>
+</footer>
+</html>

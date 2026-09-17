@@ -1,0 +1,105 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Afterimage Plate 3.02 — Outbox</title>
+<link rel="stylesheet" href="plate.css">
+<style>
+  /* Rhythm of this plate only — the shared language lives in plate.css. */
+  .specimens { margin-top: 40px; }
+  .spec { display: flex; gap: 22px; align-items: flex-start; }
+  .spec + .spec { margin-top: 30px; }
+  .gutter { width: 128px; flex: none; text-align: right; padding-top: 10px; }
+  .gutter .id { font-family: "Mono"; font-weight: 700; font-size: 13px; letter-spacing: .12em; }
+  .gutter .cap { font-family: "Clinical"; font-weight: 300; font-size: 10.5px; letter-spacing: .18em; color: var(--faint); margin-top: 5px; text-transform: uppercase; }
+  .terms { display: flex; gap: 22px; margin-top: 34px; }
+</style>
+
+<div class="ground"></div>
+
+<header>
+  <div>
+    <h1>Hai việc,<em> một transaction.</em></h1>
+    <div class="sub">“Lưu xong rồi publish” hỏng ở đúng một chỗ — và chỗ đó là một khe hở không có lỗi nào báo.</div>
+  </div>
+  <div class="plateno">
+    <div class="clinical">Afterimage · Plate 3.02</div>
+    <div class="sys" style="font-size:12px;color:var(--go)">MÙA 3 · TẬP 2</div>
+    <div class="clinical">Outbox</div>
+  </div>
+</header>
+<div class="rule"></div>
+
+<section class="specimens">
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--danger)">3.02 · A</div>
+      <div class="cap">khe hở</div>
+    </div>
+    <svg width="1297" height="110" viewBox="0 0 1297 110" fill="none">
+      <defs>
+        <marker id="ah" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="9" refX="10" refY="4.5" orient="auto">
+          <path d="M0,0 L11,4.5 L0,9 z" fill="#35485E"/>
+        </marker>
+        <marker id="ahd" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="9" refX="10" refY="4.5" orient="auto">
+          <path d="M0,0 L11,4.5 L0,9 z" fill="#FF6B6B"/>
+        </marker>
+        <marker id="ahg" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="9" refX="10" refY="4.5" orient="auto">
+          <path d="M0,0 L11,4.5 L0,9 z" fill="#4ADE80"/>
+        </marker>
+      </defs>
+      <text x="0" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#FF6B6B">CÁCH AI CŨNG VIẾT TRƯỚC</text>
+      <rect x="0" y="24" width="400" height="72" rx="3" fill="#141C26" stroke="#4ADE80"/>
+      <text x="200" y="55" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13" fill="#4ADE80">COMMIT: đơn = đã cọc</text>
+      <text x="200" y="75" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">database đã ghi xong</text>
+      <path d="M406 60 L 444 60" stroke="#FF6B6B" stroke-width="1.6" marker-end="url(#ahd)"/>
+      <rect x="450" y="24" width="340" height="72" rx="3" fill="rgba(255,107,107,.07)" stroke="#FF6B6B"/>
+      <text x="620" y="55" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13" fill="#FF6B6B">tiến trình chết</text>
+      <text x="620" y="75" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">ở đúng đây</text>
+      <path d="M796 60 L 834 60" stroke="#FF6B6B" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#ahd)"/>
+      <rect x="840" y="24" width="457" height="72" rx="3" fill="#141C26" stroke="#5C6E85" stroke-dasharray="5 4"/>
+      <text x="1068" y="55" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13" fill="#5C6E85">publish deposit_paid</text>
+      <text x="1068" y="75" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">không bao giờ chạy</text>
+    </svg>
+  </div>
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--money)">3.02 · B</div>
+      <div class="cap">cách chữa</div>
+    </div>
+    <svg width="1297" height="118" viewBox="0 0 1297 118" fill="none">
+      <text x="0" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#5C6E85">internal/adapter/postgres/outbox.go:35 — GHI VÀO MỘT CÁI BẢNG</text>
+      <rect x="0" y="24" width="740" height="82" rx="3" fill="#141C26" stroke="#F2B33D"/>      <text x="18" y="50" font-family="Mono" font-size="14.5" font-weight="700" fill="#F2B33D">q := db(ctx, o.pool)</text>      <text x="18" y="74" font-family="Mono" font-size="14.5" fill="#93A4B8">q.Exec(ctx, `INSERT INTO outbox (event_name, …) VALUES …`)</text>      <text x="18" y="98" font-family="Sans" font-size="12" fill="#5C6E85">db(ctx, …) lấy transaction đang mở ra từ ctx</text>      <text x="780" y="50" font-family="Sans" font-size="13.5" fill="#E8EFF6">Nên INSERT này đi chung chuyến với đơn hàng.</text>      <text x="780" y="76" font-family="Sans" font-size="13.5" fill="#93A4B8">Bài toán đổi từ “hai hệ thống phải cùng thành công”</text>      <text x="780" y="98" font-family="Sans" font-size="13.5" fill="#4ADE80">thành “một database phải commit”.</text>
+    </svg>
+  </div>
+</section>
+
+<section class="terms">
+  <div class="term" style="--accent: var(--money)">
+    <div class="w">outbox</div>
+    <div class="d">Một bảng trong chính database đó. Event ghi vào nó cùng transaction với dữ liệu.</div>
+    <div class="s"><b>bên Symfony</b>Messenger với doctrine transport — cùng ý tưởng: hàng đợi nằm trong database.</div>
+  </div>
+  <div class="term" style="--accent: var(--go)">
+    <div class="w">relay</div>
+    <div class="d">Một worker đọc outbox rồi publish. Chạy mỗi 200ms, và là một bước riêng — không tự động.</div>
+    <div class="s"><b>bên Symfony</b>messenger:consume — nhưng ở đây nó đọc từ bảng, không từ broker.</div>
+  </div>
+  <div class="term" style="--accent: var(--ok)">
+    <div class="w">at-least-once</div>
+    <div class="d">Relay có thể gửi lại. Nên mọi listener phải chịu được việc nhận trùng.</div>
+    <div class="s"><b>bên Symfony</b>Cũng vậy với mọi queue — chỉ là ở đây nói thẳng ra thay vì hy vọng.</div>
+  </div>
+</section>
+
+<div class="rule" style="margin-top:34px"></div>
+<footer>
+  <div class="counts">
+    <div class="count"><div class="n" style="color:var(--money)">1</div><div class="l">transaction cho cả hai việc</div></div>
+    <div class="count"><div class="n" style="color:var(--go)">200</div><div class="l">mili giây mỗi vòng relay</div></div>
+    <div class="count"><div class="n" style="color:var(--ok)">0</div><div class="l">event mất khi tiến trình chết</div></div>
+  </div>
+  <div class="ask">
+    <div class="h">Phỏng vấn sẽ hỏi</div>
+    <div class="q">Outbox pattern giải quyết vấn đề gì?<br>Vì sao không publish thẳng sau khi lưu?<br>Làm sao bảo đảm INSERT vào outbox cùng transaction với dữ liệu?</div>
+  </div>
+</footer>
+</html>

@@ -1,0 +1,115 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Afterimage Plate 3.04 — Port & Adapter</title>
+<link rel="stylesheet" href="plate.css">
+<style>
+  /* Rhythm of this plate only — the shared language lives in plate.css. */
+  .specimens { margin-top: 40px; }
+  .spec { display: flex; gap: 22px; align-items: flex-start; }
+  .spec + .spec { margin-top: 30px; }
+  .gutter { width: 128px; flex: none; text-align: right; padding-top: 10px; }
+  .gutter .id { font-family: "Mono"; font-weight: 700; font-size: 13px; letter-spacing: .12em; }
+  .gutter .cap { font-family: "Clinical"; font-weight: 300; font-size: 10.5px; letter-spacing: .18em; color: var(--faint); margin-top: 5px; text-transform: uppercase; }
+  .terms { display: flex; gap: 22px; margin-top: 34px; }
+</style>
+
+<div class="ground"></div>
+
+<header>
+  <div>
+    <h1>278 test,<em> dưới hai giây.</em></h1>
+    <div class="sub">Không phải vì test viết khéo — mà vì không có gì trong domain chạm được tới database.</div>
+  </div>
+  <div class="plateno">
+    <div class="clinical">Afterimage · Plate 3.04</div>
+    <div class="sys" style="font-size:12px;color:var(--go)">MÙA 3 · TẬP 4</div>
+    <div class="clinical">Port & Adapter</div>
+  </div>
+</header>
+<div class="rule"></div>
+
+<section class="specimens">
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--ok)">3.04 · A</div>
+      <div class="cap">chiều phụ thuộc</div>
+    </div>
+    <svg width="1297" height="130" viewBox="0 0 1297 130" fill="none">
+      <defs>
+        <marker id="ah" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="9" refX="10" refY="4.5" orient="auto">
+          <path d="M0,0 L11,4.5 L0,9 z" fill="#35485E"/>
+        </marker>
+        <marker id="ahd" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="9" refX="10" refY="4.5" orient="auto">
+          <path d="M0,0 L11,4.5 L0,9 z" fill="#FF6B6B"/>
+        </marker>
+        <marker id="ahg" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="9" refX="10" refY="4.5" orient="auto">
+          <path d="M0,0 L11,4.5 L0,9 z" fill="#4ADE80"/>
+        </marker>
+      </defs>
+      <text x="0" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#5C6E85">MỌI MŨI TÊN CHẠY VÀO TRONG — KHÔNG CÓ NGOẠI LỆ</text>
+      <rect x="0" y="24" width="300" height="46" rx="3" fill="#141C26" stroke="#F2B33D"/>
+      <text x="150" y="47" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13" fill="#F2B33D">internal/adapter</text>
+      <rect x="0" y="80" width="300" height="46" rx="3" fill="#141C26" stroke="#F2B33D"/>
+      <text x="150" y="103" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13" fill="#F2B33D">internal/platform</text>
+      <path d="M306 47 L 384 66" stroke="#F2B33D" stroke-width="1.6" marker-end="url(#ah)"/>      <path d="M306 103 L 384 84" stroke="#F2B33D" stroke-width="1.6" marker-end="url(#ah)"/>
+      <rect x="390" y="42" width="400" height="66" rx="3" fill="#141C26" stroke="#00ADD8"/>
+      <text x="590" y="70" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13" fill="#00ADD8">internal/app</text>
+      <text x="590" y="90" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">use case + port</text>
+      <path d="M796 75 L 834 75" stroke="#00ADD8" stroke-width="1.6" marker-end="url(#ah)"/>
+      <rect x="840" y="42" width="457" height="66" rx="3" fill="#141C26" stroke="#4ADE80"/>
+      <text x="1068" y="70" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13" fill="#4ADE80">internal/domain</text>
+      <text x="1068" y="90" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">chỉ stdlib + uuid</text>
+    </svg>
+  </div>
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--go)">3.04 · B</div>
+      <div class="cap">đo được</div>
+    </div>
+    <svg width="1297" height="96" viewBox="0 0 1297 96" fill="none">
+      <text x="0" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#5C6E85">internal/domain/decisions_test.go — LUẬT CÓ TEST CANH</text>
+      <rect x="0" y="24" width="420" height="62" rx="3" fill="#141C26" stroke="#4ADE80"/>
+      <text x="210" y="50" text-anchor="middle" font-family="Mono" font-weight="700" font-size="20" fill="#4ADE80">278 test</text>
+      <text x="210" y="70" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">dưới 2 giây, không cần Docker</text>
+      <rect x="450" y="24" width="420" height="62" rx="3" fill="#141C26" stroke="#00ADD8"/>
+      <text x="660" y="50" text-anchor="middle" font-family="Mono" font-weight="700" font-size="20" fill="#00ADD8">7 test go/ast</text>
+      <text x="660" y="70" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">canh luật vàng</text>
+      <rect x="900" y="24" width="397" height="62" rx="3" fill="#141C26" stroke="#F2B33D"/>
+      <text x="1098" y="50" text-anchor="middle" font-family="Mono" font-weight="700" font-size="20" fill="#F2B33D">48 dòng var _</text>
+      <text x="1098" y="70" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">khẳng định lúc biên dịch</text>
+    </svg>
+  </div>
+</section>
+
+<section class="terms">
+  <div class="term" style="--accent: var(--go)">
+    <div class="w">port</div>
+    <div class="d">Interface do phía cần khai báo. Repository, Clock, Outbox, UnitOfWork đều là port.</div>
+    <div class="s"><b>bên Symfony</b>Interface của bạn cũng là port — nhưng container tự cắm nên ít khi phải nghĩ tới chiều.</div>
+  </div>
+  <div class="term" style="--accent: var(--money)">
+    <div class="w">adapter</div>
+    <div class="d">Bản cài đặt, nằm vòng ngoài. Postgres, bộ nhớ, HTTP, OpenAI.</div>
+    <div class="s"><b>bên Symfony</b>ServiceEntityRepository — nhưng ở đó domain biết Doctrine tồn tại.</div>
+  </div>
+  <div class="term" style="--accent: var(--ok)">
+    <div class="w">luật chiều phụ thuộc</div>
+    <div class="d">Vòng trong không biết vòng ngoài. Domain không biết Postgres hay HTTP tồn tại.</div>
+    <div class="s"><b>bên Symfony</b>Deptrac ép được điều này — nhưng phải cài thêm và cấu hình riêng.</div>
+  </div>
+</section>
+
+<div class="rule" style="margin-top:34px"></div>
+<footer>
+  <div class="counts">
+    <div class="count"><div class="n" style="color:var(--ok)">278</div><div class="l">test dưới 2 giây</div></div>
+    <div class="count"><div class="n" style="color:var(--go)">7</div><div class="l">test canh kiến trúc</div></div>
+    <div class="count"><div class="n" style="color:var(--money)">48</div><div class="l">dòng var _ khẳng định</div></div>
+    <div class="count"><div class="n" style="color:var(--faint)">0</div><div class="l">import database trong domain</div></div>
+  </div>
+  <div class="ask">
+    <div class="h">Phỏng vấn sẽ hỏi</div>
+    <div class="q">Port khác adapter ở chỗ nào?<br>Vì sao domain không được import package của adapter?<br>Làm sao ép luật kiến trúc trong một codebase Go?</div>
+  </div>
+</footer>
+</html>

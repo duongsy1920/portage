@@ -160,11 +160,38 @@ không trên pallet.
 | `docs/GO-CHO-PHP.md` | cú pháp Go tra nhanh cho người viết PHP |
 | `docs/P10-PLAN.md` | plan gốc của P10 (đã xong, đợt 20) — operator đặt hộ có ghi tên; giữ để thấy cách chốt quyết định |
 | `docs/P9-PLAN.md` | plan gốc của P9 (đã xong hết) — giữ để thấy cách chốt quyết định |
+| `learn/CURRICULUM.md` | **loạt video học, 24 tập**: Mùa 1 Go (10), Mùa 2 DDD (6), Mùa 3 Portage (8). Kèm bốn cửa kiểm ở §12 |
 | `docs/UI-GUIDE.md` | **bốn màn hình và bấm gì trên từng cái**: trang khách, trang nhân viên, mô phỏng, bảng kiểm API; 10 nhánh rẽ nên thử; bảng hỏng-thì-xem |
 
 **`docs/SETUP.md` §9 là chỗ quan trọng nhất khi tiếp tục việc**: 20 đợt review,
 mỗi đợt một bảng "quyết định / bug → chỗ nó nằm". Đọc 2–3 đợt cuối là nắm được
 vì sao code hiện tại trông như vậy.
+
+## Loạt video học — `learn/`
+
+Thư mục `learn/` là một project Remotion **tách hẳn** khỏi code Go (không import
+gì của nhau). 24 tập, mỗi tập một video và một bản in A3:
+
+```
+learn/out/mua1-go/       10 tập — Go cho người viết PHP
+learn/out/mua2-ddd/       6 tập — DDD, bằng ví dụ Symfony đã quen
+learn/out/mua3-portage/   8 tập — vì sao project thật này trông như vậy
+```
+
+**Thêm một tập** = một `spec.ts` + vài cảnh + một dòng trong `src/videos/index.ts`.
+Không sửa `Root.tsx`, không sửa script nào.
+
+**Bốn cửa kiểm trước khi báo xong** (`tsc` xanh không chứng minh được gì):
+
+```bash
+cd learn
+./scripts/verify-numbers.sh        # 11 con số vs repo Go thật
+python3 scripts/verify-snippets.py # mọi dòng code lên hình có thật trong file nó khai
+python3 scripts/check-overflow.py  # 110 cảnh, không cảnh nào tràn khung
+./scripts/render-plates.sh         # 24 bản in → PNG @2x + PDF A3
+```
+
+Chi tiết: `learn/CURRICULUM.md`.
 
 ## Lệnh hay dùng
 

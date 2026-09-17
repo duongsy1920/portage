@@ -1,0 +1,124 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Afterimage Plate 2.05 — Bounded Context</title>
+<link rel="stylesheet" href="plate.css">
+<style>
+  /* Rhythm of this plate only — the shared language lives in plate.css. */
+  .specimens { margin-top: 40px; }
+  .spec { display: flex; gap: 22px; align-items: flex-start; }
+  .spec + .spec { margin-top: 30px; }
+  .gutter { width: 128px; flex: none; text-align: right; padding-top: 10px; }
+  .gutter .id { font-family: "Mono"; font-weight: 700; font-size: 13px; letter-spacing: .12em; }
+  .gutter .cap { font-family: "Clinical"; font-weight: 300; font-size: 10.5px; letter-spacing: .18em; color: var(--faint); margin-top: 5px; text-transform: uppercase; }
+  .terms { display: flex; gap: 22px; margin-top: 34px; }
+</style>
+
+<div class="ground"></div>
+
+<header>
+  <div>
+    <h1>Một chữ <em>Variant</em>,<em> ba nghĩa.</em></h1>
+    <div class="sub">Ba file thật, ba package, ba hình dạng — và không ai phải họp để thống nhất định nghĩa.</div>
+  </div>
+  <div class="plateno">
+    <div class="clinical">Afterimage · Plate 2.05</div>
+    <div class="sys" style="font-size:12px;color:var(--go)">MÙA 2 · TẬP 5</div>
+    <div class="clinical">Bounded Context</div>
+  </div>
+</header>
+<div class="rule"></div>
+
+<section class="specimens">
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--go)">2.05 · A</div>
+      <div class="cap">ba file thật</div>
+    </div>
+    <svg width="1297" height="176" viewBox="0 0 1297 176" fill="none">
+      <text x="0" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#7AA2F7">CATALOG — AI BÁN, CỠ NÀO, MÀU GÌ</text>      <text x="450" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#9D7CD8">ORDERING — CHỈ CẦN BIẾT CÁI NÀO</text>      <text x="900" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#E06C75">PROCUREMENT — ĐỦ CHỮ ĐỂ ĐI MUA</text>
+      <rect x="0" y="24" width="420" height="142" rx="3" fill="#141C26" stroke="#7AA2F7"/>      <text x="16" y="48" font-family="Mono" font-size="13.5" fill="#E8EFF6">type Variant struct {</text>      <text x="16" y="70" font-family="Mono" font-size="13.5" fill="#93A4B8">    id          VariantID</text>      <text x="16" y="92" font-family="Mono" font-size="13.5" fill="#93A4B8">    size        string</text>      <text x="16" y="114" font-family="Mono" font-size="13.5" fill="#93A4B8">    color       string</text>      <text x="16" y="136" font-family="Mono" font-size="13.5" fill="#93A4B8">    merchantRef string</text>      <text x="16" y="158" font-family="Mono" font-size="13.5" fill="#E8EFF6">}</text>
+      <rect x="450" y="24" width="420" height="142" rx="3" fill="#141C26" stroke="#9D7CD8"/>      <text x="466" y="48" font-family="Mono" font-size="13.5" fill="#E8EFF6">type Variant struct {</text>      <text x="466" y="70" font-family="Mono" font-size="13.5" fill="#93A4B8">    Variant shared.ID</text>      <text x="466" y="92" font-family="Mono" font-size="13.5" fill="#93A4B8">    Product shared.ID</text>      <text x="466" y="114" font-family="Mono" font-size="13.5" fill="#E8EFF6">}</text>      <text x="466" y="150" font-family="Sans" font-size="12" fill="#5C6E85">hai field. Đủ để từ chối đơn sai.</text>
+      <rect x="900" y="24" width="397" height="142" rx="3" fill="#141C26" stroke="#E06C75"/>      <text x="916" y="48" font-family="Mono" font-size="13.5" fill="#E8EFF6">type Variant struct {</text>      <text x="916" y="70" font-family="Mono" font-size="13.5" fill="#93A4B8">    Variant, Product shared.ID</text>      <text x="916" y="92" font-family="Mono" font-size="13.5" fill="#93A4B8">    Size, Color      string</text>      <text x="916" y="114" font-family="Mono" font-size="13.5" fill="#93A4B8">    MerchantRef      string</text>      <text x="916" y="136" font-family="Mono" font-size="13.5" fill="#E8EFF6">}</text>
+    </svg>
+  </div>
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--danger)">2.05 · B</div>
+      <div class="cap">vì sao không gộp</div>
+    </div>
+    <svg width="1297" height="96" viewBox="0 0 1297 96" fill="none">
+      <text x="0" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#FF6B6B">THIẾT KẾ ĐÃ TỪ CHỐI: MỘT ĐỊNH NGHĨA CHUNG CHO CẢ HỆ</text>
+      <rect x="0" y="24" width="620" height="62" rx="3" fill="rgba(255,107,107,.07)" stroke="#FF6B6B" stroke-dasharray="5 4"/>
+      <text x="310" y="50" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13" fill="#FF6B6B">package shared → type Variant</text>
+      <text x="310" y="70" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">mọi context dùng chung</text>      <text x="660" y="48" font-family="Sans" font-size="13.5" fill="#93A4B8">Catalog thêm một field phải xin phép bốn vùng khác.</text>      <text x="660" y="74" font-family="Sans" font-size="13.5" fill="#93A4B8">Ordering chỉ cần hai field, nhưng phải mang theo cả sáu.</text>
+    </svg>
+  </div>
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--ok)">2.05 · C</div>
+      <div class="cap">vậy đồng bộ kiểu gì</div>
+    </div>
+    <svg width="1297" height="112" viewBox="0 0 1297 112" fill="none">
+      <defs>
+        <marker id="ahok" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="9" refX="10" refY="4.5" orient="auto">
+          <path d="M0,0 L11,4.5 L0,9 z" fill="#4ADE80"/>
+        </marker>
+      </defs>
+      <text x="0" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#5C6E85">KHÔNG IMPORT NHAU — CHÚNG KỂ LẠI BẰNG EVENT</text>
+
+      <rect x="0" y="24" width="300" height="66" rx="3" fill="#141C26" stroke="#7AA2F7"/>
+      <text x="150" y="52" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13.5" fill="#7AA2F7">catalog</text>
+      <text x="150" y="74" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">thêm một size mới</text>
+
+      <path d="M306 57 L 344 57" stroke="#4ADE80" stroke-width="1.6" marker-end="url(#ahok)"/>
+
+      <rect x="350" y="24" width="330" height="66" rx="3" fill="#141C26" stroke="#4ADE80"/>
+      <text x="515" y="52" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13.5" fill="#4ADE80">catalog.variant_added</text>
+      <text x="515" y="74" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">một event, qua outbox</text>
+
+      <path d="M686 42 L 724 42" stroke="#4ADE80" stroke-width="1.6" marker-end="url(#ahok)"/>
+      <path d="M686 74 L 724 74" stroke="#4ADE80" stroke-width="1.6" marker-end="url(#ahok)"/>
+
+      <rect x="730" y="22" width="280" height="36" rx="3" fill="#141C26" stroke="#9D7CD8"/>
+      <text x="870" y="45" text-anchor="middle" font-family="Sans" font-size="12" fill="#9D7CD8">ordering giữ bảng chiếu mỏng</text>
+
+      <rect x="730" y="58" width="280" height="36" rx="3" fill="#141C26" stroke="#E06C75"/>
+      <text x="870" y="81" text-anchor="middle" font-family="Sans" font-size="12" fill="#E06C75">procurement giữ bảng đủ chữ</text>
+
+      <text x="1040" y="48" font-family="Sans" font-size="13" fill="#E8EFF6">Mỗi vùng tự chép lấy phần nó cần,</text>
+      <text x="1040" y="72" font-family="Sans" font-size="13" fill="#93A4B8">theo hình dạng của riêng nó.</text>
+    </svg>
+  </div>
+</section>
+
+<section class="terms">
+  <div class="term" style="--accent: var(--go)">
+    <div class="w">bounded context</div>
+    <div class="d">Một vùng mà trong đó mỗi từ chỉ có một nghĩa.</div>
+    <div class="s"><b>bên Symfony</b>Gần với một bundle có mô hình riêng — nhưng ở đây ranh giới là package, và có test canh.</div>
+  </div>
+  <div class="term" style="--accent: var(--ok)">
+    <div class="w">shared kernel</div>
+    <div class="d">Phần nhỏ mọi vùng dùng chung: <span class="sys" style="font-size:12.5px">Money</span>, <span class="sys" style="font-size:12.5px">Weight</span>, <span class="sys" style="font-size:12.5px">ID</span>. Càng nhỏ càng tốt.</div>
+    <div class="s"><b>bên Symfony</b>Một bundle Common — cùng ý, và cùng cái bẫy là nó phình ra.</div>
+  </div>
+  <div class="term" style="--accent: var(--money)">
+    <div class="w">published language</div>
+    <div class="d">Chữ hai vùng dùng để nói chuyện với nhau: <span class="sys" style="font-size:12.5px">contracts/*V1</span>, không phải struct nội bộ.</div>
+    <div class="s"><b>bên Symfony</b>DTO của message — cùng vai trò, và cùng lý do phải đánh version.</div>
+  </div>
+</section>
+
+<div class="rule" style="margin-top:34px"></div>
+<footer>
+  <div class="counts">
+    <div class="count"><div class="n" style="color:var(--go)">3</div><div class="l">kiểu tên Variant, ba package</div></div>
+    <div class="count"><div class="n" style="color:var(--ordering)">5</div><div class="l">bounded context</div></div>
+    <div class="count"><div class="n" style="color:var(--ok)">0</div><div class="l">import chéo giữa các context</div></div>
+  </div>
+  <div class="ask">
+    <div class="h">Phỏng vấn sẽ hỏi</div>
+    <div class="q">Bounded context là gì, và khác module ở chỗ nào?<br>Hai context cùng nói về một thứ thì đồng bộ kiểu gì?<br>Vì sao không nên có một mô hình chung cho cả hệ thống?</div>
+  </div>
+</footer>
+</html>

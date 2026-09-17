@@ -1,0 +1,127 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Afterimage Plate 1.05 — Interface ngầm</title>
+<link rel="stylesheet" href="plate.css">
+<style>
+  /* Rhythm of this plate only — the shared language lives in plate.css. */
+  .specimens { margin-top: 40px; }
+  .spec { display: flex; gap: 22px; align-items: flex-start; }
+  .spec + .spec { margin-top: 30px; }
+  .gutter { width: 128px; flex: none; text-align: right; padding-top: 10px; }
+  .gutter .id { font-family: "Mono"; font-weight: 700; font-size: 13px; letter-spacing: .12em; }
+  .gutter .cap { font-family: "Clinical"; font-weight: 300; font-size: 10.5px; letter-spacing: .18em; color: var(--faint); margin-top: 5px; text-transform: uppercase; }
+  .terms { display: flex; gap: 22px; margin-top: 34px; }
+</style>
+
+<div class="ground"></div>
+
+<header>
+  <div>
+    <h1>Không có<em> implements.</em></h1>
+    <div class="sub">Có đủ method là dùng được — và vì thế mũi tên phụ thuộc chạy vào trong.</div>
+  </div>
+  <div class="plateno">
+    <div class="clinical">Afterimage · Plate 1.05</div>
+    <div class="sys" style="font-size:12px;color:var(--go)">MÙA 1 · TẬP 5</div>
+    <div class="clinical">Interface ngầm</div>
+  </div>
+</header>
+<div class="rule"></div>
+
+<section class="specimens">
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--go)">1.05 · A</div>
+      <div class="cap">không ai khai báo gì</div>
+    </div>
+    <svg width="1297" height="142" viewBox="0 0 1297 142" fill="none">
+      <defs>
+        <marker id="ah" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="9" refX="10" refY="4.5" orient="auto">
+          <path d="M0,0 L11,4.5 L0,9 z" fill="#35485E"/>
+        </marker>
+        <marker id="ahd" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="9" refX="10" refY="4.5" orient="auto">
+          <path d="M0,0 L11,4.5 L0,9 z" fill="#FF6B6B"/>
+        </marker>
+        <marker id="ahg" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="9" refX="10" refY="4.5" orient="auto">
+          <path d="M0,0 L11,4.5 L0,9 z" fill="#4ADE80"/>
+        </marker>
+      </defs>
+      <text x="0" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#00ADD8">app/ports.go — INTERFACE, KHAI Ở PACKAGE CẦN NÓ</text>
+      <rect x="0" y="24" width="620" height="110" rx="3" fill="#141C26" stroke="#00ADD8"/>
+      <text x="18" y="52" font-family="Mono" font-size="15" fill="#E8EFF6">type UnitOfWork interface {</text>
+      <text x="18" y="76" font-family="Mono" font-size="15" fill="#93A4B8">    InTx(ctx, fn) error</text>
+      <text x="18" y="100" font-family="Mono" font-size="15" fill="#E8EFF6">}</text>
+      <text x="18" y="124" font-family="Sans" font-size="12.5" fill="#5C6E85">một method. Bản giả cho test viết trong ba dòng.</text>
+
+      <text x="677" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#4ADE80">adapter/postgres — KHÔNG NHẮC TÊN INTERFACE NÀO</text>
+      <rect x="677" y="24" width="620" height="110" rx="3" fill="#141C26" stroke="#4ADE80"/>
+      <text x="695" y="52" font-family="Mono" font-size="15" fill="#E8EFF6">type ProductRepo struct { pool *pgxpool.Pool }</text>
+      <text x="695" y="82" font-family="Mono" font-size="15" fill="#4ADE80">var _ catalog.ProductRepository = (*ProductRepo)(nil)</text>
+      <text x="695" y="112" font-family="Sans" font-size="12.5" fill="#5C6E85">dòng này là tuỳ chọn — nó chỉ kéo lỗi về đúng file gây lỗi.</text>
+    </svg>
+  </div>
+
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--money)">1.05 · B</div>
+      <div class="cap">mũi tên chạy vào</div>
+    </div>
+    <svg width="1297" height="180" viewBox="0 0 1297 180" fill="none">
+      <text x="0" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#5C6E85">CẢ HAI PHÍA ĐỀU TRỎ VÀO INTERFACE — VÀ KHÔNG PHÍA NÀO BIẾT PHÍA KIA</text>
+
+      <rect x="0" y="54" width="360" height="72" rx="3" fill="#141C26" stroke="#00ADD8"/>
+      <text x="180" y="84" text-anchor="middle" font-family="Mono" font-weight="700" font-size="14" fill="#00ADD8">app/pricing</text>
+      <text x="180" y="105" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">cần một chỗ lưu</text>
+      <path d="M366 90 L 448 90" stroke="#00ADD8" stroke-width="1.6" marker-end="url(#ah)"/>
+
+      <rect x="454" y="40" width="390" height="100" rx="3" fill="rgba(242,179,61,.08)" stroke="#F2B33D"/>
+      <text x="649" y="76" text-anchor="middle" font-family="Mono" font-weight="700" font-size="15" fill="#F2B33D">interface</text>
+      <text x="649" y="99" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">khai ở package cần nó</text>
+      <text x="649" y="120" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#5C6E85">không ở package làm ra nó</text>
+
+      <path d="M936 62 L 856 62" stroke="#4ADE80" stroke-width="1.6" marker-end="url(#ahg)"/>
+      <path d="M936 118 L 856 118" stroke="#4ADE80" stroke-width="1.6" marker-end="url(#ahg)"/>
+
+      <rect x="942" y="30" width="355" height="62" rx="3" fill="#141C26" stroke="#4ADE80"/>
+      <text x="1119" y="56" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13.5" fill="#4ADE80">adapter/postgres</text>
+      <text x="1119" y="76" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">có đủ method</text>
+
+      <rect x="942" y="102" width="355" height="62" rx="3" fill="#141C26" stroke="#4ADE80"/>
+      <text x="1119" y="128" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13.5" fill="#4ADE80">adapter/memory</text>
+      <text x="1119" y="148" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">cũng có đủ method</text>
+    </svg>
+  </div>
+</section>
+
+<section class="terms">
+  <div class="term" style="--accent: var(--go)">
+    <div class="w">interface ngầm</div>
+    <div class="d">Không khai báo là mình theo interface nào. Có đủ method là dùng được ở mọi nơi cần interface đó.</div>
+    <div class="s"><b>bên Symfony</b>implements XInterface — phải viết ra, và phải viết ở class.</div>
+  </div>
+  <div class="term" style="--accent: var(--ok)">
+    <div class="w">var _ X = (*Y)(nil)</div>
+    <div class="d">Bảo trình biên dịch kiểm ngay tại file này. Dấu <span class="sys" style="font-size:12.5px">_</span> là vứt giá trị đi, chỉ giữ phép kiểm.</div>
+    <div class="s"><b>bên Symfony</b>không cần — implements đã bắt buộc kiểm rồi.</div>
+  </div>
+  <div class="term" style="--accent: var(--money)">
+    <div class="w">port</div>
+    <div class="d">Interface mô tả thứ tầng app cần từ bên ngoài: đồng hồ, transaction, outbox.</div>
+    <div class="s"><b>bên Symfony</b>ClockInterface, EntityManager, MessageBus — cùng vai, nhưng container tự cắm.</div>
+  </div>
+</section>
+
+<div class="rule" style="margin-top:34px"></div>
+<footer>
+  <div class="counts">
+    <div class="count"><div class="n" style="color:var(--ok)">48</div><div class="l">dòng var _ khẳng định</div></div>
+    <div class="count"><div class="n" style="color:var(--go)">34</div><div class="l">interface trong repo</div></div>
+    <div class="count"><div class="n" style="color:var(--money)">278</div><div class="l">test chạy dưới 2 giây</div></div>
+    <div class="count"><div class="n" style="color:var(--faint)">0</div><div class="l">từ khoá implements</div></div>
+  </div>
+  <div class="ask">
+    <div class="h">Phỏng vấn sẽ hỏi</div>
+    <div class="q">Interface của Go khác interface của PHP ở chỗ nào?<br>Vì sao nên khai interface ở phía người dùng nó?<br>var _ X = (*Y)(nil) để làm gì?</div>
+  </div>
+</footer>
+</html>

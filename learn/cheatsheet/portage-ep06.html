@@ -1,0 +1,87 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Afterimage Plate 3.06 — Báo giá và đối soát</title>
+<link rel="stylesheet" href="plate.css">
+<style>
+  /* Rhythm of this plate only — the shared language lives in plate.css. */
+  .specimens { margin-top: 40px; }
+  .spec { display: flex; gap: 22px; align-items: flex-start; }
+  .spec + .spec { margin-top: 30px; }
+  .gutter { width: 128px; flex: none; text-align: right; padding-top: 10px; }
+  .gutter .id { font-family: "Mono"; font-weight: 700; font-size: 13px; letter-spacing: .12em; }
+  .gutter .cap { font-family: "Clinical"; font-weight: 300; font-size: 10.5px; letter-spacing: .18em; color: var(--faint); margin-top: 5px; text-transform: uppercase; }
+  .terms { display: flex; gap: 22px; margin-top: 34px; }
+</style>
+
+<div class="ground"></div>
+
+<header>
+  <div>
+    <h1>Báo giá là <em>một bức ảnh.</em></h1>
+    <div class="sub">Tỷ giá đổi, cước đổi, cân thật khác cân đo — nhưng con số đã hứa với khách thì không đổi.</div>
+  </div>
+  <div class="plateno">
+    <div class="clinical">Afterimage · Plate 3.06</div>
+    <div class="sys" style="font-size:12px;color:var(--go)">MÙA 3 · TẬP 6</div>
+    <div class="clinical">Báo giá và đối soát</div>
+  </div>
+</header>
+<div class="rule"></div>
+
+<section class="specimens">
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--money)">3.06 · A</div>
+      <div class="cap">hai nửa</div>
+    </div>
+    <svg width="1297" height="136" viewBox="0 0 1297 136" fill="none">
+      <text x="0" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#5C6E85">internal/domain/pricing/reconciliation.go:21 — GIỮ CẢ HAI NỬA</text>
+      <rect x="0" y="24" width="620" height="100" rx="3" fill="#141C26" stroke="#F2B33D"/>      <text x="18" y="50" font-family="Mono" font-size="15" font-weight="700" fill="#F2B33D">QuotedGoods    163.22 USD</text>      <text x="18" y="76" font-family="Mono" font-size="15" font-weight="700" fill="#F2B33D">QuotedFreight   25.00 USD</text>      <text x="18" y="104" font-family="Sans" font-size="12" fill="#5C6E85">đã hứa với khách, chốt lúc lập báo giá</text>
+      <rect x="660" y="24" width="637" height="100" rx="3" fill="#141C26" stroke="#4ADE80"/>      <text x="678" y="50" font-family="Mono" font-size="15" font-weight="700" fill="#4ADE80">ActualGoods    163.22 USD</text>      <text x="678" y="76" font-family="Mono" font-size="15" font-weight="700" fill="#4ADE80">ActualFreight   27.50 USD</text>      <text x="678" y="104" font-family="Sans" font-size="12" fill="#5C6E85">hãng bay thu thật, biết sau khi gom lô</text>
+    </svg>
+  </div>
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--danger)">3.06 · B</div>
+      <div class="cap">con số trả lời</div>
+    </div>
+    <svg width="1297" height="96" viewBox="0 0 1297 96" fill="none">
+      <text x="0" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#5C6E85">VARIANCE — CON SỐ TRẢ LỜI CÂU HỎI KINH DOANH</text>
+      <rect x="0" y="24" width="420" height="62" rx="3" fill="#141C26" stroke="#FF6B6B"/>
+      <text x="210" y="50" text-anchor="middle" font-family="Mono" font-weight="700" font-size="24" fill="#FF6B6B">−2.50 USD</text>
+      <text x="210" y="70" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">đơn mẫu: cước thu 27.50, báo giá 25.00</text>      <text x="460" y="48" font-family="Sans" font-size="13.5" fill="#93A4B8">Một đơn âm 2.50 thì là xui.</text>      <text x="460" y="74" font-family="Sans" font-size="13.5" fill="#E8EFF6">Âm liên tục qua nhiều đơn nghĩa là bảng giá cước hoặc phép đo đang sai.</text>
+    </svg>
+  </div>
+</section>
+
+<section class="terms">
+  <div class="term" style="--accent: var(--money)">
+    <div class="w">báo giá là ảnh chụp</div>
+    <div class="d">Tỷ giá, cước, cân đo đều chốt lại lúc lập. Không tính lại mỗi lần đọc.</div>
+    <div class="s"><b>bên Symfony</b>Thường lưu total rồi thôi — nhưng ở đây lưu cả các thành phần, để đối soát được.</div>
+  </div>
+  <div class="term" style="--accent: var(--ok)">
+    <div class="w">reconciliation</div>
+    <div class="d">Bảng giữ cả hai nửa: đã hứa bao nhiêu, đã trả bao nhiêu. Chênh lệch là variance.</div>
+    <div class="s"><b>bên Symfony</b>Không có sẵn — thường là một report chạy tay cuối tháng.</div>
+  </div>
+  <div class="term" style="--accent: var(--go)">
+    <div class="w">hạn 48 giờ</div>
+    <div class="d">Báo giá hết hạn sau 48 giờ, vì tỷ giá và cước đều đổi. Nhận báo giá quá hạn là từ chối.</div>
+    <div class="s"><b>bên Symfony</b>Một cột expires_at và một cron — cùng ý, nhưng luật hết hạn ở đây nằm trong domain.</div>
+  </div>
+</section>
+
+<div class="rule" style="margin-top:34px"></div>
+<footer>
+  <div class="counts">
+    <div class="count"><div class="n" style="color:var(--money)">2</div><div class="l">nửa được giữ lại</div></div>
+    <div class="count"><div class="n" style="color:var(--go)">48</div><div class="l">giờ hạn báo giá</div></div>
+    <div class="count"><div class="n" style="color:var(--ok)">26000</div><div class="l">đồng mỗi đô, chốt lúc báo giá</div></div>
+  </div>
+  <div class="ask">
+    <div class="h">Phỏng vấn sẽ hỏi</div>
+    <div class="q">Vì sao báo giá phải lưu lại thay vì tính lại mỗi lần?<br>Đối soát quote với actual trả lời câu hỏi kinh doanh nào?<br>Hạn 48 giờ của báo giá để làm gì?</div>
+  </div>
+</footer>
+</html>

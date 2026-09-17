@@ -1,0 +1,163 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Afterimage Plate 1.03 — Lỗi là giá trị trả về</title>
+<link rel="stylesheet" href="plate.css">
+<style>
+  /* Rhythm of this plate only — the shared language lives in plate.css. */
+  .specimens { margin-top: 40px; }
+  .spec { display: flex; gap: 22px; align-items: flex-start; }
+  .spec + .spec { margin-top: 32px; }
+  .gutter { width: 128px; flex: none; text-align: right; padding-top: 10px; }
+  .gutter .id { font-family: "Mono"; font-weight: 700; font-size: 13px; letter-spacing: .12em; }
+  .gutter .cap { font-family: "Clinical"; font-weight: 300; font-size: 10.5px; letter-spacing: .18em; color: var(--faint); margin-top: 5px; text-transform: uppercase; }
+  .terms { display: flex; gap: 22px; margin-top: 36px; }
+</style>
+
+<div class="ground"></div>
+
+<header>
+  <div>
+    <h1>Lỗi là <em>giá trị trả về.</em></h1>
+    <div class="sub">Không có <em style="font-style:normal;color:var(--php)">try/catch</em> — và đó là lý do không quên xử lý lỗi được.</div>
+  </div>
+  <div class="plateno">
+    <div class="clinical">Afterimage · Plate 1.03</div>
+    <div class="sys" style="font-size:12px;color:var(--go)">MÙA 1 · TẬP 3</div>
+    <div class="clinical">Lỗi là giá trị</div>
+  </div>
+</header>
+<div class="rule"></div>
+
+<section class="specimens">
+
+  <!-- A — the two habits -->
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--php)">1.03 · A</div>
+      <div class="cap">hai thói quen</div>
+    </div>
+    <svg width="1297" height="126" viewBox="0 0 1297 126" fill="none">
+      <text x="0" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#B39DFF">PHP — QUÊN CATCH THÌ CHƯƠNG TRÌNH VẪN CHẠY</text>
+      <rect x="0" y="24" width="600" height="92" rx="3" fill="#141C26" stroke="#B39DFF" opacity=".9"/>
+      <text x="18" y="50" font-family="Mono" font-size="15" fill="#93A4B8">try { $m = Money::parse($raw, $c); }</text>
+      <text x="18" y="74" font-family="Mono" font-size="15" fill="#93A4B8">catch (MalformedAmount $e) { … }</text>
+      <text x="18" y="100" font-family="Sans" font-size="13" fill="#FF6B6B">bỏ hẳn khối catch → vẫn build, vẫn chạy, hỏng lúc nào không biết</text>
+
+      <text x="680" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#00ADD8">GO — LỖI LÀ MỘT GIÁ TRỊ, PHẢI NHẬN</text>
+      <rect x="680" y="24" width="617" height="92" rx="3" fill="#141C26" stroke="#00ADD8"/>
+      <text x="698" y="50" font-family="Mono" font-size="15" fill="#E8EFF6">m, err := ParseMoney(raw, c)</text>
+      <text x="698" y="74" font-family="Mono" font-size="15" fill="#E8EFF6">if err != nil { return Money{}, err }</text>
+      <text x="698" y="100" font-family="Sans" font-size="13" fill="#4ADE80">khai báo err mà không dùng → không build được</text>
+    </svg>
+  </div>
+
+  <!-- B — the wrap chain -->
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--money)">1.03 · B</div>
+      <div class="cap">%w đi lên</div>
+    </div>
+    <svg width="1297" height="150" viewBox="0 0 1297 150" fill="none">
+      <defs>
+        <marker id="ah" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="9" refX="10" refY="4.5" orient="auto">
+          <path d="M0,0 L11,4.5 L0,9 z" fill="#F2B33D"/>
+        </marker>
+      </defs>
+      <text x="0" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#5C6E85">MỖI TẦNG THÊM MỘT CÂU, KHÔNG XOÁ CÂU CŨ — 456 CHỖ TRONG REPO</text>
+
+      <rect x="0" y="26" width="286" height="62" rx="3" fill="rgba(255,107,107,.08)" stroke="#FF6B6B"/>
+      <text x="143" y="50" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13" fill="#FF6B6B">parseDecimal</text>
+      <text x="143" y="70" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">nơi hỏng thật sự</text>
+      <path d="M292 57 L 328 57" stroke="#F2B33D" stroke-width="1.6" marker-end="url(#ah)"/>
+
+      <rect x="334" y="26" width="286" height="62" rx="3" fill="#141C26" stroke="#00ADD8"/>
+      <text x="477" y="50" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13" fill="#00ADD8">ParseMoney</text>
+      <text x="477" y="70" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">domain</text>
+      <path d="M626 57 L 662 57" stroke="#F2B33D" stroke-width="1.6" marker-end="url(#ah)"/>
+
+      <rect x="668" y="26" width="286" height="62" rx="3" fill="#141C26" stroke="#00ADD8"/>
+      <text x="811" y="50" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13" fill="#00ADD8">CreateQuote</text>
+      <text x="811" y="70" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">tầng app</text>
+      <path d="M960 57 L 996 57" stroke="#F2B33D" stroke-width="1.6" marker-end="url(#ah)"/>
+
+      <rect x="1002" y="26" width="295" height="62" rx="3" fill="#141C26" stroke="#4ADE80"/>
+      <text x="1149" y="50" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13" fill="#4ADE80">HTTP 400</text>
+      <text x="1149" y="70" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">câu trả lời cho khách</text>
+
+      <text x="0" y="118" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#5C6E85">CÂU LỖI TỚI NƠI</text>
+      <text x="0" y="142" font-family="Mono" font-size="15" fill="#E8EFF6">create quote: <tspan fill="#F2B33D">parse "abc" as USD:</tspan> <tspan fill="#FF6B6B">malformed amount</tspan></text>
+      <text x="700" y="142" font-family="Sans" font-size="13" fill="#93A4B8">errors.Is(err, ErrMalformedAmount) vẫn trả về <tspan fill="#4ADE80">true</tspan> qua cả ba lớp bọc.</text>
+    </svg>
+  </div>
+
+  <!-- C — where the sentinels end up -->
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--ok)">1.03 · C</div>
+      <div class="cap">tên lỗi để làm gì</div>
+    </div>
+    <svg width="1297" height="132" viewBox="0 0 1297 132" fill="none">
+      <text x="0" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#5C6E85">internal/adapter/http/errors.go — MỘT BẢNG DUY NHẤT, 92 DÒNG, BIẾN TÊN LỖI THÀNH CÂU TRẢ LỜI</text>
+
+      <rect x="0" y="26" width="300" height="88" rx="3" fill="#141C26" stroke="#35485E"/>
+      <text x="150" y="52" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13" fill="#E8EFF6">errorTable</text>
+      <text x="150" y="72" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">tên lỗi → mã HTTP → mã chữ</text>
+      <text x="150" y="94" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#5C6E85">thay cho try/catch rải rác</text>
+
+      <path d="M306 70 L 342 70" stroke="#35485E" stroke-width="1.6" marker-end="url(#ah)"/>
+
+      <rect x="348" y="26" width="228" height="88" rx="3" fill="#141C26" stroke="#FF6B6B"/>
+      <text x="462" y="58" text-anchor="middle" font-family="Mono" font-weight="700" font-size="22" fill="#FF6B6B">400</text>
+      <text x="462" y="80" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">không hiểu được</text>
+      <text x="462" y="100" text-anchor="middle" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="1.8" fill="#5C6E85">36 DÒNG · SỬA REQUEST</text>
+
+      <rect x="592" y="26" width="228" height="88" rx="3" fill="#141C26" stroke="#93A4B8"/>
+      <text x="706" y="58" text-anchor="middle" font-family="Mono" font-weight="700" font-size="22" fill="#93A4B8">404</text>
+      <text x="706" y="80" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">không có cái đó</text>
+      <text x="706" y="100" text-anchor="middle" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="1.8" fill="#5C6E85">13 DÒNG</text>
+
+      <rect x="836" y="26" width="228" height="88" rx="3" fill="#141C26" stroke="#F2B33D"/>
+      <text x="950" y="58" text-anchor="middle" font-family="Mono" font-weight="700" font-size="22" fill="#F2B33D">409</text>
+      <text x="950" y="80" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">nghiệp vụ nói không</text>
+      <text x="950" y="100" text-anchor="middle" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="1.8" fill="#5C6E85">40 DÒNG · SỬA TRẠNG THÁI</text>
+
+      <rect x="1080" y="26" width="217" height="88" rx="3" fill="none" stroke="#35485E" stroke-dasharray="5 4"/>
+      <text x="1188" y="58" text-anchor="middle" font-family="Mono" font-weight="700" font-size="22" fill="#5C6E85">500</text>
+      <text x="1188" y="80" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#5C6E85">không nằm trong bảng</text>
+      <text x="1188" y="100" text-anchor="middle" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="1.8" fill="#5C6E85">LÀ BUG — CHỈ GHI LOG</text>
+    </svg>
+  </div>
+</section>
+
+<!-- TERMS -->
+<section class="terms">
+  <div class="term" style="--accent: var(--danger)">
+    <div class="w">sentinel error</div>
+    <div class="d">Một biến lỗi đặt tên sẵn ở cấp package, để nơi khác so sánh đúng lý do. Tên luôn bắt đầu bằng <span class="sys" style="font-size:12.5px">Err</span>.</div>
+    <div class="s"><b>bên Symfony</b>final class QuoteNotAccepted extends DomainException — cùng vai trò, khác cách viết.</div>
+  </div>
+  <div class="term" style="--accent: var(--money)">
+    <div class="w">%w</div>
+    <div class="d">Bọc lỗi gốc vào một câu mới mà không xoá nó đi. Dùng trong <span class="sys" style="font-size:12.5px">fmt.Errorf</span>.</div>
+    <div class="s"><b>bên Symfony</b>throw new X("...", previous: $e) — cùng ý: giữ lại cái đã gây ra.</div>
+  </div>
+  <div class="term" style="--accent: var(--go)">
+    <div class="w">errors.Is</div>
+    <div class="d">Lần ngược chuỗi <span class="sys" style="font-size:12.5px">%w</span> xem nguyên nhân gốc có đúng cái mình hỏi không. Đừng dùng <span class="sys" style="font-size:12.5px">==</span>.</div>
+    <div class="s"><b>bên Symfony</b>catch (QuoteExpired $e) — cũng là hỏi “lỗi này loại nào”, nhưng bằng if.</div>
+  </div>
+</section>
+
+<div class="rule" style="margin-top:36px"></div>
+<footer>
+  <div class="counts">
+    <div class="count"><div class="n" style="color:var(--money)">456</div><div class="l">chỗ bọc lỗi bằng %w</div></div>
+    <div class="count"><div class="n" style="color:var(--go)">44</div><div class="l">chỗ dùng errors.Is</div></div>
+    <div class="count"><div class="n" style="color:var(--faint)">0</div><div class="l">try / catch — không có</div></div>
+  </div>
+  <div class="ask">
+    <div class="h">Phỏng vấn sẽ hỏi</div>
+    <div class="q">Vì sao Go chọn lỗi là giá trị thay vì exception?<br><span class="sys" style="font-size:13px;color:var(--dim)">%w</span> khác <span class="sys" style="font-size:13px;color:var(--dim)">%v</span> ở chỗ nào?<br>Khi nào dùng errors.Is, khi nào errors.As?</div>
+  </div>
+</footer>
+</html>
