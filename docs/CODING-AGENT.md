@@ -9,6 +9,11 @@
 > **Portage** (hệ thật, case study) và **`markfulton/ai-employees`** (cảm hứng,
 > không chép). Mọi con số và `file:dòng` dưới đây đều mở file kiểm, không viết từ
 > trí nhớ.
+>
+> **Trạng thái 23/09/2026:** bản này đã duyệt. Phase 1 (§6) đã dựng ở `agent/` —
+> cách dùng ở `agent/README.md`, luật ở `agent/CONTRACT.md`. Hai điều chốt thêm khi
+> dựng, có trong §5.0 của CONTRACT và ADR-004: **mọi điểm dừng đều đến kèm đề nghị**
+> (người duyệt, không thiết kế), và **gate hỏng đi qua cổng plan** kèm đề nghị sửa.
 
 Tài liệu đi theo chuỗi câu hỏi anh đưa:
 
@@ -151,7 +156,7 @@ Mọi khái niệm prompt §4 liệt kê, cộng những cái tôi tìm thấy k
 | **Change brief** (ví dụ thật `changes/2026-03-05-fix-C-005.md`): *"Mọi dòng dưới đây mô tả một thay đổi trên nhánh. Chưa merge. Merge là của bạn."* + Files · Gate · Rollback · Left for you | **Keep** làm khuôn `review.md` + thân PR | Mẫu tốt hơn cái tôi định viết |
 | **Operator session** là actor thứ ba (§3a), phải để lại vết như routine | **Modify**: ở Phase 1 đây là actor **duy nhất** | Routine theo lịch tới Phase 6 |
 | **LAW 1** tự lực tối đa, *quyết thay vì đề xuất* | **Modify** | Đúng cho ops 90 ngày không người trông. Sai cho project **học**: người *muốn* được hỏi (Challenge). → Tự lực **bên trong** plan đã duyệt; plan thì **đề xuất**, và cổng plan **nhả được** theo project khi đủ tin |
-| **LAW 3** capability không tool + bảng route theo harness | **Modify** | Giữ kỷ luật đặt tên trong thân routine (`test.run`, không `go test`). **Không** dựng bảng route đa harness ở Phase 1 — một harness. `PROJECT.md commands.*` là ánh xạ duy nhất cần: thứ đổi theo *project*, không theo *harness* |
+| **LAW 3** capability không tool + bảng route theo harness | **Modify** | Giữ kỷ luật đặt tên trong thân routine (`shell.run` + `commands.test`, không `go test`). **Không** dựng bảng route đa harness ở Phase 1 — một harness. `PROJECT.md commands.*` là ánh xạ duy nhất cần: thứ đổi theo *project*, không theo *harness* |
 | **Bậc quyền (rung) + nới bằng bằng chứng** (`web-guardrail-review`): lớp thay đổi nào được làm không hỏi; **nới một bậc sau N tháng merge sạch liên tiếp, siết ngay khi một lần bị sửa**; ranh giới ngoài không bao giờ nới | **Modify → Phase 7** | Đúng là cách "nới cổng bằng số liệu" tôi mơ hồ đề xuất — họ đã làm cụ thể. Nguyên lý **bất đối xứng** (nới chậm, siết ngay) áp dụng từ ngày một |
 | **Step 0 cố định** cho mọi routine | **Modify**: bỏ window/period/browser; thay bằng *pause → đọc luật project + Corrections → xác nhận đúng repo, tree sạch, đúng nhánh* | — |
 | **Self-edit `SKILL.md`** + changelog chứa **nguyên văn đã thay** làm undo (§8.3) | **Defer → Phase 7**; **giữ ngay** một câu: *"tự sửa có thể làm việc được phép tốt hơn, không bao giờ nới cái được phép"* | Vòng lặp compounding, nhưng chưa có dữ liệu để tin |
@@ -205,7 +210,7 @@ bằng máy hoặc bằng một phase:
 | Lời hứa | Nghĩa là | Kiểm bằng |
 |---|---|---|
 | **P1. `agent/` không chứa một chữ nào của riêng project nào** | không `go test`, không `gofmt`, không `phpunit`, không `CLAUDE.md`, không đường dẫn tuyệt đối, không số nghiệp vụ — ở mọi file ngoài `projects/` | `scripts/verify-agent.sh` mục (2) và (5): grep danh sách cấm, **đỏ là chưa xong** |
-| **P2. Thêm một project = thêm đúng một file** | `projects/<tên>/PROJECT.md`; không sửa `routines/`, `CONTRACT`, `ROLE`, `CAPABILITIES` | Phase 3: một task PHP tới `DONE` với `git diff --stat employee/ -- ':!projects'` **rỗng** |
+| **P2. Thêm một project = thêm đúng một file** | `projects/<tên>/PROJECT.md`; không sửa `routines/`, `CONTRACT`, `ROLE`, `CAPABILITIES` | Phase 3: một task PHP tới `DONE` với `git diff --stat agent/ -- ':!projects'` **rỗng** |
 | **P3. Mọi thứ đổi theo project đi qua một schema duy nhất** | `PROJECT.md` là bề mặt biến thiên **duy nhất**; routine chỉ đọc trường, không đọc nội dung repo để suy đoán | schema dưới đây đóng; muốn thêm trường phải qua ADR |
 
 **Schema `PROJECT.md` — thiết kế cho trường hợp tổng quát ngay từ đầu**, không phải
@@ -372,8 +377,10 @@ verify:      passed | gate-failed | not-run                       # kết quả 
 **Từ vựng đóng — không có giá trị thứ tám.** Bốn tình huống tưởng cần trạng thái
 riêng ánh xạ như sau, không thương lượng (học từ `CONTRACT §4.1`):
 
-- Test đỏ → `status` giữ nguyên, `verify: gate-failed`, **nhánh để y nguyên, không
-  thử cách khác**. Gate hỏng là routine làm đúng việc của nó.
+- Test đỏ → `verify: gate-failed`, **nhánh để y nguyên, không thử cách khác**. Gate
+  hỏng là routine làm đúng việc của nó. Rồi agent chẩn đoán, **đề nghị sửa** vào
+  `plan.md`, và về `WAITING_HUMAN / plan-approval` — cùng cửa với "gặp việc ngoài
+  plan", để T7 không có đường tắt (ADR-004).
 - Đang chờ người trả lời câu hỏi (Challenge) → `WAITING_HUMAN / question`.
 - Gặp thứ ngoài luật → `BLOCKED` kèm lý do; **trước đó phải verify** (LAW 6).
 - Không làm được gì cả → `FAILED`. Hiếm.
@@ -429,8 +436,9 @@ task thật; (2) `knowledge/` **chỉ nhận** bài khi một dòng `debt.md` đ
 không nhận bài viết trước; (3) nợ 30 ngày không ai đụng → `review` gợi xoá.
 
 **Ba chế độ là hai cờ trên Task, không phải mode của hệ:** `challenge: true` →
-`analyze` hỏi 3–5 câu rồi **dừng** (`WAITING_HUMAN/question`) — đúng P9-PLAN §4
-"chốt rồi làm", thành dữ liệu. `mode: learning` → `plan` viết gợi ý, `implement`
+`analyze` hỏi 3–5 câu, **mỗi câu kèm đề nghị + vì sao + phương án đã bỏ**, rồi
+**dừng** (`WAITING_HUMAN/question`) — đúng P9-PLAN §4 "chốt rồi làm", thành dữ liệu.
+Người trả lời một dòng: *"đồng ý hết"* hoặc *"Q2: làm X"*. `mode: learning` → `plan` viết gợi ý, `implement`
 **không chạy**, `review` review code *của người*.
 
 ### 5.7 Kiến trúc Go — Phase 4, mô tả trước, **không dựng**
@@ -471,16 +479,17 @@ mọi đường dẫn bên trong là tương đối, đường dẫn tới Porta
 agent/
 ├── ROLE.md                    ai · làm gì · không làm gì · thành công là gì
 ├── CONTRACT.md                guardrail + cách làm việc — không nhắc tên ngôn ngữ nào
-├── CAPABILITIES.md            từ vựng: file.read · file.write · code.search · shell.run
-│                              · git.branch · git.diff · git.commit · test.run
+├── CAPABILITIES.md            từ vựng, 9 khả năng: file.read · file.write · code.search
+│                              · shell.run · git.branch · git.diff · git.commit · git.push
+│                              · secret.scan  (không có test.run: shell.run + commands.test đủ)
 ├── PAUSED                     (chỉ khi người tạo) — rỗng: dừng hết; ghi id: dừng từng cái
 ├── routines/
 │   ├── intake/SKILL.md        lời mô tả việc → TASK.md
-│   ├── analyze/SKILL.md       đọc project trước · nếu challenge: hỏi rồi dừng
+│   ├── analyze/SKILL.md       đọc project trước · nếu challenge: hỏi kèm đề nghị rồi dừng
 │   ├── plan/SKILL.md          kế hoạch + mục "Không làm" + tự phản biện → hold plan
 │   ├── implement/SKILL.md     trên nhánh agent/ · không vượt plan · không đụng tree bẩn
 │   ├── verify/SKILL.md        chạy PROJECT.commands.* · nói rõ CHƯA test gì
-│   └── review/SKILL.md        Go · DDD · kỹ thuật + learning.md + change brief → hold commit
+│   └── review/SKILL.md        ngôn ngữ · domain · kỹ thuật + learning.md + change brief → hold commit
 ├── projects/
 │   └── portage/
 │       ├── PROJECT.md         path · rules: CLAUDE.md · commands · branches · releases
@@ -488,7 +497,7 @@ agent/
 │       └── knowledge/         riêng Portage: invariant, quyết định (trỏ SETUP §9)
 ├── knowledge/{go,ddd,agent}/  chung — rỗng lúc đầu, chỉ đầy khi gạch nợ
 ├── learning/debt.md
-├── decisions/ADR-001…003.md
+├── decisions/ADR-001…004.md
 ├── logs/runs/                 một file mỗi run, chỉ ghi thêm
 └── scripts/verify-agent.sh audit cơ học (§6.7)
 ```
@@ -513,10 +522,12 @@ trong `TASK.md`) · `reports/` (Phase 8) · `recipes/` (chưa lặp 3 lần) ·
 Ở mọi tầng: một dòng trong ## Corrections của file đó thắng file đó.
 ```
 
-Rồi: **verify before you block** · **gate hỏng là run thành công** · **tự phản biện
-trước khi đề xuất** (bài học 1 của CLAUDE.md, nâng thành luật) · **bốn điều cuối
-run R1–R4** · **từ vựng cho việc không biết** · **scan secret trước commit** ·
-*"tự sửa có thể làm việc được phép tốt hơn, không bao giờ nới cái được phép"*.
+Rồi: **luôn đến với đề nghị** (§5.0 — mọi điểm dừng mang: điều cần chốt · đề nghị ·
+vì sao · phương án đã bỏ; người duyệt, không thiết kế) · **verify before you block** ·
+**gate hỏng là run thành công, và đến với đề nghị sửa** · **tự phản biện trước khi đề
+xuất** (bài học 1 của CLAUDE.md, nâng thành luật) · **bốn điều cuối run R1–R4** ·
+**từ vựng cho việc không biết** · **scan secret trước commit** · *"tự sửa có thể làm
+việc được phép tốt hơn, không bao giờ nới cái được phép"*.
 
 `CONTRACT.md` **không nhắc** Go, PHP, `go test`, Symfony. Cái đó ở `PROJECT.md`.
 
@@ -558,23 +569,39 @@ Cho một repo Symfony ở Fastboy, đổi đúng bốn dòng `commands`. Agent 
 | Routine | Vào | Ra | Hold |
 |---|---|---|---|
 | `intake` | mô tả việc | `TASK.md` (goal · context · acceptance · constraints · learning · challenge?) | — |
-| `analyze` | `TODO` | `analysis.md`: aggregate nào, invariant ở đâu, chạm context nào. **Challenge:** 3–5 câu → `WAITING_HUMAN/question` | question |
+| `analyze` | `TODO` | `analysis.md`: aggregate nào, invariant ở đâu, chạm context nào. **Challenge:** 3–5 câu, mỗi câu kèm đề nghị → `WAITING_HUMAN/question` | question |
 | `plan` | có `analysis.md` | `plan.md`: bước · file sẽ đụng · test sẽ thêm · **Không làm** · **Tự phản biện** | plan (nhả được) |
 | `implement` | `approvals.plan` hoặc release | code trên `agent/…`, đúng file plan liệt kê | — |
-| `verify` | có diff | `VerifyResult`: chạy gì · exit · bao lâu · **CHƯA test gì** (từ vựng không biết). Đỏ → `gate-failed`, nhánh để yên | — |
-| `review` | verify xong | `review.md` = **change brief** (What changed and why · Files · Gate · Rollback · Left for you) + ba chiều Go/DDD/kỹ thuật + `learning.md` + nợ | commit → push (nhả được) |
+| `verify` | có diff | bảng Verify: chạy gì · exit · bao lâu · **CHƯA test gì** (từ vựng không biết). Đỏ → `gate-failed`, nhánh để yên, **đề nghị sửa** vào `plan.md` | plan (chỉ khi gate hỏng) |
+| `review` | verify xong | `review.md` = **change brief** (What changed and why · Files · Gate · Rollback · Left for you) + ba chiều ngôn ngữ/domain/kỹ thuật, mỗi nhận xét một đề nghị, kết bằng **Đề nghị: commit / sửa X rồi commit** + `learning.md` + nợ | commit → push (nhả được) |
 
 Người gọi từng routine bằng **một** skill Claude Code: *"chạy `<routine>` cho
-`<task-id>`"* → skill mở `employee/routines/<routine>/SKILL.md` và làm theo. Đó là
+`<task-id>`"* → skill mở `agent/routines/<routine>/SKILL.md` và làm theo. Đó là
 phần harness-specific duy nhất.
 
 ### 6.7 `scripts/verify-agent.sh` — cửa kiểm cơ học
 
-Học từ STANDARD §6 và từ chính `learn/scripts/`: (1) mọi routine được tham chiếu ở
-`CONTRACT`/`SKILL` phải tồn tại; (2) thân `SKILL.md` **không** chứa `go test`,
-`phpunit`, `gofmt` — chỉ tên capability; (3) không chuỗi giống credential trong
-`agent/`; (4) mọi `TASK.md` parse được và `status` nằm trong 7 giá trị; (5)
-`CONTRACT.md` không nhắc tên ngôn ngữ. Chạy trước khi bảo "xong" một task.
+Học từ STANDARD §6 và từ chính `learn/scripts/`: mỗi check in `OK`/`FAIL` kèm con số
+nó đếm được, đỏ một là exit 1. Bản đã dựng có **16 check**, gom bốn nhóm:
+
+- **Hình dạng routine** (5): `SKILL.md` có và `name` khớp thư mục · tập routine đúng bằng
+  {intake} ∪ từ vựng `step` của CONTRACT · Step 0 đủ năm dòng · đuôi cố định (Cuối run ·
+  Không bao giờ ghi ra · Corrections · R1–R4) · mỗi routine có chữ "đề nghị" (§5.0).
+- **Dùng lại được** (4): file luật không nhắc ngôn ngữ/công cụ/project · đường dẫn tuyệt
+  đối chỉ ở `PROJECT.md` · `PROJECT.md` đúng schema §2 (name = thư mục, `path` và `rules`
+  tồn tại, có `commands.test`) · mọi capability được gọi đều có khai, và khai mà không ai
+  gọi thì cảnh báo — check này đã bắt `test.run` là từ vựng chết.
+- **Từ vựng đóng và invariant** (3): `status` (7) · `waiting_for` (4) ở mọi file luật ·
+  mọi `TASK.md` khớp thư mục/project/branch (T6), `DONE` có đủ ba bằng chứng (T2),
+  `plan_digest` bằng SHA-256 của `plan.md` (T7) · run record đúng tên, đúng `status`,
+  không chứa diff hay trace.
+- **Vệ sinh** (4): không chuỗi giống credential · `agent/` chỉ có `.md`, script này,
+  `PAUSED` · ADR có "Xem lại khi", file luật có `## Corrections` · skill `/agent` nhắc đủ
+  mọi routine.
+
+Lần chạy đầu trên bản dựng: **2/16 đỏ** — Step 0 của ba routine bị cắt cụt vì script sinh
+file dừng sớm ở dấu rào code (bài học 2 của CLAUDE.md, lần nữa), và một ADR nhắc tên ngôn
+ngữ. Cả hai sửa xong mới báo. Chạy trước khi bảo "xong" một task.
 
 ### 6.8 Ví dụ đầu-cuối: T-001 trên Portage
 
@@ -591,10 +618,14 @@ không khởi động, báo lỗi đọc được*; constraints: *không đổi 
 import yaml (luật vàng)*.
 
 **Run 2 — `analyze`.** Step 0.1 đọc `CLAUDE.md` → thấy luật 1 (panic vs error), luật
-vàng, "Còn nợ". Challenge → **hỏi rồi dừng**: *(1) bảng giá là value object của
-`pricing` hay cấu hình của `platform/wire`? (2) file sai số là lập trình viên sai
-(panic) hay vận hành sai (error)? (3) parse yaml nằm đâu để domain vẫn chỉ stdlib +
-uuid? (4) test nào đang dựa vào hằng trong `wire.go`?* → `WAITING_HUMAN/question`.
+vàng, "Còn nợ". Challenge → **hỏi kèm đề nghị rồi dừng**, mỗi câu ba dòng *Đề nghị / Vì sao / Đã
+bỏ*: *(1) file chứa gì — đề nghị: mọi số nghiệp vụ trong `wire.go:279–378` trừ tỷ giá,
+vì tỷ giá đã có đường riêng `POST /fx`; (2) định dạng — đề nghị YAML qua một thư viện
+ở adapter, vì bảng giá do người sửa tay cần dòng chú thích "số này từ đâu"; (3) file
+sai → đề nghị `error` + thoát, không `panic`, vì đây là input của người vận hành (luật
+1); (4) test đang dựa vào hằng — đề nghị `Memory()` giữ hằng làm fixture, chỉ `Postgres()`
+đọc file.* → `WAITING_HUMAN/question`. Bản thật của bốn câu này nằm ở
+`agent/projects/portage/tasks/T-001-ratecard-yaml/analysis.md`.
 
 Người trả lời trong `## Corrections` của `TASK.md`. **Run 3 — `analyze`** viết
 `analysis.md`: *VO giữ trong `pricing`; parse ở `internal/adapter/config`; sai số lúc
@@ -702,6 +733,9 @@ routine · tự thử lại · agent adapter · tự sửa `SKILL.md` · push no
 | DEC-018 | Adopt nguyên văn: `PAUSED` · `## Corrections` · LAW 5 · LAW 6 · R1–R4 · từ vựng không biết · scan secret · change brief | rẻ, đã được trả giá ở nơi khác | — |
 | DEC-019 | Nới quyền chỉ ở Phase 7, bằng bằng chứng, **bất đối xứng** (nới chậm, siết ngay); *tự sửa không bao giờ nới cái được phép* là luật từ ngày một | `web-guardrail-review` | Phase 1–6 người bấm nhiều |
 | DEC-020 | Phase 1 ở `agent/` trong Portage, không `go.mod`, mọi đường dẫn tương đối, `git mv` ra được không sửa | anh: không tạo repo riêng phase này, nhưng tách sau | một thư mục lạ trong repo Go |
+| DEC-021 | **Mọi điểm dừng đến kèm đề nghị** (CONTRACT §5.0): điều cần chốt · đề nghị · vì sao · phương án đã bỏ. Người duyệt/từ chối/đổi hướng một dòng, không thiết kế | anh: *"việc của tôi chỉ là approve … không phải suy nghĩ về solution nữa"*; ROLE senior về phán đoán | câu hỏi trống là lỗi routine; ngoại lệ duy nhất là thông tin chỉ người có, và phải kèm mặc định |
+| DEC-022 | Gate hỏng → đề nghị sửa vào `plan.md` → `WAITING_HUMAN/plan-approval`, cùng cửa với "việc ngoài plan" (ADR-004) | `question` cho test đỏ để T7 hở: sửa code mà plan không đổi | `verify` phải chẩn đoán, không chỉ chạy lệnh |
+| DEC-023 | Bỏ `test.run`; `shell.run` + `PROJECT.commands.*` là cơ chế duy nhất | CONTRACT §2: agent không hiểu nghĩa lệnh; audit bắt được từ vựng chết | 9 khả năng thay 10 |
 
 ---
 

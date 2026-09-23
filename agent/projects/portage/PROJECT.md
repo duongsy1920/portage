@@ -1,0 +1,34 @@
+# Project: portage
+
+Hệ mua hộ Mỹ → Việt Nam. Repo Go, DDD, 5 bounded context. Luật của repo nằm **trong
+repo** (`rules` dưới đây) và **thắng** agent trên mọi thứ về repo — trừ hai guardrail
+và cách ly (CONTRACT §1).
+
+```yaml
+name:      portage
+path:      /home/duongvantiensy/portage
+rules:     CLAUDE.md
+docs:      docs/
+commands:
+  test:    go test ./...
+  fmt:     gofmt -l .
+  lint:    go vet ./...
+branches:
+  default:   main
+  protected: [main]
+  prefix:    agent/
+releases:  []
+```
+
+## Ghi chú cho agent khi đọc luật của repo này
+
+Không chép gì từ `CLAUDE.md` vào đây. Chỉ trỏ tới chỗ đọc:
+
+- Luật làm việc bắt buộc, "Ba bài học đã trả giá", "Trước khi bảo xong" → `CLAUDE.md`.
+- Vì sao code trông như vậy: `docs/SETUP.md` §9, đọc 2–3 đợt cuối.
+- Việc còn nợ (ứng viên task): `CLAUDE.md` mục "Còn nợ".
+- Quyết định đã HOÃN, **đừng đề xuất lại**: `CLAUDE.md` mục "Quyết định 08/09".
+
+## Corrections
+
+*(chỉ người viết)*

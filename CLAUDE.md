@@ -162,6 +162,7 @@ không trên pallet.
 | `docs/P9-PLAN.md` | plan gốc của P9 (đã xong hết) — giữ để thấy cách chốt quyết định |
 | `learn/CURRICULUM.md` | **loạt video học, 24 tập**: Mùa 1 Go (10), Mùa 2 DDD (6), Mùa 3 Portage (8). Kèm bốn cửa kiểm ở §12 |
 | `docs/UI-GUIDE.md` | **bốn màn hình và bấm gì trên từng cái**: trang khách, trang nhân viên, mô phỏng, bảng kiểm API; 10 nhánh rẽ nên thử; bảng hỏng-thì-xem |
+| `docs/CODING-AGENT.md` | **thiết kế Coding Agent** (đồng nghiệp AI dùng lại được cho mọi project): audit Portage → ai-employees → mô hình → Phase 1. Đã dựng ở `agent/` |
 
 **`docs/SETUP.md` §9 là chỗ quan trọng nhất khi tiếp tục việc**: 20 đợt review,
 mỗi đợt một bảng "quyết định / bug → chỗ nó nằm". Đọc 2–3 đợt cuối là nắm được
@@ -192,6 +193,25 @@ python3 scripts/check-overflow.py  # 110 cảnh, không cảnh nào tràn khung
 ```
 
 Chi tiết: `learn/CURRICULUM.md`.
+
+## Coding Agent — `agent/`
+
+Thư mục `agent/` là **Phase 1 của Coding Agent** (`docs/CODING-AGENT.md`): bộ file Markdown,
+không runtime, không `go.mod`, harness (Claude Code) đọc và làm theo. Nó **không phải** một
+phần của Portage — Portage chỉ là project đầu tiên nó làm việc trên (`agent/projects/portage/`).
+Thêm project khác = thêm một `PROJECT.md`, không sửa gì khác.
+
+```
+/agent intake                    tạo task từ mô tả trong chat
+/agent analyze T-001             rồi plan → implement → verify → review, người gọi từng bước
+/agent approve plan T-001 [note] duyệt một cửa (plan · commit · push) — chỉ người quyết
+./agent/scripts/verify-agent.sh  16 check cơ học, đỏ là chưa xong
+```
+
+Hai luật chi phối cách agent nói với anh: **mọi điểm dừng đến kèm đề nghị** (anh duyệt, không
+thiết kế — `agent/CONTRACT.md` §5.0) và **gate hỏng đi qua cổng plan kèm đề nghị sửa**
+(ADR-004). Ba công tắc của anh: file `agent/PAUSED`, mục `## Corrections` ở đuôi mọi file,
+và `releases` trong `PROJECT.md`. Đọc `agent/README.md` trước khi gọi.
 
 ## Lệnh hay dùng
 
