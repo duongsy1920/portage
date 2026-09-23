@@ -8,9 +8,10 @@
 // lists, the size comes from what staff published, and the ids the API needs
 // travel in the background.
 
-import { React, html, Top, Card, Field, Select, Steps, Toasts, useToasts, usePoll, useAction } from "./ui.js";
+import { React, html, Top, Section, Sheet, Problem, Field, Select, Journey, Keys, Toasts, PageHead,
+  Skeleton, Empty, Icon, useToasts, usePoll, useAction } from "./ui.js";
 import { call, money, retryOn, getTokens, setTokens } from "./portage.js";
-import { QUOTE, ORDER, GOODS, NEXT_STEP, TRACKING, say, friendly, categoryWords } from "./words.js";
+import { QUOTE, ORDER, GOODS, NEXT_STEP, say, friendly, categoryWords, balanceOf } from "./words.js";
 
 const { useState, useEffect, useCallback, useMemo } = React;
 
@@ -28,6 +29,16 @@ function saveQuotes(q) {
   try { localStorage.setItem(QUOTES_KEY, JSON.stringify(q)); } catch { /* private mode */ }
 }
 
+/* The shop and category picked last time. Someone who shops for shoes picks
+ * "giày dép" every time, and a form that forgets it on reload makes them. */
+const PASTE_KEY = "portage.customer.paste.v1";
+function lastPicked() {
+  try { return JSON.parse(localStorage.getItem(PASTE_KEY) || "{}"); } catch { return {}; }
+}
+function rememberPicked(patch) {
+  try { localStorage.setItem(PASTE_KEY, JSON.stringify({ ...lastPicked(), ...patch })); } catch { /* private mode */ }
+}
+
 /* ── paste a link ─────────────────────────────────────────────────────────── */
 function PasteForm({ shops, categories, onSent }) {
   const act = useAction();
@@ -41,8 +52,16 @@ function PasteForm({ shops, categories, onSent }) {
   const [price, setPrice] = useState("");
   const [wanted, setWanted] = useState("");
 
-  useEffect(() => { if (!shopId && canPaste.length) setShopId(canPaste[0].id); }, [canPaste, shopId]);
-  useEffect(() => { if (!category && categories.length) setCategory(categories[0].code); }, [categories, category]);
+  useEffect(() => {
+    if (shopId || !canPaste.length) return;
+    const last = lastPicked().shop;
+    setShopId(canPaste.some(x => x.id === last) ? last : canPaste[0].id);
+  }, [canPaste, shopId]);
+  useEffect(() => {
+    if (category || !categories.length) return;
+    const last = lastPicked().category;
+    setCategory(categories.some(c => c.code === last) ? last : categories[0].code);
+  }, [categories, category]);
 
   const shop = canPaste.find(s => s.id === shopId);
   const cat = categories.find(c => c.code === category);
@@ -61,16 +80,16 @@ function PasteForm({ shops, categories, onSent }) {
   });
 
   if (!canPaste.length) {
-    return html`<div class="empty">Chưa có shop nào cho khách tự gửi link. Nhân viên phải thêm shop trước.</div>`;
+    return html`<${Empty} icon="bag">Chưa có shop nào nhận link khách tự gửi. Nhân viên cần thêm shop trước.<//>`;
   }
   return html`
     <${React.Fragment}>
-      ${act.problem && html`<div class="note bad">${friendly(act.problem)}</div>`}
+      ${act.problem && html`<${Problem}>${friendly(act.problem)}<//>`}
       <div class="grid2">
-        <${Select} ...${{ label: "Shop", value: shopId, onChange: e => setShopId(e.target.value),
+        <${Select} ...${{ label: "Shop", value: shopId, onChange: e => { setShopId(e.target.value); rememberPicked({ shop: e.target.value }); },
           options: canPaste.map(s => ({ value: s.id, label: s.name })),
           hint: shop ? `Shop này bán bằng ${shop.currency}` : "" }} />
-        <${Select} ...${{ label: "Ngành hàng", value: category, onChange: e => setCategory(e.target.value),
+        <${Select} ...${{ label: "Ngành hàng", value: category, onChange: e => { setCategory(e.target.value); rememberPicked({ category: e.target.value }); },
           options: categories.map(c => ({ value: c.code, label: categoryWords(c.code) })),
           hint: cat ? `Chọn đúng nhóm vì nó quyết định thuế và giá cước. Khi chưa ai cân hộp thật, bên mình tạm tính theo hộp mẫu của nhóm này: ${cat.weight_g} g, ${cat.length_mm}×${cat.width_mm}×${cat.height_mm} mm.` : "" }} />
       </div>
@@ -85,16 +104,13 @@ function PasteForm({ shops, categories, onSent }) {
           hint: "Đúng số trên trang, chưa gồm thuế và cước" }} />
       </div>
       <${Field} ...${{ label: "Size hoặc màu bạn muốn", value: wanted,
-        placeholder: "US 9 · M 8 / W 9.5 · 1Y · 10C · L · bản 256GB",
+        placeholder: "US 9, M 8 / W 9.5, 1Y, 10C, L, bản 256GB",
         onChange: e => setWanted(e.target.value),
         hint: "Copy đúng chữ trên trang shop, kể cả chữ cái của hệ size. Nhân viên đọc dòng này để biết mua cái nào, nên bỏ trống là họ phải hỏi lại bạn." }} />
-      <div class="note">Chữ cái đứng cạnh số quyết định đôi nào, đừng bỏ: <span class="mono">M</span> nam,
-        <span class="mono">W</span> nữ, <span class="mono">Y</span> thiếu niên, <span class="mono">C</span>
-        trẻ nhỏ, áo thì <span class="mono">S/M/L</span>. Cùng số 1 mà <span class="mono">1Y</span> và
-        <span class="mono">1C</span> là hai đôi khác nhau. Trang nào ghi hai hệ cùng lúc, ví dụ
-        <span class="mono">M 8 / W 9.5</span>, thì copy nguyên cả dòng.</div>
+      <div class="note">Chữ cái đứng cạnh số quyết định đôi nào, đừng bỏ: <b>M</b> nam, <b>W</b> nữ, <b>Y</b> thiếu niên, <b>C</b> trẻ nhỏ, áo thì <b>S/M/L</b>. Cùng số 1 mà <b>1Y</b> và <b>1C</b> là
+        hai đôi khác nhau. Trang nào ghi hai hệ cùng lúc, ví dụ <b>M 8 / W 9.5</b>, thì copy nguyên cả dòng.</div>
       <div class="actions">
-        <button class="primary" disabled=${act.busy || !url.trim() || !name.trim() || !price.trim()}
+        <button class="primary" aria-busy=${act.busy} disabled=${act.busy || !url.trim() || !name.trim() || !price.trim()}
           onClick=${send}>Gửi cho nhân viên</button>
         <span class="dim">Gửi xong nhân viên sẽ kiểm rồi mới báo giá được.</span>
       </div>
@@ -102,9 +118,12 @@ function PasteForm({ shops, categories, onSent }) {
 }
 
 /* ── one thing I asked for ───────────────────────────────────────────────── */
-function MyProduct({ item, quotes, setQuotes, onChanged }) {
+function MyProduct({ item, anchor, quotes, setQuotes, onChanged, ordered }) {
   const act = useAction();
-  const saved = quotes[item.product_id] || {};
+  // An order for this product may exist without this browser knowing (placed
+  // from another device, or by staff on the customer's behalf): the order list
+  // says so by product, and it outranks what localStorage remembers.
+  const saved = { ...(quotes[item.product_id] || {}), ...(ordered ? { order: true } : {}) };
   const [variantId, setVariantId] = useState(saved.variant || "");
   const [quote, setQuote] = useState(null);
 
@@ -142,56 +161,61 @@ function MyProduct({ item, quotes, setQuotes, onChanged }) {
   });
 
   const waiting = NEXT_STEP[item.next_step];
+  // The one piece being priced right now is lifted onto a sheet; the rest are
+  // rows. Once the order exists the product has done its job on this list.
+  const lifted = item.published && !saved.order;
 
-  return html`
-    <div class="item">
-      <div class="item-head">
-        <span class="name">${item.name}</span>
-        <span class="pill flat">${categoryWords(item.category)}</span>
+  const body = html`
+    <${React.Fragment}>
+      <div class="row-head">
+        ${lifted ? html`<h3>${item.name}</h3>` : html`<span class="name">${item.name}</span>`}
+        <span class="pill">${categoryWords(item.category)}</span>
         <span class="spacer"></span>
-        ${item.published
-          ? html`<span class="pill ok">sẵn sàng báo giá</span>`
-          : html`<span class="pill warn">${waiting || "đang xử lý"}</span>`}
+        ${saved.order
+          ? html`<span class="pill info">đã đặt đơn</span>`
+          : item.published
+            ? html`<span class="pill ok">sẵn sàng báo giá</span>`
+            : html`<span class="pill warn">${waiting || "đang xử lý"}</span>`}
       </div>
-      <div class="item-body">
-        <div class="meta" style=${{ marginBottom: "10px" }}>
-          <span>Giá trên web: <b>${money(item.price)}</b></span>
-          ${item.requested_variant && html`<span>Bạn yêu cầu: <b>${item.requested_variant}</b></span>`}
-          ${item.source && html`<a href=${item.source} target="_blank" rel="noreferrer noopener">trang bạn đã gửi</a>`}
-        </div>
-        ${act.problem && html`<div class="note bad">${friendly(act.problem)}</div>`}
+      <div class="facts">
+        <span>Giá trên web <b>${money(item.price)}</b></span>
+        ${item.requested_variant && html`<span>Bạn yêu cầu <b>${item.requested_variant}</b></span>`}
+        ${item.source && html`<a href=${item.source} target="_blank" rel="noreferrer noopener">Trang bạn đã gửi</a>`}
+      </div>
+      ${act.problem && html`<${Problem}>${friendly(act.problem)}<//>`}
 
-        ${!item.published && html`
-          <div class="note">Bên mình chỉ báo giá sau khi có người thật xem trang và cân hộp, vì cước tính theo
-            cân thật. Trang này tự cập nhật, không cần tải lại.</div>`}
+      ${!item.published && html`
+        <div class="note">Bên mình chỉ báo giá sau khi có người thật xem trang và cân hộp, vì cước tính theo
+          cân thật. Trang này tự cập nhật, không cần tải lại.</div>`}
 
-        ${item.published && !saved.quote && html`
-          <${React.Fragment}>
-            <div class="grid2">
-              <${Select} ...${{ label: "Chọn size", value: variantId, onChange: e => setVariantId(e.target.value),
-                options: item.variants.map(v => ({ value: v.id, label: v.label || "một phiên bản" })),
-                hint: item.requested_variant
-                  ? `Đã chọn sẵn theo yêu cầu của bạn (${item.requested_variant}). Nếu shop ghi khác thì đây là các size nhân viên tìm thấy.`
-                  : "Đây là các size nhân viên tìm thấy trên trang shop." }} />
-            </div>
+      ${item.published && !saved.quote && !saved.order && html`
+        <${React.Fragment}>
+          <${Select} ...${{ label: "Chọn size", value: variantId, onChange: e => setVariantId(e.target.value),
+            options: item.variants.map(v => ({ value: v.id, label: v.label || "một phiên bản" })),
+            hint: item.requested_variant
+              ? `Đã chọn sẵn theo yêu cầu của bạn (${item.requested_variant}). Nếu shop ghi khác thì đây là các size nhân viên tìm thấy.`
+              : "Đây là các size nhân viên tìm thấy trên trang shop." }} />
+          <div class="actions">
+            <button class="primary" aria-busy=${act.busy} disabled=${act.busy || !variantId} onClick=${ask}>Xin báo giá</button>
+          </div>
+        <//>`}
+
+      ${saved.quote && quote && !saved.order && html`
+        <${React.Fragment}>
+          <${QuoteBreakdown} quote=${quote} />
+          ${quote.status === "issued" && html`
             <div class="actions">
-              <button class="primary" disabled=${act.busy || !variantId} onClick=${ask}>Xin báo giá</button>
-            </div>
-          <//>`}
+              <button class="primary" aria-busy=${act.busy} disabled=${act.busy} onClick=${agree}>Đồng ý và đặt hàng</button>
+              <span class="dim">Đồng ý rồi mới tạo đơn. Báo giá hết hạn sau 48 giờ.</span>
+            </div>`}
+          ${quote.status === "expired" && html`<${Problem}>Báo giá đã hết hạn. Xin lại một cái mới.<//>`}
+        <//>`}
+      ${saved.order && html`<div class="note ok">Đã đặt hàng. Đơn nằm ở phần Đơn của tôi bên dưới.</div>`}
+    <//>`;
 
-        ${saved.quote && quote && html`
-          <${React.Fragment}>
-            <${QuoteBreakdown} quote=${quote} />
-            ${!saved.order && quote.status === "issued" && html`
-              <div class="actions">
-                <button class="primary" disabled=${act.busy} onClick=${agree}>Đồng ý và đặt hàng</button>
-                <span class="dim">Đồng ý rồi mới tạo đơn. Báo giá hết hạn sau 48 giờ.</span>
-              </div>`}
-            ${saved.order && html`<div class="note ok">Đã đặt đơn. Xem phần Đơn của tôi bên dưới.</div>`}
-            ${quote.status === "expired" && html`<div class="note bad">Báo giá đã hết hạn. Xin lại một cái mới.</div>`}
-          <//>`}
-      </div>
-    </div>`;
+  return lifted
+    ? html`<div id=${anchor}><${Sheet} label=${item.name}>${body}<//></div>`
+    : html`<div class="row" id=${anchor}>${body}</div>`;
 }
 
 /* ── the price, explained line by line ────────────────────────────────────────
@@ -210,15 +234,15 @@ function QuoteBreakdown({ quote }) {
   const cls = GOODS[quote.class] || { words: quote.class, why: "" };
   const l = quote.lines || {};
   const h = quote.home || {};
-  const row = (label, why, value, strong) => html`
-    <tr key=${label}>
-      <th style=${{ fontWeight: 500 }}>${label}<div class="hint" style=${{ fontWeight: 400 }}>${why}</div></th>
-      <td style=${{ whiteSpace: "nowrap", textAlign: "right" }}>${strong ? html`<b>${value}</b>` : value}</td>
+  const row = (label, why, value, kind) => html`
+    <tr key=${label} class=${kind || undefined}>
+      <th>${label}<div class="hint">${why}</div></th>
+      <td class="amount">${value}</td>
     </tr>`;
 
   return html`
     <${React.Fragment}>
-      <div class="actions" style=${{ marginBottom: "8px" }}>
+      <div class="actions">
         <span class="pill ${st.tone}">Báo giá ${st.words}</span>
         ${quote.estimated && html`<span class="pill warn">tạm tính, chưa cân thật</span>`}
       </div>
@@ -230,61 +254,72 @@ function QuoteBreakdown({ quote }) {
             ${row("Tiền hàng trên web", "Đúng giá bạn thấy trên trang shop.", money(l.item))}
             ${row("Thuế bán hàng bên Mỹ", "Shop Mỹ tính thêm thuế bán hàng khi thanh toán, mình trả hộ.", money(l.sales_tax))}
             ${row(`Cước bay, tính trên ${quote.chargeable_g} g`,
-              `Không tính theo cân thật mà theo số lớn hơn giữa cân thật và cân quy đổi từ kích thước hộp, rồi làm tròn lên bước 500 g. Hộp to mà nhẹ vẫn chiếm chỗ trên máy bay. Nhóm giá: ${cls.words} — ${cls.why}`,
+              `Không tính theo cân thật mà theo số lớn hơn giữa cân thật và cân quy đổi từ kích thước hộp, rồi làm tròn lên bước 500 g. Hộp to mà nhẹ vẫn chiếm chỗ trên máy bay. Nhóm giá: ${cls.words}. ${cls.why}`,
               money(l.freight))}
             ${nonZero(l.surcharge) && row("Phụ phí", "Phụ phí của bên vận chuyển cho nhóm hàng này.", money(l.surcharge))}
             ${nonZero(l.duty) && row("Thuế nhập khẩu", "Tính theo nhóm hàng và giá trị đơn.", money(l.duty))}
-            ${row("Cộng lại bên Mỹ", "Ba dòng trên gộp lại, vẫn tính bằng tiền của shop.", money(l.subtotal), true)}
+            ${row("Cộng lại bên Mỹ", "Ba dòng trên gộp lại, vẫn tính bằng tiền của shop.", money(l.subtotal), "sum")}
             ${row("Quy ra tiền Việt", `Theo tỷ giá ${Number(quote.fx || 0).toLocaleString("vi-VN")} ₫, đã khoá cứng vào báo giá này. Tỷ giá mai đổi cũng không đổi số của bạn.`, money(h.subtotal))}
             ${row("Phí dịch vụ mua hộ", "Phần của bên mình cho việc mua, kiểm, gom hàng và gửi về.", money(h.service_fee))}
-            ${row("Tổng bạn trả", "Đã gồm mọi thứ ở trên. Không có phí nào phát sinh sau.", money(h.total), true)}
-            ${row("Cọc trước", "Một nửa tổng. Bên mình ứng đủ tiền hàng cho shop nên cần cọc trước khi đi mua.", money(h.deposit), true)}
+            ${row("Tổng bạn trả", "Đã gồm mọi thứ ở trên. Không có phí nào phát sinh sau.", money(h.total), "sum")}
+            ${row("Cọc trước", "Một nửa tổng. Bên mình ứng đủ tiền hàng cho shop nên cần cọc trước khi đi mua.", money(h.deposit), "due")}
           </tbody>
         </table>
       </div>
     <//>`;
 }
 
-/* ── my orders ───────────────────────────────────────────────────────────── */
+/* ── my orders: one journey strip each ───────────────────────────────────── */
 function MyOrders({ orders }) {
-  if (!orders || !orders.length) {
-    return html`<div class="empty">Chưa có đơn nào. Đơn xuất hiện sau khi bạn đồng ý một báo giá.</div>`;
+  if (!orders) return html`<${Skeleton} />`;
+  if (!orders.length) {
+    return html`<${Empty} icon="plane">Chưa có đơn nào. Đơn xuất hiện sau khi bạn đồng ý một báo giá.<//>`;
   }
   return html`
-    <${React.Fragment}>
-      <div class="wrap-x">
-        <table class="t">
-          <thead><tr>
-            <th>Sản phẩm</th>
-            <th>Đơn đang ở đâu</th>
-            <th>Tổng phải trả</th>
-            <th>Cọc</th>
-            <th>Kiện hàng</th>
-          </tr></thead>
-          <tbody>
-            ${orders.map(o => {
-              const st = say(ORDER, o.status);
-              const tr = say(TRACKING, o.tracking);
-              return html`
-                <tr key=${o.order_id}>
-                  <td>${o.product_name || "—"}
-                    ${o.placed_by_id && html`<div class="hint">nhân viên đặt hộ bạn</div>`}</td>
-                  <td><span class="pill ${st.tone}">${st.words}</span>
-                    ${st.why && html`<div class="hint">${st.why}</div>`}</td>
-                  <td style=${{ whiteSpace: "nowrap" }}>${money(o.total)}</td>
-                  <td style=${{ whiteSpace: "nowrap" }}>${o.deposit_paid
-                    ? html`<span class="dim">đã nhận</span>`
-                    : html`${money(o.deposit)}<div class="hint">cần chuyển</div>`}</td>
-                  <td><span class="pill ${tr.tone}">${tr.words}</span></td>
-                </tr>`;
-            })}
-          </tbody>
-        </table>
-      </div>
-      <div class="note">Hai cột giữa trả lời hai câu khác nhau: <b>đơn đang ở đâu</b> là chuyện tiền và
-        cam kết, còn <b>kiện hàng</b> là chuyện cái hộp đang nằm đâu. Chúng đổi trạng thái vào những lúc
-        khác nhau nên tách ra hai cột.</div>
-    <//>`;
+    <div class="list">
+      ${orders.map((o, i) => html`
+        <div class="row" key=${o.order_id} id=${"don-" + (i + 1)}>
+          <div class="row-head">
+            <span class="name">${o.product_name || "Sản phẩm chưa có tên"}</span>
+            ${o.placed_by_id && html`<span class="hint">nhân viên đặt hộ bạn</span>`}
+          </div>
+          <${Journey} order=${o} viewer="customer" />
+        </div>`)}
+    </div>`;
+}
+
+/* ── what is waiting for this customer, in one place at the top ──────────────
+ * Built only from what the screen already knows: a product staff finished, a
+ * quote not yet agreed, a deposit or a balance the order says is unpaid.
+ * Anchors are positions ("hang-2"), not ids, so no uuid reaches the page.
+ */
+function waitingFor(mine, quotes, orders) {
+  const out = [];
+  const ordered = new Set((orders || []).map(o => o.product_id));
+  (mine || []).forEach((item, i) => {
+    const saved = quotes[item.product_id] || {};
+    if (!item.published || saved.order || ordered.has(item.product_id)) return;
+    out.push({ key: "p" + i, target: "hang-" + (i + 1), name: item.name,
+      text: saved.quote ? "báo giá đã có, chờ bạn đồng ý" : "nhân viên xử lý xong, xin báo giá được rồi" });
+  });
+  (orders || []).forEach((o, i) => {
+    const target = "don-" + (i + 1);
+    if (o.status === "awaiting_deposit") {
+      out.push({ key: "d" + i, target, name: o.product_name, text: `chuyển cọc ${money(o.deposit)} cho nhân viên` });
+    } else if (o.status === "in_transit" && !o.balance_paid) {
+      out.push({ key: "b" + i, target, name: o.product_name, text: `chuyển phần còn lại ${money(balanceOf(o))} cho nhân viên` });
+    }
+  });
+  return out;
+}
+
+function jumpTo(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.scrollIntoView({ block: "center", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash");
+  const focusable = el.querySelector("button:not(:disabled), select, input");
+  if (focusable) focusable.focus({ preventScroll: true });
 }
 
 /* ── the screen ──────────────────────────────────────────────────────────── */
@@ -311,9 +346,9 @@ function App() {
       const before = prev.find(p => p.product_id === item.product_id);
       if (!before) continue;
       if (item.published && !before.published) {
-        pushToast("Nhân viên xử lý xong", `${item.name} — xin báo giá được rồi`);
+        pushToast("Nhân viên xử lý xong", `${item.name}: xin báo giá được rồi.`);
       } else if (item.next_step !== before.next_step) {
-        pushToast("Có tiến triển", `${item.name} — đang ở bước ${item.next_step || "xong"}`);
+        pushToast("Có tiến triển", `${item.name}: ${NEXT_STEP[item.next_step] || "đang xử lý"}.`);
       }
     }
   });
@@ -322,7 +357,7 @@ function App() {
     for (const o of next) {
       const before = prev.find(p => p.order_id === o.order_id);
       if (before && before.status !== o.status) {
-        pushToast("Đơn của bạn đổi trạng thái", `${o.product_name || "đơn"} — ${say(ORDER, o.status).words}`);
+        pushToast("Đơn của bạn đổi trạng thái", `${o.product_name || "Đơn"}: ${say(ORDER, o.status).words}.`);
       }
     }
   });
@@ -330,47 +365,72 @@ function App() {
   const reload = useCallback(async () => {
     await Promise.all([reloadMine(), reloadOrders()]);
   }, [reloadMine, reloadOrders]);
+  // the lists are a relay tick behind a write: ask again a few quick times
+  const settle = useCallback(async () => {
+    await reload();
+    for (const ms of [250, 700, 1500]) setTimeout(() => { reload(); }, ms);
+  }, [reload]);
 
-  const readyCount = mine ? mine.filter(m => m.published && !(quotes[m.product_id] || {}).order).length : 0;
+  const waiting = waitingFor(mine, quotes, orders);
 
   return html`
     <${React.Fragment}>
-      <${Top} title="Portage" role="Bạn đang xem với vai khách" waiting=${readyCount}>
-        <a href="./staff.html">Màn hình nhân viên →</a>
+      <${Top} role="Bạn đang xem với vai khách" waiting=${waiting.length}>
+        <a href="./staff.html">Màn hình nhân viên</a>
       <//>
-      <div class="wrap stack">
-        ${mineErr && html`<div class="note bad">${friendly(mineErr)}</div>`}
+      <div class="wrap">
+        <${PageHead} title="Hàng bạn nhờ mua"
+          lead="Dán link món ở shop Mỹ, bên mình kiểm, báo giá từng dòng, mua hộ và gửi về tận nhà."
+          stats=${[
+            { label: "việc chờ bạn", value: waiting.length, hot: waiting.length > 0 },
+            { label: "món đang xử lý", value: mine ? mine.filter(m => !m.published).length : 0 },
+            { label: "đơn đang chạy", value: orders ? orders.filter(o => !["delivered", "cancelled", "purchase_failed"].includes(o.status)).length : 0 },
+          ]} />
+        ${mineErr && html`<${Problem}>${friendly(mineErr)}<//>`}
 
-        <${Card} title="Gửi link sản phẩm bạn muốn mua">
-          <${PasteForm} shops=${shops} categories=${categories} onSent=${reload} />
-        <//>
+        <div class="cust">
+          <aside class="aside enter">
+            <${Section} title="Gửi link sản phẩm bạn muốn mua" icon="link">
+              <${PasteForm} shops=${shops} categories=${categories} onSent=${settle} />
+            <//>
+          </aside>
 
-        <${Card} title="Hàng của tôi" right=${html`<span class="dim">${mine ? mine.length : 0} món</span>`}>
-          ${!mine && html`<div class="empty">Đang tải…</div>`}
-          ${mine && !mine.length && html`<div class="empty">Chưa gửi món nào. Dán một link ở trên.</div>`}
-          ${mine && mine.map(item => html`
-            <${MyProduct} key=${item.product_id} item=${item} quotes=${quotes}
-              setQuotes=${setQuotes} onChanged=${reload} />`)}
-        <//>
+          <div class="main enter">
+            ${waiting.length > 0 && html`
+              <${Section} title="Việc đang chờ bạn" icon="alert" count=${waiting.length} hot first>
+                <ul class="waiting">
+                  ${waiting.map(w => html`
+                    <li key=${w.key}>
+                      <span><b>${w.name || "Đơn"}</b>: ${w.text}</span>
+                      <button class="link" onClick=${() => jumpTo(w.target)}>Xem</button>
+                    </li>`)}
+                </ul>
+              <//>`}
 
-        <${Card} title="Đơn của tôi">
-          <${MyOrders} orders=${orders} />
-          <div class="note">Cọc và tiền còn lại chuyển cho nhân viên, họ xác nhận trong hệ thống. Chưa có cổng
-            thanh toán tự động.</div>
-        <//>
+            <${Section} title="Hàng của tôi" icon="bag" count=${mine ? mine.length : ""}>
+              ${!mine && html`<${Skeleton} />`}
+              ${mine && !mine.length && html`<${Empty} icon="link">Chưa gửi món nào. Dán một link ở ô bên cạnh.<//>`}
+              ${mine && mine.length > 0 && html`
+                <div class="list">
+                  ${mine.map((item, i) => html`
+                    <${MyProduct} key=${item.product_id} item=${item} anchor=${"hang-" + (i + 1)} quotes=${quotes}
+                      setQuotes=${setQuotes} onChanged=${settle}
+                      ordered=${!!orders && orders.some(o => o.product_id === item.product_id)} />`)}
+                </div>`}
+            <//>
 
-        <${Card} title="Chìa khoá của bạn">
-          <div class="note">Chìa khoá là cách hệ thống biết đây là bạn, thay cho đăng nhập bằng mật khẩu.
-            Mọi thứ trang này hỏi đều gắn kèm nó, nên "hàng của tôi" và "đơn của tôi" không bao giờ trả về
-            của người khác. Bản chạy thử để sẵn <span class="mono">dev-customer</span>; bản thật thì nhân
-            viên phát cho bạn một chìa riêng.</div>
-          <div class="grid2">
-            <${Field} ...${{ label: "Chìa khoá", value: token, onChange: e => setToken(e.target.value) }} />
+            <${Section} title="Đơn của tôi" icon="plane" count=${orders ? orders.length : ""}>
+              <${MyOrders} orders=${orders} />
+              <div class="note">Cọc và tiền còn lại chuyển cho nhân viên, họ xác nhận trong hệ thống. Chưa có cổng
+                thanh toán tự động.</div>
+            <//>
           </div>
-          <div class="actions">
-            <button onClick=${() => { setTokens({ customer: token }); reload(); }}>Lưu và tải lại</button>
-            <span class="dim">Đổi chìa là đổi người, nên danh sách bên trên sẽ tải lại theo.</span>
-          </div>
+        </div>
+
+        <${Keys} token=${token} onSave=${t => { setTokens({ customer: t }); setToken(t); reload(); }}>
+          Chìa khoá là cách hệ thống biết đây là bạn, thay cho đăng nhập bằng mật khẩu. Mọi thứ trang này
+          hỏi đều gắn kèm nó, nên "hàng của tôi" và "đơn của tôi" không bao giờ trả về của người khác. Bản
+          chạy thử để sẵn <b>dev-customer</b>; bản thật thì nhân viên phát cho bạn một chìa riêng.
         <//>
       </div>
       <${Toasts} items=${toasts} onDismiss=${dismiss} />

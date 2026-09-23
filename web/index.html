@@ -4,40 +4,60 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Portage</title>
+<!-- empty icon: the auth middleware wraps the whole API mux (fail-closed),
+     so an unasked-for /favicon.ico would answer 401 and litter the console -->
 <link rel="icon" href="data:," />
+<!-- Fonts, React and styles all come from this repository, never a CDN: the
+     api binary serves these files, so every screen works with no network and
+     no npm install. See docs/UI-GUIDE.md. -->
 <link rel="stylesheet" href="./app/screens.css" />
 </head>
 <body>
-<div class="top"><h1>Portage</h1><span class="role">mua hộ US → VN</span></div>
-<div class="wrap stack">
-  <div class="card"><div class="card-body">
-    <p class="muted" style="margin-top:0">Bốn màn hình, bốn mục đích khác nhau. Hai cái đầu là để
-      <b>làm việc</b>, hai cái sau là để <b>hiểu hệ thống</b>.</p>
-  </div></div>
+<header class="top">
+  <div class="top-in">
+    <div class="brand"><span class="brand-mark"><svg class="icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z" /></svg></span><h1>Portage</h1></div>
+    <span class="role">mua hộ hàng Mỹ, gửi về Việt Nam qua kho Denver</span>
+  </div>
+</header>
 
-  <div class="card">
-    <div class="card-head"><h2>Làm việc</h2></div>
-    <div class="card-body">
-      <p><a href="./customer.html"><b>Màn hình khách</b></a><br />
-        <span class="muted">Gửi link món muốn mua, xem báo giá, đặt đơn, theo dõi đơn.
-        Không phải nhập id nào.</span></p>
-      <p><a href="./staff.html"><b>Màn hình nhân viên</b></a><br />
-        <span class="muted">Hàng chờ xử lý với checklist bốn bước cho từng món, đơn chờ thu tiền,
-        và phiếu đi mua có đủ tên, size, mã shop, link.</span></p>
-    </div>
+<main class="wrap">
+  <div class="hero-front">
+    <h2>Món ở shop Mỹ, về tận nhà bạn ở Việt Nam.</h2>
+    <p>Bốn màn hình cho bốn việc khác nhau. Hai cái đầu để <b>làm việc</b>: khách mua hàng, nhân
+      viên xử lý đơn. Hai cái sau để <b>hiểu hệ thống</b>.</p>
   </div>
 
-  <div class="card">
-    <div class="card-head"><h2>Hiểu hệ thống</h2></div>
-    <div class="card-body">
-      <p><a href="./flow.html"><b>Mô phỏng 26 bước</b></a><br />
-        <span class="muted">Không gọi API, bấm thoải mái. Mỗi bước hiện màn hình người dùng thấy,
-        request, event ghi vào outbox, và ai nghe event đó. Đây là chỗ bắt đầu nếu bạn đang học repo này.</span></p>
-      <p><a href="./console.html"><b>Bảng kiểm API</b></a><br />
-        <span class="muted">Công cụ cho lập trình viên: chạy tuần tự 26 bước bằng request thật,
-        kèm nhật ký từng lần gọi. Không phải UI cho người dùng.</span></p>
-    </div>
-  </div>
-</div>
+  <section class="front-group" aria-label="Làm việc">
+    <h2>Làm việc</h2>
+    <ul class="doors">
+        <li><a class="door" href="./customer.html">
+          <span class="door-icon"><svg class="icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7h12l1 14H5L6 7zM9 7V6a3 3 0 0 1 6 0v1" /></svg></span>
+          <div><span class="door-title">Màn hình khách</span><span class="who">cho người mua</span>
+            <p>Gửi link món muốn mua, xem báo giá từng dòng, đặt đơn, và theo dõi đơn đi tới đâu. Không phải nhập mã nào.</p></div>
+        </a></li>
+        <li><a class="door" href="./staff.html">
+          <span class="door-icon"><svg class="icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16M6 20l2-11h8l2 11M12 9V5M9 5h6" /></svg></span>
+          <div><span class="door-title">Màn hình nhân viên</span><span class="who">cho người mua hộ ở kho</span>
+            <p>Ba hàng đợi: món chờ xử lý với checklist bốn bước, việc đi mua có đủ tên, size, mã shop và link, và tiền chờ thu.</p></div>
+        </a></li>
+    </ul>
+  </section>
+
+  <section class="front-group" aria-label="Hiểu hệ thống">
+    <h2>Hiểu hệ thống</h2>
+    <ul class="doors">
+        <li><a class="door" href="./flow.html">
+          <span class="door-icon"><svg class="icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z" /></svg></span>
+          <div><span class="door-title">Mô phỏng 26 bước</span><span class="who">cho người đang học repo này</span>
+            <p>Không gọi API, bấm thoải mái. Mỗi bước hiện màn hình người dùng thấy, request, event ghi vào outbox, và ai nghe event đó.</p></div>
+        </a></li>
+        <li><a class="door" href="./console.html">
+          <span class="door-icon"><svg class="icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3zM9 8h6M9 12h6" /></svg></span>
+          <div><span class="door-title">Bảng kiểm API</span><span class="who">cho lập trình viên</span>
+            <p>Chạy tuần tự 26 bước bằng request thật, kèm nhật ký từng lần gọi. Không phải màn hình cho người dùng.</p></div>
+        </a></li>
+    </ul>
+  </section>
+</main>
 </body>
 </html>

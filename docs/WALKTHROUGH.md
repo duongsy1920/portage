@@ -3086,6 +3086,73 @@ Bài học đáng mang đi: **một UI không có test là một UI chưa ai ch�
 | Nhất quán sau cùng ở UI thì xử bằng thử lại, không phải báo đỏ | `retryOn` trong `portage.js` |
 | **Viết docs là một cách kiểm code.** Đang mô tả luật "shop nào cho khách gửi link" thì phát hiện `Merchant.Supports()` chưa ai gọi: trường được ghi, được thông báo bằng event, rồi bỏ quên. Một trường không ai kiểm không phải một luật | `ErrSourcingNotAllowed` |
 
+### 23j. Làm lại giao diện (đợt 21): phong bì *par avion*, và một chỗ táo bạo
+
+> Plan gốc: `docs/UI-REDESIGN-PLAN.md`. Hệ thiết kế đã chốt: `design-system/portage/MASTER.md`.
+> Không đổi dòng Go nào, không đổi API; `words.js` chỉ **thêm**, không sửa chữ có sẵn.
+
+Hai plugin thiết kế cho hai lời khuyên ngược nhau, và cái đáng học là cách chọn giữa chúng.
+Công cụ dữ liệu (`ui-ux-pro-max`) khớp Portage với dòng *Logistics/Delivery* và đề nghị Inter,
+xanh `#2563EB`, cam, GSAP, một trang có hero. Plugin còn lại (`frontend-design`) gọi thẳng tên
+đúng những thứ đó là dấu hiệu của trang máy sinh. Plan giữ **cấu trúc** của công cụ (Swiss,
+màu trạng thái riêng, checklist tiếp cận) và lấy **nhận diện** từ chính nghề này: sọc xanh–đỏ
+của phong bì thư máy bay.
+
+**Chỗ táo bạo duy nhất là dải hành trình.** Trước đây một đơn có hai pill ở hai cột: *đơn*
+(tiền, cam kết) và *kiện* (cái hộp). Đúng về mô hình, nhưng người đọc phải tự ghép. Dải gộp
+chúng lại thành sáu ô theo thứ tự người ta sống qua:
+
+```js
+// web/app/words.js
+export function journeyOf(o, viewer = "customer", facts = {}) {
+  let reached = 0;
+  if (o.deposit_paid) reached = 1;
+  if (WAS_BOUGHT.includes(o.status) || ["expected", "received", "shipped"].includes(tr)) reached = 2;
+  …
+```
+
+Ba quyết định trong hàm đó:
+
+| Quyết định | Vì sao |
+|---|---|
+| Hàm thuần, nằm ở `words.js` chứ không trong component | thử được bằng `node` mà không cần React; ma trận 11 trạng thái × 2 vai chạy trong một giây |
+| Ô nào API không gửi số thì **để trống** | Kho Denver và Đã bay không có số cân, số lô trong bảng đọc đơn. Quy tắc 2 của màn hình ("mọi con số nói được nó ở đâu ra") biến thành hình: ô trống thật thà hơn ô bịa |
+| `viewer` quyết ô nào là "việc của bạn" | cùng một đơn chờ cọc, với khách là *chuyển cọc*, với nhân viên chỉ là *đang chờ*; khi đã cọc thì ô *Đã mua* mới là việc của nhân viên |
+
+**Đo, rồi mới tin bảng màu.** Script đo 17 cặp chữ/nền × 2 theme: tất cả ≥ 4.5:1. Nhưng nó
+cũng đo hai màu đỏ với nhau: đỏ sọc và đỏ lỗi cách nhau **1.07:1** ở dark, tức là một màu.
+Plan có sẵn phương án cho đúng trường hợp này, nên "việc đang chờ bạn" giờ nói bằng chữ đậm
+màu xanh, đỏ chỉ còn trong sọc, và lỗi luôn có chữ, nền, icon và `role="alert"`.
+
+**Be Vietnam Pro không có chữ số đều bề ngang** (fontTools: không có `tnum`; số 1 rộng 385
+đơn vị, số 4 rộng 710). Cột tiền sẽ lệch. Cách giải không phải đổi font cả trang mà mượn
+**chỉ** chữ số của IBM Plex Mono qua `unicode-range`:
+
+```css
+@font-face { font-family: "Portage Figures"; …
+  unicode-range: U+0030-0039, U+002C-002E; }
+--figures: "Portage Figures", var(--sans);   /* chữ cái và ₫ vẫn là Be Vietnam Pro */
+```
+
+**Trình duyệt thật lại bắt được những thứ đọc code không thấy:**
+
+| Lỗi | Vì sao đọc code không thấy |
+|---|---|
+| `.note` là flex nên mỗi `<b>` trong câu thành một cột | CSS hợp lệ; chỉ vỡ khi câu có chữ đậm |
+| "nữ,Y": `htm` cắt khoảng trắng có xuống dòng nằm sát một thẻ | template đọc lên vẫn có dấu cách |
+| Sau *Đã mua xong* phiếu tự nhảy sang việc khác, nên không ai thấy dải đi tiếp | `GET /purchase-tasks` chỉ trả việc **đang mở**: việc vừa mua biến mất khỏi danh sách |
+| Toast *"Có tiến triển"* in thẳng `listing`, `measure` | có sẵn từ trước; chữ máy lọt qua một chuỗi template, không qua `words.js` |
+| Phiếu thu phần còn lại hiện "—" và bấm thì lỗi | có sẵn từ trước: màn hình đọc `o.balance`, mà `summaryView` không có trường đó |
+
+Lỗi cuối đáng một câu riêng. Domain định nghĩa `Balance()` là **tổng trừ cọc**, và bảng đọc
+có cả hai số, nên `balanceOf()` làm đúng một phép trừ đó, bằng `BigInt` trên chuỗi số nguyên
+(tiền không bao giờ là float). Thêm trường `balance` vào API là cách sạch hơn, nhưng đợt này
+cấm đụng Go, nên nó được ghi lại là nợ chứ không lén làm.
+
+Và bài học 3 của `CLAUDE.md` lại đúng: lượt chạy thứ hai trên **cùng** process vỡ vì
+script bấm nhầm nút *Xin báo giá* của món từ lượt một (trình duyệt mới không nhớ báo giá cũ).
+Lỗi của script, không của màn hình, nhưng chỉ lượt thứ hai mới cho thấy.
+
 ## 24. Đặt hộ có ghi tên — mở lại một quyết định đã đóng (P10)
 
 > T1 (§18e) xoá `customer_id` khỏi body `POST /orders` với lời hứa: *"chủ đơn là chủ token,

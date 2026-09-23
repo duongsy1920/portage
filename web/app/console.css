@@ -1,28 +1,31 @@
-/* Portage console — the same visual identity as web/flow.html (IBM Plex,
-   customs-ink primary, one hue per bounded context), but denser: this screen
+/* Portage console — one hue per bounded context like web/flow.html, but
+   denser: this screen
    is operated, not read. Tokens first, components after; every colour comes
-   from a token so both themes resolve as a set. */
+   from a token so both themes resolve as a set.
+   Fonts and base colours follow screens.css (Be Vietnam Pro, airmail blue),
+   self-hosted: no request leaves for a font CDN. */
+@import url("./fonts.css");
 :root{
-  --ground:#F5F6F8; --card:#FFFFFF; --card-2:#FAFBFC; --sunk:#F0F2F5;
-  --ink:#141821; --ink-2:#4E5766; --ink-3:#7C8698;
-  --line:#E3E6EB; --line-2:#EDEFF3;
-  --primary:#26418F; --primary-2:#1B3170; --on-primary:#FFFFFF; --primary-soft:#E9EEF9;
+  --ground:#F2F4F7; --card:#FFFFFF; --card-2:#FAFBFC; --sunk:#ECEFF3;
+  --ink:#14202E; --ink-2:#4A5868; --ink-3:#5E6A78;
+  --line:#D3DAE2; --line-2:#E4E8ED;
+  --primary:#1B3F8B; --primary-2:#142F69; --on-primary:#FFFFFF; --primary-soft:#E9EEF9;
   --ok:#1B6B45; --ok-soft:#E6F2EB; --warn:#8A6410; --warn-soft:#FAF2E1;
   --bad:#9E3030; --bad-soft:#F8ECEC;
   --c-catalog:#3D6A8C; --c-pricing:#2A7466; --c-ordering:#9A6A1E;
   --c-procurement:#6E4C93; --c-logistics:#A2483C; --c-reporting:#5A6472; --c-worker:#3F4756;
   --radius:10px; --radius-sm:6px;
   --shadow:0 1px 2px rgba(20,24,33,.05), 0 1px 3px rgba(20,24,33,.04);
-  --sans:"IBM Plex Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-  --serif:"IBM Plex Serif",ui-serif,Georgia,"Times New Roman",serif;
+  --sans:"Be Vietnam Pro",system-ui,"Segoe UI",Roboto,sans-serif;
+  --serif:var(--sans);
   --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,"Cascadia Mono",Consolas,monospace;
 }
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
-    --ground:#0E1218; --card:#151A22; --card-2:#1A2028; --sunk:#11161D;
-    --ink:#E8EBF0; --ink-2:#A6B0BF; --ink-3:#78828F;
-    --line:#252C37; --line-2:#1D232B;
-    --primary:#93AAF5; --primary-2:#B4C4FA; --on-primary:#101620; --primary-soft:#1A2334;
+    --ground:#0E141B; --card:#16202A; --card-2:#1A2530; --sunk:#111922;
+    --ink:#E6ECF2; --ink-2:#A9B6C4; --ink-3:#8795A5;
+    --line:#2A3746; --line-2:#1F2A36;
+    --primary:#7FA3F0; --primary-2:#A6C0F5; --on-primary:#101620; --primary-soft:#1A2334;
     --ok:#63BE8D; --ok-soft:#12261C; --warn:#D6AA5C; --warn-soft:#271F12;
     --bad:#E28C8C; --bad-soft:#2A1919;
     --c-catalog:#7FAAC9; --c-pricing:#5FB49F; --c-ordering:#D6A855;
@@ -31,10 +34,10 @@
   }
 }
 :root[data-theme="dark"]{
-  --ground:#0E1218; --card:#151A22; --card-2:#1A2028; --sunk:#11161D;
-  --ink:#E8EBF0; --ink-2:#A6B0BF; --ink-3:#78828F;
-  --line:#252C37; --line-2:#1D232B;
-  --primary:#93AAF5; --primary-2:#B4C4FA; --on-primary:#101620; --primary-soft:#1A2334;
+  --ground:#0E141B; --card:#16202A; --card-2:#1A2530; --sunk:#111922;
+  --ink:#E6ECF2; --ink-2:#A9B6C4; --ink-3:#8795A5;
+  --line:#2A3746; --line-2:#1F2A36;
+  --primary:#7FA3F0; --primary-2:#A6C0F5; --on-primary:#101620; --primary-soft:#1A2334;
   --ok:#63BE8D; --ok-soft:#12261C; --warn:#D6AA5C; --warn-soft:#271F12;
   --bad:#E28C8C; --bad-soft:#2A1919;
   --c-catalog:#7FAAC9; --c-pricing:#5FB49F; --c-ordering:#D6A855;
@@ -63,8 +66,8 @@ button,input,select{font:inherit;color:inherit}
 .brand{font-family:var(--serif);font-size:16px;display:flex;gap:9px;align-items:baseline}
 .brand small{font-family:var(--mono);font-size:10.5px;font-weight:400;color:var(--ink-3);
   letter-spacing:.06em;text-transform:uppercase}
-.tabs{display:flex;gap:2px;background:var(--sunk);border:1px solid var(--line);border-radius:8px;padding:2px}
-.tabs button{border:0;background:transparent;padding:5px 12px;border-radius:6px;font-size:13px;
+.tabs{display:flex;gap:2px;background:var(--sunk);border:1px solid var(--line);border-radius:8px;padding:2px;max-width:100%;overflow-x:auto}
+.tabs button{flex:none;border:0;background:transparent;padding:5px 12px;border-radius:6px;font-size:13px;
   color:var(--ink-2);cursor:pointer;white-space:nowrap}
 .tabs button[aria-selected="true"]{background:var(--card);color:var(--ink);box-shadow:var(--shadow);font-weight:500}
 .top-right{margin-left:auto;display:flex;gap:9px;align-items:center;flex-wrap:wrap}

@@ -9,7 +9,7 @@
 > | tra cú pháp Go ↔ PHP | [GO-CHO-PHP.md](GO-CHO-PHP.md) |
 > | đọc code theo thứ tự | [WALKTHROUGH.md](WALKTHROUGH.md) |
 > | lộ trình học + câu tự kiểm | [HOC.md](HOC.md) |
-> | **vì sao code trông như vậy** | **§9 của file này** — 20 đợt review |
+> | **vì sao code trông như vậy** | **§9 của file này** — 21 đợt review |
 
 ---
 
@@ -892,7 +892,7 @@ bash scripts/smoke.sh
 ---
 ## 9. Nhật ký review 04/09/2026 — bug đã tìm thấy và bài học
 
-> **Đây là chỗ trả lời câu *"vì sao code lại trông như thế này"*.** 20 đợt, mỗi
+> **Đây là chỗ trả lời câu *"vì sao code lại trông như thế này"*.** 21 đợt, mỗi
 > đợt một bảng `quyết định / bug → chỗ nó nằm`. Đọc 2–3 đợt cuối là nắm được
 > tình trạng hiện tại. 24 bug được đánh số — câu tự kiểm rút từ chúng ở
 > [HOC.md](HOC.md).
@@ -1504,3 +1504,84 @@ Tổng **312 test** (+7 so với đợt 19: 5 của phần bắt buộc, 2 của
 278 PASS + 34 SKIP. 41 route (không đổi — hai route có sẵn chỉ đổi wrapper), 35 dòng
 `Subscribe` (không đổi — không event mới), 37 domain event (không đổi — `order_placed` chỉ
 thêm field), 13 migration (+2: `0012` ở ordering, `0013` ở reporting).
+
+### Đợt 21 (23/09) — làm lại giao diện: phong bì *par avion* và dải hành trình
+
+Plan: `docs/UI-REDESIGN-PLAN.md` (§8 chưa ai trả lời, nên làm theo cả năm đề nghị D1–D5).
+Hệ thiết kế đã chốt: `design-system/portage/MASTER.md`. Đọc code: `WALKTHROUGH.md` §23j.
+**Không đổi dòng Go nào, không đổi API**; chỉ `web/`, `design-system/` và docs.
+
+| Quyết định / bug | Chỗ nó nằm |
+|---|---|
+| Giữ **cấu trúc** công cụ `ui-ux-pro-max` đề nghị (Swiss, màu trạng thái riêng, checklist tiếp cận), bỏ phần **nhận diện** của nó (Inter, `#2563EB`, cam, GSAP, trang có hero) vì plugin `frontend-design` gọi đúng những thứ đó là dấu hiệu trang máy sinh | `MASTER.md` §7 |
+| Font tự host, không một request nào ra ngoài: Be Vietnam Pro 400–700 subset `latin` + `vietnamese` (~148 KB kèm Plex Mono) | `web/vendor/fonts/`, `web/app/fonts.css` |
+| Be Vietnam Pro **không có `tnum`** (đã kiểm GSUB bằng fontTools) → họ phụ `"Portage Figures"` chỉ mượn chữ số của IBM Plex Mono qua `unicode-range`, chỉ dùng cho cột tiền | `fonts.css`, `td.amount` |
+| Đo tương phản thay vì tin bảng màu: 17 cặp × 2 theme đều ≥ 4.5:1. Nhưng đỏ sọc và đỏ lỗi cách nhau **1.07:1** ở dark, nên dùng phương án dự phòng của plan: "việc đang chờ bạn" nói bằng xanh đậm, đỏ chỉ còn trong sọc | `screens.css` đầu file |
+| Dải hành trình: sáu ô, logic là hàm thuần `journeyOf` trong `words.js` (thử bằng `node`, 11 trạng thái × 2 vai), component `Journey` chỉ vẽ. Ô nào API không gửi số thì để trống: Đã mua, Kho Denver, Đã bay chưa có số | `words.js`, `ui.js` |
+| Trang nhân viên thành bàn làm việc: ba hàng đợi có số đếm bên trái, phiếu đang mở bên phải, tự mở việc kế tiếp theo thứ tự công việc | `staff.js` |
+| **Bug có từ trước:** thu phần còn lại hiện "—" và bấm thì lỗi, vì màn hình đọc `o.balance` mà `summaryView` không có trường đó. Sửa bằng `balanceOf()` = tổng − cọc, đúng phép của `CustomerOrder.Balance()`, bằng `BigInt`. Thêm `balance` vào API là cách sạch hơn, **để lại làm nợ** vì đợt này cấm đụng Go | `words.js` `balanceOf` |
+| **Bug có từ trước:** toast "Có tiến triển" in thẳng `next_step` (`listing`, `measure`) ra màn hình khách | `customer.js`, giờ qua `NEXT_STEP` |
+| `GET /purchase-tasks` chỉ trả việc đang mở, nên việc vừa mua biến mất và phiếu nhảy đi trước khi thấy dải đi tiếp. Trang nhớ các việc đã thấy **trong phiên**, lấy kết cục từ `/orders`, và giữ phiếu lại kèm nút *Mở việc kế tiếp* | `staff.js` `seen`, `pinThen` |
+| Trình duyệt thật bắt thêm hai lỗi trình bày: `.note` là flex nên mỗi `<b>` thành một cột; và `htm` cắt khoảng trắng có xuống dòng sát thẻ ("nữ,Y"). Quét cả ba file tìm mẫu đó, sửa bốn chỗ | `screens.css`, `customer.js`, `staff.js` |
+| `console.html` còn tải font từ Google Fonts (phá ràng buộc "không mạng"). Bỏ hai thẻ `<link>`, `console.css` chỉ đổi token và font, không đổi bố cục. Thanh tab tràn ngang ở 375 px **có từ trước** (412 px ở HEAD); giờ nó tự cuộn trong khung | `console.html`, `console.css` |
+| Chữ của `ORDER` viết cho khách ("chờ **bạn** chuyển cọc") sai trên màn nhân viên. Thêm `ORDER_FOR_STAFF`, không sửa chữ cũ | `words.js` |
+
+**Kiểm chứng** (API in-memory thật, `-web ./web`, Chrome headless qua `puppeteer-core`, script ở
+thư mục tạm, không đưa vào repo):
+
+- Đi hết luồng **ba lượt trên cùng một process** (lượt thứ hai chỉ dùng Tab/Enter cho phần của
+  khách): gửi link → bốn bước checklist → báo giá hiện **`5.393.720 ₫`** và cọc **`2.696.860 ₫`**
+  → đặt đơn → nhân viên thấy cần thu `2.696.860 ₫` → thu cọc → phiếu tự mở việc đi mua → mua →
+  dải của **cả hai** màn hình tới ô *Kho Denver*. Mỗi lượt quét DOM tìm `issued`, `awaiting_`,
+  `branded`, `us_forwarder`, `listing`, `measure`, `undefined`, `NaN` và chuỗi dạng uuid: sạch.
+  HTTP lỗi duy nhất là 409 `quote_not_accepted` mà `retryOn` cố ý thử lại.
+- 4 trang × 4 bề rộng (375 · 768 · 1024 · 1440) × 2 theme: không cuộn ngang, Be Vietnam Pro nạp
+  được khi **chặn mọi host khác localhost**. `prefers-reduced-motion`: `animation-name: none`.
+- `console.html`: 26/26 bước xanh, kết ở `variance -2.50 USD (ước tính 163.22+25.00 · thật 163.22+27.50)`.
+- `gofmt -l .` sạch, `go vet ./...` sạch. `go test ./...` ngoài `internal/adapter/config`:
+  **279 PASS + 33 SKIP, bằng đúng một worktree sạch ở HEAD** trên cùng máy Windows. (Con số 278 +
+  34 ở đợt 20 là của máy Linux.) Package `config` vẫn đỏ 2 test như plan §9 đã ghi: việc dở của
+  T-001, không đụng tới.
+
+**Lượt hai, cùng ngày: anh chê lượt đầu.** *"UI suông đuột từ trên xuống dưới, button, input…
+đều không đẹp gì cả, không hề có 1 animation nào."* Đúng: lượt đầu chỉ được kiểm bằng những thứ đo
+được (tương phản, tràn, chữ máy, số vàng) và chưa ai ngồi soi xem nó **trông** ra sao; "chỉ một chỗ
+táo bạo, còn lại im lặng" bị hiểu thành "không có gì".
+
+| Quyết định / bug | Chỗ nó nằm |
+|---|---|
+| Bố cục có cột: tiêu đề trang kèm số đếm sống (`PageHead`); trang khách hai cột từ 1024 px (ô gửi link dính bên trái); trên điện thoại "việc chờ bạn" lên đầu bằng `display: contents` + `order` | `customer.js`, `screens.css` |
+| Ba tầng bề mặt panel → row → sheet, bo góc có thứ bậc (16 · 12 · 8) | `Section`, `.row`, `.sheet` |
+| Control được thiết kế: ô nhập có nền, vòng focus 4 px, select có mũi tên riêng, nút nhấc/lún, **spinner khi đang gửi** (`aria-busy`) | `screens.css` |
+| Chuyển động có lý do: panel lên dần khi mở trang, máy bay bay trên đường khi đơn chuyển bước, ✓ tự vẽ khi xong một bước, báo giá hiện từng dòng, toast có thanh đếm ngược, skeleton khi tải. Tất cả tắt dưới `prefers-reduced-motion` | `MASTER.md` §6 |
+| **Bug tìm ra khi chụp với dữ liệu sạch:** món đã đặt đơn từ máy khác (hay nhân viên đặt hộ) vẫn hiện "sẵn sàng báo giá" và nằm trong "việc chờ bạn", vì trang chỉ tin localStorage. `/me/orders` đã có `product_id`, nên giờ danh sách đơn thắng localStorage | `customer.js` `MyProduct`, `waitingFor` |
+| Số tiền trong dải rớt chữ `₫` xuống dòng (ô hẹp, chữ số mono rộng) → ô dải dùng Be Vietnam Pro, `nowrap` | `.jr-value` |
+
+Kiểm lại sau lượt hai trên API sạch: hai lượt đi hết luồng liền nhau trên cùng process (lượt hai
+chỉ bàn phím), số vàng đúng, không chữ máy; 32 tổ hợp trang × bề rộng × theme không cuộn ngang, font
+không ra mạng; console 26/26. Hai lần script kiểm tự vỡ giữa chừng, cả hai là lỗi của script:
+dùng lại một link đã gửi (hệ thống trả `409 suspected_duplicate`, đúng thiết kế), và giả định bàn
+làm việc mở việc đi mua trong khi còn một món chờ xử lý (bàn mở món đó trước, cũng đúng thiết kế).
+
+**Lượt ba: anh bấm thử và báo năm điểm.**
+
+| Anh thấy | Nguyên nhân | Sửa |
+|---|---|---|
+| Bấm *Lưu size này*: ô Size xoá trắng, nút mờ, trễ 1–3 giây, dễ tưởng mất dữ liệu (có từ trước) | code xoá ô ngay sau 201, nhưng bảng đọc chỉ đầy sau relay, và trang đợi lượt hỏi 4 giây kế tiếp | bước **xong tại chỗ** khi server đã nhận (hiện luôn thứ vừa ghi); sau mỗi thao tác hỏi lại ở 0/250/700/1500 ms; bước kế mở khoá ngay, không đợi tải lại. Đo lại: 210 ms từ lúc bấm tới lúc bước hiện "Đã có US 9" |
+| *Việc đi mua* đếm 0 mà vẫn có một dòng "đã mua" | số đếm tính việc mở, danh sách trộn việc đã xong | việc xong nằm dưới nhãn riêng *Vừa mua xong trong phiên này* có số riêng |
+| Ô *Đã mua* trống dù đã mua | `POST …/confirm` trả 204, không trả gì | đọc lại `GET /purchase-tasks/{id}` một lần sau khi mua: ô có số tiền thật và ngày mua. Màn khách vẫn không có số (route của nhân viên), nên ô đã qua ghi "xong" |
+| Không demo được Kho Denver → Đã bay → Đã giao | màn nhân viên chưa có chỗ nhận kiện, gom lô, cho bay, giao | thêm hai hàng đợi *Kho Denver* và *Chờ giao*, phiếu kiện (cân, xếp lô), phiếu lô (dán kín, nhập cước hãng bay, xem phần chia), phiếu giao. Không có route liệt kê lô, nên lô được tìm qua `batch_id` của kiện. Không đổi Go |
+| *Ngành hàng* về "quần áo" mỗi lần tải lại | lấy mục đầu danh sách | nhớ shop và ngành hàng chọn lần trước (localStorage, chỉ là tiện cho người xem) |
+
+**Một lỗi tự gây trong lượt này:** script vá chèn `// chú thích` vào giữa dòng một-hàng, nuốt
+mất `});` phía sau, làm `staff.js` hỏng cú pháp và trang nhân viên trắng. Bắt được vì lượt kiểm
+kế tiếp không thấy món mới trên trang; sau đó mỗi lần vá đều chạy `node --check` cho cả năm module.
+
+Kiểm lại: hai lượt đi **hết luồng tới lúc giao** liền nhau trên cùng một process (lượt hai: phần
+khách chỉ bàn phím); mỗi đơn giao qua màn hình đều có `GET /reconciliations/{id}` →
+**`variance -2.50 USD`** (ba đơn, ba lần). Không chữ máy, ngành hàng còn nhớ sau khi tải lại,
+console 26/26, reduced-motion rút mọi hiệu ứng về 1e-06 s, `gofmt` và `vet` sạch.
+
+**Chưa làm:** `flow.html` (D3), màn hình bảng giá cước (D4), trường `balance` trong API,
+số cân, ngày mua, ngày bay cho dải hành trình của **khách** (cần một trường mới trong bảng đọc đơn), và một route liệt kê lô. Chưa có ảnh chụp trong docs; UI-GUIDE mô tả bằng chữ và
+sơ đồ ASCII.

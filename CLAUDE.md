@@ -131,7 +131,11 @@ với `PORTAGE_TEST_DSN`, +7). `scripts/smoke.sh` thật cũng xanh hai lần sa
 đợt việc, đúng số vàng mọi lần — nhưng qua một Postgres **tạm**, vì cổng 5433 cố
 định của máy Linux này đang bị dự án khác chiếm (`rift-db-1`); xem SETUP §9 đợt 20.
 
-**Còn nợ:** `config/ratecard.yaml` (bảng giá đang là hằng trong `wire.go`) ·
+**Vừa xong — làm lại giao diện (đợt 21, 23/09):** theo `docs/UI-REDESIGN-PLAN.md`, không đổi Go
+hay API. Xem mục **Giao diện** bên dưới và SETUP §9 đợt 21.
+
+**Còn nợ:** trường `balance` trong `GET /orders` (màn hình đang tự trừ tổng − cọc) ·
+`config/ratecard.yaml` (bảng giá đang là hằng trong `wire.go`) ·
 một `adapter/merchant/<shop>.go` thật (chưa shop nào cho API) · cổng thanh toán ·
 chạy lại `scripts/smoke.sh` qua `portage-postgres` thật (không phải bản tạm) khi
 cổng 5433 rảnh lại.
@@ -152,19 +156,21 @@ không trên pallet.
 | File | Trả lời |
 |---|---|
 | `docs/HOC.md` | **lộ trình học, buổi 0 tới buổi 9** (buổi 0 = bấm UI trước khi đọc code) + 17 câu tự kiểm tra + nói gì khi phỏng vấn |
-| `docs/SETUP.md` | môi trường, cây thư mục, lệnh hàng ngày, **§9 nhật ký 20 đợt review** |
+| `docs/SETUP.md` | môi trường, cây thư mục, lệnh hàng ngày, **§9 nhật ký 21 đợt review** |
 | `docs/WALKTHROUGH.md` | đọc code theo thứ tự — 101 file, §0–§23 (§23 = hai màn hình theo vai) |
 | `docs/DDD.md` | sổ tay khái niệm, đối chiếu Symfony |
 | `docs/FLOW-ORDER.md` | một đơn từ đầu tới cuối: ai gọi, ai nghe, bảng nào đổi, hỏng thì sao |
 | `docs/CATALOG.md` | vì sao không dùng affiliate feed, provenance theo nhóm |
 | `docs/GO-CHO-PHP.md` | cú pháp Go tra nhanh cho người viết PHP |
+| `docs/UI-REDESIGN-PLAN.md` | plan của đợt 21 (đã xong) — làm lại giao diện bằng hai plugin thiết kế |
+| `docs/UI-NEXT-PLAN.md` | **plan đợt sau, chưa làm**: đưa trí nhớ phiên của màn hình về bảng đọc (migration `0014`), `balance`, hai route đọc; §7 chờ anh chốt |
 | `docs/P10-PLAN.md` | plan gốc của P10 (đã xong, đợt 20) — operator đặt hộ có ghi tên; giữ để thấy cách chốt quyết định |
 | `docs/P9-PLAN.md` | plan gốc của P9 (đã xong hết) — giữ để thấy cách chốt quyết định |
 | `learn/CURRICULUM.md` | **loạt video học, 24 tập**: Mùa 1 Go (10), Mùa 2 DDD (6), Mùa 3 Portage (8). Kèm bốn cửa kiểm ở §12 |
 | `docs/UI-GUIDE.md` | **bốn màn hình và bấm gì trên từng cái**: trang khách, trang nhân viên, mô phỏng, bảng kiểm API; 10 nhánh rẽ nên thử; bảng hỏng-thì-xem |
 | `docs/CODING-AGENT.md` | **thiết kế Coding Agent** (đồng nghiệp AI dùng lại được cho mọi project): audit Portage → ai-employees → mô hình → Phase 1. Đã dựng ở `agent/` |
 
-**`docs/SETUP.md` §9 là chỗ quan trọng nhất khi tiếp tục việc**: 20 đợt review,
+**`docs/SETUP.md` §9 là chỗ quan trọng nhất khi tiếp tục việc**: 21 đợt review,
 mỗi đợt một bảng "quyết định / bug → chỗ nó nằm". Đọc 2–3 đợt cuối là nắm được
 vì sao code hiện tại trông như vậy.
 
@@ -253,8 +259,19 @@ Chi tiết hơn: `docs/SETUP.md` §5.
 
 ## Giao diện
 
-Hai màn hình, hai việc: **`flow.html`** để *hiểu* luồng (mô phỏng), **`console.html`** để *chạy thử*
-luồng (gọi API thật). Cách thao tác từng bước: `docs/UI-GUIDE.md`.
+Bốn trang, bốn vai (`/ui/` là trang chọn): **`customer.html`** và **`staff.html`** để *làm việc*,
+**`flow.html`** để *hiểu* luồng (mô phỏng), **`console.html`** để *chạy thử* luồng (gọi API thật).
+Cách thao tác từng bước: `docs/UI-GUIDE.md`.
+
+**Hai trang làm việc (làm lại đợt 21, 23/09).** Hệ thiết kế "phong bì *par avion*": nền giấy
+xanh-xám, mực xanh đen, sọc xanh–đỏ **chỉ** ở chân thanh trên cùng và chỗ "việc đang chờ bạn";
+đỏ không bao giờ là lỗi. Be Vietnam Pro **tự host** (`web/vendor/fonts/`, `web/app/fonts.css`),
+light + dark. Chỗ táo bạo duy nhất là **dải hành trình** sáu ô (`Journey` trong `ui.js`, logic
+`journeyOf` trong `words.js`): ô nào API không gửi số thì để trống. Trang nhân viên là bàn làm
+việc: năm hàng đợi có số đếm bên trái (món chờ xử lý · việc đi mua · kho Denver · tiền chờ thu ·
+chờ giao), phiếu đang mở bên phải — đi được hết luồng tới lúc giao, kết ở `variance -2.50 USD`. Luật màu/chữ/bố cục:
+`design-system/portage/MASTER.md`; plan gốc: `docs/UI-REDESIGN-PLAN.md`; nhật ký: SETUP §9 đợt 21.
+`flow.html` **chưa** đổi (quyết định D3 của plan).
 
 **`web/console.html` + `web/app/{api,steps,main}.js`** — console thật, không npm/build/framework.
 Chạy `go run ./cmd/api -web ./web` rồi mở `http://localhost:8080/ui/console.html` (cờ `-web` mount

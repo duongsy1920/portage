@@ -6,34 +6,76 @@
 // this repository chose that.
 
 import htmFactory from "../vendor/htm.module.js";
+import { Icon } from "./icons.js";
+import { journeyOf, say, ORDER, ORDER_FOR_STAFF, TRACKING, YOURS as YOURS_WORDS } from "./words.js";
+import { money } from "./portage.js";
 
+export { Icon };
 export const React = window.React;
 export const html = htmFactory.bind(React.createElement);
 const { useState, useEffect, useRef, useCallback, useId } = React;
 
 /* ── top bar ─────────────────────────────────────────────────────────────── */
-export function Top({ title, role, waiting, children }) {
+export function Top({ role, waiting, children }) {
   return html`
-    <div class="top">
-      <h1>${title}</h1>
-      <span class="role">${role}</span>
-      ${waiting > 0 && html`<span class="badge" title="đang chờ bạn">${waiting}</span>`}
-      <span class="spacer"></span>
-      ${children}
+    <header class="top">
+      <div class="top-in">
+        <div class="brand"><span class="brand-mark"><${Icon} name="plane" size=${17} /></span><h1>Portage</h1></div>
+        <span class="role">${role}</span>
+        ${waiting > 0 && html`
+          <span class="badge" role="status">${waiting}<span class="sr"> việc đang chờ bạn</span></span>`}
+        <span class="spacer"></span>
+        <nav aria-label="Màn hình khác">${children}</nav>
+      </div>
+    </header>`;
+}
+
+/* A section is a heading, an optional count and its rows: no box around it.
+ * Boxes are for the one piece of work that is open (Sheet), so the eye can
+ * find it without reading anything. */
+export function Section({ title, icon, count, hot, right, children, id, first }) {
+  return html`
+    <section class=${"panel" + (first ? " first" : "")} id=${id} aria-label=${title}>
+      <div class="section-head">
+        ${icon && html`<${Icon} name=${icon} />`}
+        <h2>${title}</h2>
+        ${count !== undefined && count !== "" && html`<span class=${"count" + (hot ? " hot" : "")} key=${count}>${count}</span>`}
+        <span class="spacer"></span>
+        ${right}
+      </div>
+      <div class="section-body">${children}</div>
+    </section>`;
+}
+
+export function Sheet({ children, label }) {
+  return html`<div class="sheet" role="region" aria-label=${label}>${children}</div>`;
+}
+
+/** PageHead: the page's title, one line of what it is for, and live counts. */
+export function PageHead({ title, lead, stats = [] }) {
+  return html`
+    <div class="page-head">
+      <div><h2>${title}</h2>${lead && html`<p>${lead}</p>`}</div>
+      <div class="stats">
+        ${stats.map(s => html`
+          <div class=${"stat" + (s.hot ? " hot" : "")} key=${s.label}><b key=${s.value}>${s.value}</b>${s.label}</div>`)}
+      </div>
     </div>`;
 }
 
-export function Card({ title, right, children }) {
-  return html`
-    <div class="card">
-      ${title && html`
-        <div class="card-head">
-          <h2>${title}</h2>
-          <span class="spacer"></span>
-          ${right}
-        </div>`}
-      <div class="card-body">${children}</div>
-    </div>`;
+/** Skeleton stands in while a list loads: its shape, not the word "loading". */
+export function Skeleton({ rows = 3 }) {
+  return html`<div class="skeleton" aria-label="Đang tải">${Array.from({ length: rows }, (_, i) => html`<i key=${i}></i>`)}</div>`;
+}
+
+/** Empty is an invitation to act, with a picture of what will appear here. */
+export function Empty({ icon = "box", children }) {
+  return html`<div class="empty"><${Icon} name=${icon} size=${28} /><div>${children}</div></div>`;
+}
+
+/** Problem is an error said in words, with an icon, never by colour alone. */
+export function Problem({ children }) {
+  return html`<div class="note bad" role="alert"><${Icon} name="alert" /><div>${children}</div></div>`;
 }
 
 // The label is TIED to the input with for/id. Not decoration: without it a
@@ -61,6 +103,7 @@ export function Select({ label, hint, options, ...rest }) {
     </div>`;
 }
 
+
 /* ── the numbered checklist ──────────────────────────────────────────────────
  * A step is done, current, or not yet. Done steps say WHAT THEY RECORDED
  * rather than going grey, because "US 9 · black" is the proof the step
@@ -70,10 +113,10 @@ export function Select({ label, hint, options, ...rest }) {
  */
 export function Steps({ steps }) {
   return html`
-    <div class="steps">
+    <ol class="steps">
       ${steps.map((s, i) => html`
-        <div class="step ${s.state}" key=${s.key || i}>
-          <div class="num">${s.state === "done" ? "✓" : i + 1}</div>
+        <li class="step ${s.state}" key=${s.key || i} aria-current=${s.state === "now" ? "step" : undefined}>
+          <div class="num">${s.state === "done" ? html`<${Icon} name="check" label="xong" size=${16} />` : i + 1}</div>
           <div>
             <div class="title">${s.title}</div>
             <div class="body">
@@ -87,8 +130,77 @@ export function Steps({ steps }) {
               ${s.state === "todo" && s.after && html`<div>${s.after}</div>`}
             </div>
           </div>
-        </div>`)}
+        </li>`)}
+    </ol>`;
+}
+
+/* ── the journey strip ───────────────────────────────────────────────────────
+ * The one loud element on both screens: an air waybill label with one box per
+ * stage. Which stage is which comes from journeyOf in words.js, so this
+ * component only draws. A box shows a figure or date only when the API sent
+ * one for that stage; a blank box is honest, an invented one is not.
+ */
+export function Journey({ order, viewer = "customer", facts }) {
+  const { cells, reached, stopped } = journeyOf(order, viewer, facts);
+  // where the plane sits on the route: the middle of the stage it is in,
+  // the end of the last one reached when the order stopped, home when delivered
+  const p = order.status === "delivered" ? 1 : stopped ? (reached + 1) / cells.length : (reached + 1.5) / cells.length;
+  const said = say(ORDER, order.status);
+  const st = viewer === "staff" && ORDER_FOR_STAFF[order.status] ? { ...said, words: ORDER_FOR_STAFF[order.status] } : said;
+  const mine = cells.find(c => c.state === "yours");
+  const asks = mine && (YOURS_WORDS[viewer] || {})[mine.key];
+  const where = order.tracking && order.tracking !== "none" && !["delivered", "cancelled", "purchase_failed"].includes(order.status)
+    ? `${st.words}, ${say(TRACKING, order.tracking).words}` : st.words;
+  const why = order.tracking && order.tracking !== "none" && !stopped ? say(TRACKING, order.tracking).why : st.why;
+
+  return html`
+    <div class="journey-box">
+      <ol class="journey jr" style=${{ "--cells": cells.length }} aria-label="Hành trình của đơn">
+        ${cells.map(c => html`
+          <li class="jr-cell ${c.state}" key=${c.key}
+            aria-current=${c.state === "now" || c.state === "yours" ? "step" : undefined}>
+            <div class="jr-label"><${Icon} name=${c.state === "stopped" ? "x" : c.icon} size=${15} />${c.label}</div>
+            ${(c.value || c.text) && html`<div class="jr-value">${c.value ? money(c.value) : c.text}</div>`}
+            ${c.sub && html`<div class="jr-sub">${c.sub}</div>`}
+            <span class="sr">${STATE_WORDS[c.state]}</span>
+          </li>`)}
+      </ol>
+      <div class=${"jr-route" + (stopped ? " stopped" : "")} style=${{ "--p": p }} aria-hidden="true">
+        <div class="jr-fill"></div>
+        <span class="jr-plane"><${Icon} name=${stopped ? "x" : "plane"} size=${14} /></span>
+      </div>
+      <p class="jr-caption">
+        <span class="where">${where.charAt(0).toUpperCase() + where.slice(1)}.</span>
+        ${asks && html` <span class="yours">Việc của bạn: ${asks}.</span>`}
+        ${why && html` <span class="muted">${why}</span>`}
+        ${stopped && order.refund && html` <span>Hoàn lại <b>${money(order.refund)}</b>.</span>`}
+      </p>
     </div>`;
+}
+
+// read aloud after each box, since the bar colour says it only to the eye
+const STATE_WORDS = {
+  done: "đã qua", now: "đang ở bước này", yours: "đang chờ bạn",
+  todo: "chưa tới", stopped: "dừng ở đây", off: "sẽ không tới",
+};
+
+/* ── the key, folded into one line at the foot of the page ───────────────── */
+export function Keys({ token, onSave, children }) {
+  const [draft, setDraft] = useState(token);
+  useEffect(() => setDraft(token), [token]);
+  return html`
+    <details class="keys">
+      <summary><${Icon} name="key" /><span>Chìa khoá đang dùng: <b>${token || "chưa có"}</b></span>
+        <span class="link">Đổi chìa</span></summary>
+      <div class="keys-body">
+        <div class="note">${children}</div>
+        <${Field} ...${{ label: "Chìa khoá", value: draft, onChange: e => setDraft(e.target.value) }} />
+        <div class="actions">
+          <button onClick=${() => onSave(draft.trim())}>Lưu và tải lại</button>
+          <span class="dim">Đổi chìa là đổi người, nên mọi danh sách trên trang tải lại theo.</span>
+        </div>
+      </div>
+    </details>`;
 }
 
 /* ── toasts: how one role tells the other something happened ─────────────────
@@ -98,12 +210,12 @@ export function Steps({ steps }) {
  */
 export function Toasts({ items, onDismiss }) {
   return html`
-    <div class="toasts">
+    <div class="toasts" role="status" aria-live="polite">
       ${items.map(t => html`
         <div class="toast" key=${t.id}>
+          <${Icon} name="info" />
           <div><span class="k">${t.title}</span><br />${t.text}</div>
-          <span class="spacer" style=${{ marginLeft: "auto" }}></span>
-          <button onClick=${() => onDismiss(t.id)} aria-label="đóng">✕</button>
+          <button onClick=${() => onDismiss(t.id)} aria-label="Đóng thông báo"><${Icon} name="x" size=${16} /></button>
         </div>`)}
     </div>`;
 }

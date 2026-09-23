@@ -55,7 +55,8 @@ kiểm soát — `curl` không đọc màn hình.
 
 ## 1. Chìa khoá
 
-Cuối mỗi trang có một thẻ **Chìa khoá**. Nó thay cho đăng nhập: mọi request gắn kèm nó, nên
+Cuối mỗi trang có một dòng **Chìa khoá đang dùng: …**, bấm *Đổi chìa* thì nó mở ra ô nhập.
+Nó thay cho đăng nhập: mọi request gắn kèm nó, nên
 "hàng của tôi" và "đơn của tôi" không bao giờ trả về của người khác. Nó cũng là cách hệ
 thống ghi lại **ai** đã xác nhận sản phẩm và **ai** đã nhận tiền.
 
@@ -70,6 +71,14 @@ nổ khi bảng chìa còn rỗng. Chìa cho khách thì operator phát qua `POS
 ---
 
 ## 2. Trang khách — ba việc
+
+Đầu trang là tiêu đề và ba số đếm sống (việc chờ bạn, món đang xử lý, đơn đang chạy). Từ 1024 px
+trở lên trang chia hai cột: **trái** là ô gửi link, đứng yên khi cuộn; **phải** là việc, hàng và
+đơn. Trên điện thoại thì một cột. Trên cùng là **Việc đang chờ bạn** (chỉ hiện khi có): món
+nhân viên đã xử lý xong, báo giá chưa đồng ý, cọc hoặc phần còn lại chưa chuyển. Mỗi dòng có
+nút *Xem* cuộn mượt tới đúng món đó, làm nó sáng lên một nhịp, và đặt con trỏ vào ô đầu tiên,
+nên đi bằng bàn phím cũng tới.
+Số trên huy hiệu cạnh chữ "Portage" là số dòng ở đây.
 
 ### (a) Gửi link
 
@@ -121,9 +130,31 @@ Cọc trước                   một nửa tổng
 
 Bấm *Đồng ý và đặt hàng* là tạo đơn. Báo giá giữ **48 giờ**, hết thì xin lại cái mới.
 
-Đơn hiện ở **Đơn của tôi**, hai cột giữa trả lời hai câu khác nhau: *đơn đang ở đâu* là
-chuyện tiền và cam kết, *kiện hàng* là chuyện cái hộp đang nằm đâu. Chúng đổi vào những lúc
-khác nhau nên tách hai cột.
+Món đang được báo giá nổi lên thành một **phiếu** (nền trắng, có viền); các món khác chỉ là
+dòng trong danh sách.
+
+Đơn hiện ở **Đơn của tôi**, mỗi đơn một **dải hành trình** kiểu nhãn vận đơn:
+
+```
+┌──────────────┬──────────────┬─────────┬─────────────┬─────────┬─────────┐
+│ Báo giá      │ Đã cọc       │ Đã mua  │ Kho Denver  │ Đã bay  │ Đã giao │
+│ 5.393.720 ₫  │ 2.696.860 ₫  │         │             │         │         │
+│ đặt 23/09    │ cần chuyển   │         │             │         │         │
+└──────────────┴──────────────┴─────────┴─────────────┴─────────┴─────────┘
+  ━━━━━━━━━━━━━━━━━━━✈- - - - - - - - - - - - - - - - - - - - - - - - - - -   (đường bay)
+Chờ bạn chuyển cọc. Việc của bạn: chuyển cọc cho nhân viên. Bên mình ứng trước…
+```
+
+Ô đổ xanh đặc là bước đơn đang ở; ô viền **sọc đỏ–xanh** là bước đang chờ chính bạn. Dưới nhãn là
+đường bay: một chiếc máy bay đứng ở bước hiện tại, và **bay** sang ô mới khi đơn chuyển bước
+(trang tự hỏi lại mỗi 4 giây nên không cần tải lại). Dải gộp lại hai câu mà trước đây nằm ở hai cột: *đơn đang ở đâu* (tiền và cam
+kết) và *kiện hàng* (cái hộp nằm đâu). Câu dưới dải nói cả hai.
+
+Ô nào đã qua mà **chỉ ghi "xong"** là vì màn hình khách không được đọc số của bước đó: số tiền
+mua thật, cân ở kho và phần cước là số nội bộ, chỉ route của nhân viên trả. Màn hình không bịa số
+để lấp. Trên màn nhân viên cùng ô đó có số thật.
+Đơn huỷ hoặc shop không bán được thì dải dừng ở bước cuối đã tới, ô đó có dấu ✕, và câu dưới
+dải nói tiền được hoàn thế nào. Màn hình hẹp hơn 560 px thì dải dựng dọc và ẩn đường bay.
 
 Nếu một nhân viên đặt đơn này hộ bạn (P10 — ví dụ bạn gọi điện đặt qua nhân viên thay vì tự
 bấm), dòng "nhân viên đặt hộ bạn" hiện ngay dưới tên sản phẩm.
@@ -133,11 +164,21 @@ tay trong hệ thống.
 
 ---
 
-## 3. Trang nhân viên — ba hàng chờ
+## 3. Trang nhân viên — năm hàng chờ
 
-### (a) Việc cần làm
+Làm cho màn rộng trước. Đầu trang là tiêu đề *Bàn làm việc* và số việc đang chờ. Từ 1024 px trở
+lên là hai cột: **trái** là ba hàng đợi, mỗi hàng có số đếm, số chuyển xanh khi có việc
+(*Món chờ xử lý* · *Việc đi mua* · *Kho Denver* · *Tiền chờ thu* · *Chờ giao*); **phải** là phiếu đang mở. Hẹp hơn
+thì xếp chồng, bấm một dòng là cuộn xuống phiếu.
 
-Mỗi món khách gửi là một thẻ, có **checklist bốn bước đánh số**. Chỉ một bước sáng lên, ba
+Bạn không phải đi tìm việc kế tiếp: khi một việc rời hàng đợi (đăng bán xong, thu tiền xong),
+phiếu tự mở việc đầu tiên còn lại, theo đúng thứ tự công việc chạy: làm cho bán được → đi mua →
+cân và gom lô → thu tiền → giao. Riêng sau *Đã mua xong* thì phiếu **ở lại** để bạn thấy dải hành trình của đơn chuyển
+sang *Kho Denver*, kèm nút *Mở việc kế tiếp*.
+
+### (a) Món chờ xử lý
+
+Mỗi món khách gửi là một phiếu, có **checklist bốn bước đánh số**. Chỉ một bước sáng lên, ba
 bước còn lại mờ. Bước đã xong **hiện thứ nó đã ghi** thay vì thành nút xám, vì "Đã có
 1Y · black" mới là bằng chứng bước đó xảy ra.
 
@@ -157,9 +198,10 @@ Ba điều đáng biết ở đây:
   quyết.
 - Khách **không ghi** size thì thẻ nói rõ, và lời khuyên là hỏi lại chứ đừng đoán.
 
-### (b) Đơn chờ thu tiền
+### (b) Tiền chờ thu
 
-Thu cọc trước khi đi mua, thu phần còn lại khi hàng đã bay. **Chỉ bấm khi tiền đã thực sự
+Phiếu có dải hành trình của đơn và đúng số cần thu. Thu cọc trước khi đi mua, thu phần còn lại
+khi hàng đã bay; phần còn lại là tổng trừ cọc, đúng phép tính `CustomerOrder.Balance()`. **Chỉ bấm khi tiền đã thực sự
 vào tài khoản**, và phải đúng số: thiếu hay thừa một đồng hệ thống đều không nhận, vì cọc
 thiếu không phải một cam kết nhỏ hơn và cọc thừa là một khoản phải hoàn mà không ai xin.
 
@@ -169,12 +211,39 @@ tên sản phẩm — cùng thông tin `PlacedBy` với màn hình khách, khôn
 ### (c) Việc đi mua
 
 Việc chỉ mở sau khi cọc vào. Mỗi phiếu có đủ thứ để cầm đi mua: tên, size, mã của shop, và
-link để mở. Nhập lại hai thứ sau khi mua xong:
+link để mở, cùng dải hành trình của đơn (ô *Đã mua* có sọc: đó là việc của bạn). Nhập lại hai thứ sau khi mua xong:
 
 | Ô | Vì sao cần |
 |---|---|
 | Mã đơn ở shop | để đối chiếu khi kiện về kho, và để khiếu nại nếu shop giao sai |
 | Đã trả thật | số **thật** đã trả, không phải số đã báo khách; hệ thống cần cả hai để biết đơn lời hay lỗ |
+
+Việc đã mua rời hàng đợi (API chỉ trả việc đang mở), nhưng trong phiên đang mở nó vẫn nằm dưới
+nhãn riêng *Vừa mua xong trong phiên này*, nên số đếm ở đầu hàng luôn khớp số dòng đang chờ.
+Phiếu vừa mua đọc lại việc đó một lần, nên ô *Đã mua* trên dải có ngày mua và số tiền thật.
+
+### (d) Kho Denver
+
+Kiện xuất hiện ở đây ngay khi một món mua xong, với trạng thái *chờ shop giao tới kho*.
+
+1. **Hộp tới kho:** mở kiện, cân và đo thật (bốn số), bấm *Lưu số cân kiện*. Đây là số tính cước
+   **thật**, so với số lúc báo giá để biết lời lỗ.
+2. **Xếp lô:** bấm *Xếp vào lô đang gom*, hoặc *Mở lô mới và xếp vào* nếu chưa có lô nào đang gom.
+   Phiếu chuyển sang lô.
+3. **Dán kín lô** khi đủ chuyến. Dán rồi thì không thêm kiện được nữa.
+4. **Xác nhận lô đã bay:** nhập tổng cước trên hoá đơn của hãng bay (USD). Hệ thống chia số đó cho
+   từng kiện theo cân tính cước, và phiếu hiện ngay phần của mỗi đơn. Lô vừa bay ở lại dưới nhãn
+   *Lô vừa bay trong phiên này*.
+
+Lô không được đo cả khối: nó chỉ nhận hoá đơn của hãng bay rồi chia (quyết định 08/09 trong
+`CLAUDE.md`). Với số của smoke (cân 1250 g, hộp 340×230×130, cước lô 27.50 USD) bảng đối chiếu ra
+đúng `variance -2.50 USD`.
+
+### (e) Tiền chờ thu → Chờ giao
+
+Khi lô đã bay, đơn hiện lại ở *Tiền chờ thu* với **phần còn lại**. Thu xong thì nó sang *Chờ giao*;
+bấm *Đã giao tận tay khách* khi kiện tới tay khách là đơn khép lại, và dải của cả hai màn hình
+đầy đủ sáu ô.
 
 ---
 
@@ -210,6 +279,10 @@ lý là tự thử lại chứ không báo đỏ.
 | `merchant_not_found` với id vừa dùng | api vừa khởi động lại; chế độ in-memory mất hết dữ liệu |
 | Đơn vẫn "chờ cọc" sau khi thu | thu ở trang nhân viên, khách chỉ xem |
 | Số cân điền sẵn không phải 1250 | nó là hộp mẫu của **ngành hàng bạn chọn**, không phải của món này |
+| Chữ hiện bằng font hệ thống, dấu tiếng Việt lệch | thiếu file trong `web/vendor/fonts/`, hoặc `app/fonts.css` trỏ sai; font không bao giờ tải từ mạng |
+| Trên **trang khách**, các ô *Đã mua*, *Kho Denver*, *Đã bay* chỉ ghi "xong", không có số | đúng như thiết kế: số cân, số tiền mua thật, phần cước là của nội bộ, chỉ route của nhân viên trả; màn hình khách không bịa |
+| Trên **trang nhân viên**, các ô đó trống sau khi tải lại trang | ngày mua, cân và cước chỉ được đọc lại trong phiên đang làm; `GET /purchase-tasks` và `GET /parcels` chỉ trả việc chưa xong |
+| Mua xong mà việc biến khỏi hàng *Việc đi mua* sau khi tải lại trang | cùng lý do: trang chỉ nhớ việc đã mua **trong phiên** |
 
 ---
 
@@ -223,15 +296,26 @@ web/
 ├── console.html          bảng kiểm API      ─┘ (vanilla, không React)
 ├── flow.html             mô phỏng, một file, không gọi API
 ├── vendor/               React + ReactDOM + htm, kèm trong repo
+│   └── fonts/            Be Vietnam Pro + chữ số IBM Plex Mono (woff2, kèm OFL)
 └── app/
     ├── portage.js        chỗ DUY NHẤT gọi API: gắn chìa, dịch lỗi thành mã
-    ├── words.js          từ điển: mọi mã của máy → chữ người đọc được
-    ├── ui.js             component dùng chung: Top, Card, Field, Steps, Toasts, usePoll
-    ├── screens.css       thiết kế của hai trang làm việc
+    ├── words.js          từ điển: mọi mã của máy → chữ người đọc được,
+    │                     và journeyOf(): đơn → sáu ô của dải hành trình
+    ├── ui.js             component dùng chung: Top, Section, Sheet, Problem, Field, Select,
+    │                     Steps, Journey, Keys, Toasts + usePoll, useAction, useToasts
+    ├── icons.js          icon SVG vẽ tay, không emoji
+    ├── fonts.css         @font-face, dùng chung cho screens.css và console.css
+    ├── screens.css       thiết kế của ba trang: chọn, khách, nhân viên
     ├── customer.js       trang khách
     ├── staff.js          trang nhân viên
     └── api.js, main.js, steps.js, console.css   bảng kiểm API cũ
 ```
+
+Màu, chữ, bố cục và các mục đã bỏ từ gợi ý của công cụ thiết kế nằm ở
+`design-system/portage/MASTER.md`. Ý chính: **phong bì par avion**. Nền giấy xanh-xám, mực xanh
+đen; sọc xanh–đỏ chỉ ở chân thanh trên cùng và ở chỗ "việc đang chờ bạn". Đỏ **không bao giờ**
+là lỗi (đã đo: ở dark, đỏ sọc và đỏ lỗi chỉ cách nhau 1.07:1), nên lỗi luôn có chữ, nền và icon.
+Có cả light lẫn dark, theo cài đặt của hệ điều hành.
 
 Hai quy tắc chạy suốt hai trang làm việc, và chúng là lý do bản đầu tiên bị viết lại:
 

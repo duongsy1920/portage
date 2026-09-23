@@ -49,6 +49,26 @@ export const QUOTE = {
               why: "Báo giá chỉ giữ 48 giờ, vì tỷ giá và giá cước đổi. Xin lại một cái mới." },
 };
 
+/* ── a box at the Denver warehouse (logistics.ParcelStatus) ───────────────── */
+export const PARCEL = {
+  expected: { words: "chờ shop giao tới kho", tone: "warn",
+              why: "Đã mua ở shop. Khi hộp tới kho, cân và đo nó: số đó là số tính cước thật." },
+  received: { words: "đã cân, chờ xếp lô", tone: "info",
+              why: "Kiện nằm ở kho. Xếp vào lô đang gom để bay chung, cước rẻ hơn gửi lẻ." },
+  batched:  { words: "đã xếp vào lô", tone: "info", why: "" },
+  shipped:  { words: "đã bay", tone: "ok", why: "" },
+};
+
+/* ── a consolidation batch (logistics.BatchStatus) ───────────────────────── */
+export const BATCH = {
+  open:    { words: "đang gom", tone: "info",
+             why: "Còn nhận thêm kiện. Khi đủ chuyến thì dán kín." },
+  closed:  { words: "đã dán kín, chờ bay", tone: "warn",
+             why: "Không thêm kiện được nữa. Khi hãng bay gửi hoá đơn, nhập tổng cước để chia cho từng kiện." },
+  shipped: { words: "đã bay", tone: "ok",
+             why: "Cước cả lô đã chia cho từng kiện theo cân tính cước. Phần của mỗi đơn đi vào bảng đối chiếu lời lỗ." },
+};
+
 /* ── work at the shop (procurement.TaskStatus) ───────────────────────────── */
 export const TASK = {
   open:      { words: "chưa mua", tone: "warn", why: "" },
@@ -126,9 +146,141 @@ export const ERRORS = {
   paid_currency:           "Số tiền phải cùng loại tiền với shop.",
   empty_reference:         "Phải có mã đơn của shop.",
   unreachable:             "Không gọi được máy chủ. Máy chủ còn chạy không?",
+  incomplete_parcel_spec:  "Phải đủ bốn số: cân nặng, dài, rộng, cao.",
+  parcel_not_expected:     "Kiện này đã được cân rồi.",
+  parcel_not_received:     "Kiện chưa được cân ở kho, chưa xếp lô được.",
+  parcel_not_batched:      "Kiện chưa nằm trong lô nào.",
+  batch_not_open:          "Lô đã dán kín, không thêm kiện được nữa. Mở lô mới.",
+  batch_not_closed:        "Phải dán kín lô trước khi cho bay.",
+  batch_empty:             "Lô chưa có kiện nào.",
+  duplicate_parcel:        "Kiện này đã nằm trong lô rồi.",
+  invalid_freight:         "Cước phải là một số dương.",
+  lane_rule_not_found:     "Tuyến bay này chưa có bảng giá cước.",
+  not_in_transit:          "Đơn chưa bay nên chưa thu phần còn lại hay giao được.",
+  balance_unpaid:          "Chưa thu đủ phần còn lại nên chưa giao được.",
+  already_delivered:       "Đơn này đã giao rồi.",
 };
 
 export function friendly(e) {
   if (!e) return "";
   return ERRORS[e.code] || `Lỗi chưa có mô tả: ${e.code}. ${e.message || ""}`;
 }
+
+/* ── the journey strip: the order of the stages, and what each one holds ─────
+ * ORDER and TRACKING answer two different questions (money and commitment vs
+ * where the box is). The strip puts them back on one line in the order a
+ * person lives through them. Each stage shows ONLY a figure or a date the API
+ * actually sent for it; a stage the API says nothing about stays blank rather
+ * than showing a number somebody made up (rule 2, turned into a picture).
+ */
+export const JOURNEY = [
+  { key: "quote",     label: "Báo giá",    icon: "receipt" },
+  { key: "deposit",   label: "Đã cọc",     icon: "wallet" },
+  { key: "bought",    label: "Đã mua",     icon: "bag" },
+  { key: "warehouse", label: "Kho Denver", icon: "scale" },
+  { key: "flown",     label: "Đã bay",     icon: "plane" },
+  { key: "delivered", label: "Đã giao",    icon: "home" },
+];
+
+const WAS_BOUGHT = ["purchased", "in_transit", "delivered"];
+
+/** grams(1250) → "1.250 g" */
+export function grams(g) {
+  const n = Number(g);
+  return Number.isFinite(n) && n > 0 ? n.toLocaleString("vi-VN") + " g" : "";
+}
+
+/** dayMonth("2026-09-20T…") → "20/09". Empty for a missing date. */
+export function dayMonth(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  return String(d.getDate()).padStart(2, "0") + "/" + String(d.getMonth() + 1).padStart(2, "0");
+}
+
+/**
+ * balanceOf is what is left after the deposit, the same subtraction as
+ * ordering.CustomerOrder.Balance(). The order summary carries total and
+ * deposit but not the balance itself, and this screen may not add a field to
+ * the API, so it does the one subtraction the domain defines — in integers,
+ * because money is never a float here either.
+ */
+export function balanceOf(o) {
+  const t = o && o.total, d = o && o.deposit;
+  if (!t || !d || t.currency !== d.currency || !/^\d+$/.test(t.amount) || !/^\d+$/.test(d.amount)) return null;
+  return { amount: String(BigInt(t.amount) - BigInt(d.amount)), currency: t.currency };
+}
+
+/**
+ * journeyOf turns one order summary into the strip's cells.
+ *   viewer   "customer" | "staff": decides which stage is "waiting for you"
+ *   facts    what the caller knows beyond the summary, all of it read from the
+ *            API by a screen allowed to: { boughtAt, paid } from the purchase
+ *            task, { weighedG, receivedAt } from the parcel, { shippedAt,
+ *            freight } from the batch. Absent facts leave the cell blank.
+ * Returns { cells, reached, stopped } where each cell has
+ *   state  done | now | yours | todo | stopped | off
+ *   value  a money object or ""   text  a figure already in words   sub  a short line
+ * A stage that is done but has nothing to show says "xong", so a finished
+ * stage never looks like a missing one.
+ */
+export function journeyOf(o, viewer = "customer", facts = {}) {
+  const tr = o.tracking;
+  let reached = 0;
+  if (o.deposit_paid) reached = 1;
+  if (WAS_BOUGHT.includes(o.status) || ["expected", "received", "shipped"].includes(tr)) reached = 2;
+  if (tr === "received" || tr === "shipped") reached = 3;
+  if (tr === "shipped" || o.status === "in_transit" || o.status === "delivered") reached = 4;
+  if (o.status === "delivered") reached = 5;
+
+  const stopped = o.status === "cancelled" || o.status === "purchase_failed";
+  const now = o.status === "delivered" ? -1 : reached + 1;
+
+  let yours = -1;
+  if (!stopped) {
+    if (viewer === "customer" && o.status === "awaiting_deposit") yours = 1;
+    if (viewer === "staff" && o.status === "deposited") yours = 2;
+    if (o.status === "in_transit" && !o.balance_paid) yours = 5; // customer pays, staff takes it
+  }
+
+  const balance = balanceOf(o);
+  const fill = {
+    quote:     { value: o.total, sub: o.placed_at ? "đặt " + dayMonth(o.placed_at) : "" },
+    deposit:   { value: o.deposit, sub: o.deposit_paid ? "đã nhận" : (stopped ? "" : "cần chuyển") },
+    bought:    { value: facts.paid || "", sub: facts.boughtAt ? "mua " + dayMonth(facts.boughtAt) : "" },
+    warehouse: { value: "", text: facts.weighedG ? grams(facts.weighedG) : "",
+                 sub: facts.receivedAt ? "cân " + dayMonth(facts.receivedAt) : "" },
+    flown:     { value: facts.freight || "", sub: facts.shippedAt ? "bay " + dayMonth(facts.shippedAt) : "" },
+    delivered: o.status === "delivered"
+      ? { value: "", sub: dayMonth(o.delivered_at) }
+      : o.status === "in_transit" && !o.balance_paid && balance
+        ? { value: balance, sub: "phần còn lại" }
+        : { value: "", sub: "" },
+  };
+
+  const cells = JOURNEY.map((step, i) => {
+    let state = i <= reached ? "done" : "todo";
+    if (i === now) state = "now";
+    if (i === yours) state = "yours";
+    if (stopped && i === now) state = "stopped";
+    if (stopped && i > now) state = "off";
+    const f = fill[step.key];
+    // a later stage's figure means nothing before the order gets there
+    const shown = state === "todo" || state === "off" || state === "stopped" ? { value: "", text: "", sub: "" } : { text: "", ...f };
+    if (state === "done" && !shown.value && !shown.text && !shown.sub) shown.sub = "xong";
+    return { ...step, state, ...shown };
+  });
+  return { cells, reached, stopped };
+}
+
+/* what the stage marked "waiting for you" asks the person looking at it */
+export const YOURS = {
+  customer: { deposit: "chuyển cọc cho nhân viên", delivered: "chuyển phần còn lại cho nhân viên" },
+  staff:    { bought: "đi mua ở shop", delivered: "thu phần còn lại khi khách chuyển" },
+};
+
+/* ORDER is written to the customer ("chờ bạn chuyển cọc"). Where that "bạn"
+ * would be wrong on the staff screen, this says it from the desk's side. */
+export const ORDER_FOR_STAFF = {
+  awaiting_deposit: "chờ khách chuyển cọc",
+};
