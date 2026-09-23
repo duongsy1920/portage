@@ -167,6 +167,7 @@ không trên pallet.
 | `docs/P10-PLAN.md` | plan gốc của P10 (đã xong, đợt 20) — operator đặt hộ có ghi tên; giữ để thấy cách chốt quyết định |
 | `docs/P9-PLAN.md` | plan gốc của P9 (đã xong hết) — giữ để thấy cách chốt quyết định |
 | `learn/CURRICULUM.md` | **loạt video học, 24 tập**: Mùa 1 Go (10), Mùa 2 DDD (6), Mùa 3 Portage (8). Kèm bốn cửa kiểm ở §12 |
+| `learn/HUB-PLAN.md` | **plan chưa làm**: trang web để đi hết lộ trình học (bản đồ 24 tập, phát tập bằng `@remotion/player`, bản in, tự kiểm tra, đối chiếu roadmap.sh); §8 chờ anh chốt |
 | `docs/UI-GUIDE.md` | **bốn màn hình và bấm gì trên từng cái**: trang khách, trang nhân viên, mô phỏng, bảng kiểm API; 10 nhánh rẽ nên thử; bảng hỏng-thì-xem |
 | `docs/CODING-AGENT.md` | **thiết kế Coding Agent** (đồng nghiệp AI dùng lại được cho mọi project): audit Portage → ai-employees → mô hình → Phase 1. Đã dựng ở `agent/` |
 
