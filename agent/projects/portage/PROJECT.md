@@ -13,7 +13,7 @@ commands:
   test:    go test ./...
   fmt:     gofmt -l .
   lint:    go vet ./...
-  smoke:   scripts/smoke.sh          # cần PORTAGE_DSN trong môi trường; ghi hộ theo lời anh 25/09 ("làm hết đi")
+  smoke:   bash scripts/smoke.sh     # file không có bit thực thi trong repo; cần PORTAGE_DSN (và PORTAGE_PORT nếu 8080 bận); ghi hộ theo lời anh 25/09
 branches:
   default:   main
   protected: [main]
