@@ -139,6 +139,10 @@ với `PORTAGE_TEST_DSN`, +7). `scripts/smoke.sh` thật cũng xanh hai lần sa
 **Vừa xong — làm lại giao diện (đợt 21, 23/09):** theo `docs/UI-REDESIGN-PLAN.md`, không đổi Go
 hay API. Xem mục **Giao diện** bên dưới và SETUP §9 đợt 21.
 
+**Vừa xong — bảng giá ra file (đợt 22, 25/09):** `config/ratecard.yaml` + `internal/adapter/config`,
+task đầu tiên của Coding Agent (`agent/projects/portage/tasks/T-001-ratecard-yaml/`). Không Docker
+265 `--- PASS` (+6); Postgres tạm 297 PASS + 1 SKIP hai lần; smoke hai lần đúng số vàng. SETUP §9 đợt 22.
+
 **Còn nợ:** trường `balance` trong `GET /orders` (màn hình đang tự trừ tổng − cọc) ·
 một `adapter/merchant/<shop>.go` thật (chưa shop nào cho API) · cổng thanh toán ·
 chạy lại `scripts/smoke.sh` qua `portage-postgres` thật (không phải bản tạm) khi

@@ -1603,5 +1603,20 @@ challenge (4 câu, mỗi câu kèm đề nghị, anh đồng ý hết) → plan 
 | `lanes` là **danh sách** dù hôm nay một phần tử: thêm lane sau này không đổi định dạng file. Seed lặp `DefineLane` cho từng lane — khởi động lại với file đã đổi = định nghĩa lại lane, logistics nghe `lane_defined` và cập nhật; báo giá và kiện đã tính **giữ số cũ** vì policy/lane được chụp vào Quote | `wire.seedPricing`, `policy.go:63` |
 | Test **bảng** đầu tiên của repo (`learn/PLAN-BO-SUNG.md` nợ mẫu này): 11 dòng, mỗi dòng hỏng đúng một trường và lỗi phải nêu đúng tên trường | `ratecard_test.go` |
 
-**Mốc đo trước task:** `go test ./... -v | grep -c '^--- PASS'` = **259** không có `PORTAGE_TEST_DSN`
-(máy Linux, 25/09). Kết quả sau task ghi trong thân PR của nhánh `agent/T-001-ratecard-yaml`.
+**Kiểm chứng** (đếm bằng `go test ./... -v | grep -c '^--- PASS'`, máy Linux 25/09):
+
+- Không Docker: **259 → 265** `--- PASS` (+6, đúng sáu test mới), 33 SKIP, `gofmt` và `go vet` sạch.
+- Postgres **tạm** (`docker run` cổng 5436, vì 5433 vẫn thuộc `rift-db-1`): **297 PASS + 1 SKIP**
+  (cố ý), **hai lần**, lần hai `-count=1` — lần lặp không cờ chỉ trả cache trong 0.1 s, không phải
+  lần chạy thứ hai. `TestPostgres_runsTheWholeFlow` PASS qua đường đọc file thật.
+- `scripts/smoke.sh` **hai lần**, đúng số vàng cả hai: `total 5393720 VND, deposit 2696860` ·
+  `variance -2.50 USD`. Api trong smoke không nhận cờ `-ratecard` → đọc `config/ratecard.yaml` mặc
+  định. Máy không có `psql` nên smoke chạy với một shim `psql` trỏ vào container tạm (file ngoài repo).
+- Gate đỏ hai lần trước khi xanh, cả hai là lỗi của **test** agent viết (hàng "no lanes" tự dùng
+  khoá lạ; thêm trường vào struct bảng mà hàng cũ viết theo vị trí), và một lần record ghi "passed"
+  trước khi đọc exit code — đã sửa record. Cả ba nằm trong `learning.md` của T-001.
+
+Ba nhánh rẽ khi chạy: `scripts/smoke.sh` **không có bit thực thi** trong repo (CI `chmod +x`; ở
+đây gọi qua `bash`); `PORTAGE_TEST_DSN` đặt sẵn trong shell trỏ cổng 5433 làm 37 test đỏ vì sai mật
+khẩu — môi trường, không phải code; máy Windows có một `internal/adapter/config/` chưa commit trùng
+tên (`UI-REDESIGN-PLAN.md` §9), bản này thay nó.
