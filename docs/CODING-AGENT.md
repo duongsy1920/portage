@@ -14,6 +14,11 @@
 > cách dùng ở `agent/README.md`, luật ở `agent/CONTRACT.md`. Hai điều chốt thêm khi
 > dựng, có trong §5.0 của CONTRACT và ADR-004: **mọi điểm dừng đều đến kèm đề nghị**
 > (người duyệt, không thiết kế), và **gate hỏng đi qua cổng plan** kèm đề nghị sửa.
+>
+> **25/09/2026:** task đầu tiên (T-001, `config/ratecard.yaml`) đi trọn vòng tới `DONE`
+> và đã merge. Vòng đầu sửa thêm ba luật đọc trên giấy không thấy sai — ADR-005 (tree bẩn
+> chỉ chặn lúc tạo nhánh), ADR-006 (trạng thái agent không phải tree bẩn), ADR-007 (một
+> điểm dừng mỗi vòng, sau khi có thứ để xem) — DEC-024, DEC-025 ở §9.
 
 Tài liệu đi theo chuỗi câu hỏi anh đưa:
 
@@ -736,6 +741,8 @@ routine · tự thử lại · agent adapter · tự sửa `SKILL.md` · push no
 | DEC-021 | **Mọi điểm dừng đến kèm đề nghị** (CONTRACT §5.0): điều cần chốt · đề nghị · vì sao · phương án đã bỏ. Người duyệt/từ chối/đổi hướng một dòng, không thiết kế | anh: *"việc của tôi chỉ là approve … không phải suy nghĩ về solution nữa"*; ROLE senior về phán đoán | câu hỏi trống là lỗi routine; ngoại lệ duy nhất là thông tin chỉ người có, và phải kèm mặc định |
 | DEC-022 | Gate hỏng → đề nghị sửa vào `plan.md` → `WAITING_HUMAN/plan-approval`, cùng cửa với "việc ngoài plan" (ADR-004) | `question` cho test đỏ để T7 hở: sửa code mà plan không đổi | `verify` phải chẩn đoán, không chỉ chạy lệnh |
 | DEC-023 | Bỏ `test.run`; `shell.run` + `PROJECT.commands.*` là cơ chế duy nhất | CONTRACT §2: agent không hiểu nghĩa lệnh; audit bắt được từ vựng chết | 9 khả năng thay 10 |
+| DEC-024 | Trạng thái của agent (`agent/`, và skill gọi nó trong harness) **không tính là tree bẩn**; commit của task không bao giờ stage nó (ADR-006) | `agent/` được commit vào repo → mọi run làm bẩn file đã theo dõi, `implement` tự chặn mình | trạng thái agent và code task đi hai đường commit |
+| DEC-025 | **Một điểm dừng mỗi vòng, đặt sau khi có thứ để xem** (ADR-007): kênh `plan` nhả cho Portage; cửa commit có mục "Xem thử"; đổi hướng tại cửa commit chạy lại cùng nhánh; challenge không chặn; `/agent run` chạy nối | anh: *"khi dựng lên UI rồi thì tôi mới xem demo rồi tôi sẽ quyết định"* — cửa plan chỉ sinh chữ ký hình thức | agent sẽ có lúc chọn thứ anh đổi lại; đổi hướng phải thành luật để lần sau tự quyết đúng |
 
 ---
 

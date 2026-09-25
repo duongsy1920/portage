@@ -18,8 +18,9 @@ không kèm đề nghị cũng là lỗi của routine này.**
      task đụng) → ## Corrections của mọi file sắp đụng. Ghi docs_read có ngày vào TASK.md.
 0.2  Xác nhận đang ở PROJECT.path, rồi tuỳ routine (CONTRACT §4): intake/analyze/plan — đứng ở
      default hoặc nhánh của task, tree bẩn không chặn nhưng ghi vào run record · implement lúc
-     tạo nhánh — tree sạch, đang ở default · implement (nhánh đã có)/verify/review — đang ở nhánh
-     của task, mọi file đang sửa nằm trong "File sẽ đụng" của plan.md. Sai → BLOCKED, dừng.
+     tạo nhánh — tree sạch ngoài agent/, đang ở default · implement (nhánh đã có)/verify/review —
+     đang ở nhánh của task, mọi file đang sửa ngoài agent/ nằm trong "File sẽ đụng" của plan.md.
+     Sai → BLOCKED, dừng.
 0.3  Đọc TASK.md → kiểm T1–T7 (CONTRACT §6.2) cho bước sắp làm. Vi phạm → BLOCKED kèm mã.
 0.4  Đọc logs/runs/*-<task-id>-* → biết run trước dừng ở đâu. Đừng làm lại việc đã xong.
 ```
@@ -57,8 +58,14 @@ hợp, không phải cả năm):
 4. **Chuyển trạng thái** nào hợp lệ? Trạng thái nào đã qua điểm không quay đầu?
 5. Có **quyết định đã đóng** trong file luật/docs mà việc này đang mở lại không?
 
-Rồi: `status: WAITING_HUMAN`, `waiting_for: question`, run record, **dừng**. Chưa viết mục
-kết luận (Step 3) — kết luận chỉ viết sau khi người đã duyệt hay đổi hướng các đề nghị.
+Rồi, tuỳ kênh `plan` của project (ADR-007):
+- **`releases` chưa có `plan`** → `status: WAITING_HUMAN`, `waiting_for: question`, run record,
+  **dừng**. Chưa viết mục kết luận (Step 3).
+- **`releases` có `plan`** → **không dừng.** Ghi ngay dưới mỗi câu một dòng
+  *"Làm theo đề nghị (kênh plan đã nhả · <ngày>)"*, đi tiếp Step 3 với đề nghị của mình làm
+  câu trả lời. Người đọc các câu này cùng lúc với demo ở cửa commit; muốn đổi thì nói ở đó.
+  **Ngoại lệ duy nhất vẫn dừng:** câu hỏi về thông tin chỉ người có (số nghiệp vụ mới, ưu tiên
+  kinh doanh, ai được phép gì) — CONTRACT §5.0 — và phải kèm mặc định sẽ dùng nếu không ai trả lời.
 
 ## Step 3 — Viết analysis.md
 (Không challenge, hoặc đã có câu trả lời trong `## Corrections`.) Mục cố định:

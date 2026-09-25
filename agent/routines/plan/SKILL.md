@@ -18,14 +18,21 @@ lại vì đưa ra mà chưa nghĩ kỹ.
      task đụng) → ## Corrections của mọi file sắp đụng. Ghi docs_read có ngày vào TASK.md.
 0.2  Xác nhận đang ở PROJECT.path, rồi tuỳ routine (CONTRACT §4): intake/analyze/plan — đứng ở
      default hoặc nhánh của task, tree bẩn không chặn nhưng ghi vào run record · implement lúc
-     tạo nhánh — tree sạch, đang ở default · implement (nhánh đã có)/verify/review — đang ở nhánh
-     của task, mọi file đang sửa nằm trong "File sẽ đụng" của plan.md. Sai → BLOCKED, dừng.
+     tạo nhánh — tree sạch ngoài agent/, đang ở default · implement (nhánh đã có)/verify/review —
+     đang ở nhánh của task, mọi file đang sửa ngoài agent/ nằm trong "File sẽ đụng" của plan.md.
+     Sai → BLOCKED, dừng.
 0.3  Đọc TASK.md → kiểm T1–T7 (CONTRACT §6.2) cho bước sắp làm. Vi phạm → BLOCKED kèm mã.
 0.4  Đọc logs/runs/*-<task-id>-* → biết run trước dừng ở đâu. Đừng làm lại việc đã xong.
 ```
 
 ## Đầu vào
 `TASK.md` với `status: IN_PROGRESS, step: plan`, và `analysis.md` đã có.
+
+**Hoặc:** `plan.md` đã có và `## Corrections` của TASK.md vừa có một dòng **đổi hướng** từ cửa
+commit (*"sửa X"* — ADR-007). Khi đó **không viết lại plan**: thêm mục
+`## Sửa theo đổi hướng <ISO>` — chép nguyên văn dòng của người · bước nào thêm/bỏ · file nào
+(phải nằm trong danh sách đóng, cần thêm file thì liệt kê rõ và đó là phần mở rộng danh sách) ·
+tự phản biện một dòng — rồi làm Step 2 và Step 3 như thường. Cùng nhánh, cùng task.
 
 ## Step 1 — Viết plan.md
 

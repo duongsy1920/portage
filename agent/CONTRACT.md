@@ -97,22 +97,27 @@ nhả một lần. `note` của người là **một phần của kế hoạch**
 là ghi thẳng lên nhánh được bảo vệ.**
 
 - Nhánh làm việc: `<branches.prefix><task-id>-<slug>`, tạo từ `branches.default`.
+- **Trạng thái của chính agent không bao giờ tính là bẩn.** Mọi thứ dưới `agent/` — đã
+  theo dõi hay chưa — là sản phẩm phụ của mọi run, không phải việc dở của người; skill gọi
+  agent trong harness (`.claude/skills/agent/`) cũng thuộc agent. Mọi phép kiểm tree dưới
+  đây **bỏ qua hai chỗ đó**, và ngược lại `git.commit` của một task **không bao
+  giờ** stage file dưới `agent/`: người commit trạng thái agent riêng, khi muốn (ADR-006).
 - **Tạo nhánh chỉ từ tree sạch, không stash.** *Sạch* = không file **đã theo dõi** nào
-  bị sửa, xoá, đổi tên hay đang staged. Tree bẩn lúc `git.branch` nghĩa là người đang làm
-  dở, và tạo nhánh sẽ kéo việc dở của họ vào diff của agent. Ghi `BLOCKED` kèm *"working
-  tree có thay đổi chưa commit; không đụng gì"*, dừng.
+  ngoài `agent/` bị sửa, xoá, đổi tên hay đang staged. Tree bẩn lúc `git.branch` nghĩa là
+  người đang làm dở, và tạo nhánh sẽ kéo việc dở của họ vào diff của agent. Ghi `BLOCKED`
+  kèm *"working tree có thay đổi chưa commit; không đụng gì"*, dừng.
 - **Sau khi nhánh đã có, tree bẩn là bình thường** — diff chưa commit của task *là* việc
-  đang làm (commit là kênh giữ). Lúc đó điều phải đúng là: mọi file đang sửa (đã theo dõi,
-  hoặc chưa theo dõi ngoài `agent/`) **nằm trong "File sẽ đụng" của `plan.md`**. Một file
+  đang làm (commit là kênh giữ). Lúc đó điều phải đúng là: mọi file đang sửa ngoài `agent/`
+  (đã theo dõi, hoặc chưa theo dõi) **nằm trong "File sẽ đụng" của `plan.md`**. Một file
   ngoài danh sách → `BLOCKED`: người vừa đụng vào, hoặc agent đã lọt ra ngoài plan.
 - **Routine không ghi vào repo** (`intake` · `analyze` · `plan`) không bị tree bẩn chặn —
   người thường đang làm dở lúc nghĩ ra việc mới. Chúng chỉ cần đứng ở `branches.default`
   hoặc nhánh của task (để đọc đúng cái tree sẽ là gốc), và **ghi vào run record** là đã
   đọc code trên tree có sửa dở.
-- File **chưa theo dõi** không tính là bẩn — đổi nhánh không làm mất chúng, và trạng thái
-  của chính agent (`agent/`) luôn ở dạng đó giữa hai lần commit. Đổi lại, routine **không
-  ghi lên** file chưa theo dõi nào ngoài `agent/`, và `implement` phải `BLOCKED` nếu một
-  file plan định *tạo mới* đã có sẵn ở dạng chưa theo dõi — đó là file người đang viết.
+- File **chưa theo dõi** ngoài `agent/` không tính là bẩn — đổi nhánh không làm mất chúng.
+  Đổi lại, routine **không ghi lên** file chưa theo dõi nào ngoài `agent/`, và `implement`
+  phải `BLOCKED` nếu một file plan định *tạo mới* đã có sẵn ở dạng chưa theo dõi — đó là
+  file người đang viết.
 - **Đang ở nhánh không phải của task này và không phải `default` → đổi gì cũng không.**
   Người đang ở feature branch của họ. Cùng cách xử lý.
 - Không bao giờ: `--force`, `--amend` lên commit đã push, xoá nhánh, `reset --hard`
@@ -263,7 +268,7 @@ người ngoài `by`. Record giữ *hình dạng*; chi tiết nằm ở `tasks/<
 
 | # | Cuối run |
 |---|---|
-| R1 | không merge · không push khi chưa nhả · không `--force` · không xoá nhánh · không sửa `CONTRACT.md` / `PROJECT.md` / `PAUSED` / `## Corrections` |
+| R1 | không merge · không push khi chưa nhả · không `--force` · không xoá nhánh · không sửa `CONTRACT.md` / `PROJECT.md` / `PAUSED` / `## Corrections` · không stage file dưới `agent/` vào commit của task |
 | R2 | mọi con số ghi ra đều đếm được từ file hoặc output *của run này*, kèm nguồn; không có thì `not measured` |
 | R3 | đúng **một** run record được ghi thêm |
 | R4 | không credential, token, connection string, hay giá trị biến môi trường nào được ghi, in, hay log |
@@ -279,9 +284,10 @@ người ngoài `by`. Record giữ *hình dạng*; chi tiết nằm ở `tasks/<
 0.2  Xác nhận đang ở PROJECT.path, rồi tuỳ routine (§4):
      · intake/analyze/plan — nhánh hiện tại là default hoặc nhánh của task; tree bẩn không chặn,
        ghi vào run record.
-     · implement lúc tạo nhánh — tree sạch (không file đã theo dõi nào sửa/staged), đang ở default.
-     · implement (nhánh đã có)/verify/review — đang ở nhánh của task; mọi file đang sửa nằm
-       trong "File sẽ đụng" của plan.md.
+     · implement lúc tạo nhánh — tree sạch ngoài agent/ (không file đã theo dõi nào sửa/staged),
+       đang ở default.
+     · implement (nhánh đã có)/verify/review — đang ở nhánh của task; mọi file đang sửa ngoài
+       agent/ nằm trong "File sẽ đụng" của plan.md.
      Sai → BLOCKED kèm lý do, không đụng gì.
 0.3  Đọc TASK.md → kiểm T1–T7 cho bước sắp làm. Vi phạm → BLOCKED kèm invariant.
 0.4  Đọc logs/runs của task này → biết run trước dừng ở đâu, đừng làm lại.

@@ -68,7 +68,7 @@ Người review diff thấy **đúng thứ đã duyệt trong plan** — và h�
 | Cờ trong `TASK.md` | `analyze` | `plan` | `implement` | `review` |
 |---|---|---|---|---|
 | mặc định | phân tích | đề xuất | làm | review code của agent |
-| `challenge: true` | **hỏi 3–5 câu, mỗi câu kèm đề nghị**, rồi dừng chờ duyệt | như mặc định | như mặc định | như mặc định |
+| `challenge: true` | **hỏi 3–5 câu, mỗi câu kèm đề nghị**; dừng chờ duyệt chỉ khi kênh `plan` chưa nhả, còn không thì làm theo đề nghị và người đọc ở cửa commit | như mặc định | như mặc định | như mặc định |
 | `mode: learning` | phân tích | **gợi ý** thay vì bước | **không chạy** — người tự làm | review code **của người** |
 
 ## Corrections

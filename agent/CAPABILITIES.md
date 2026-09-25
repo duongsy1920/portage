@@ -12,7 +12,7 @@ duy nhất, nên file này là **danh sách kiểm** ("routine này dùng gì?")
 | `shell.run` | chạy **một** lệnh ghi trong `PROJECT.commands.*`, đọc exit code, thời gian, output; agent không hiểu nghĩa lệnh (CONTRACT §2) | chạy lệnh không nằm trong `commands.*` mà có ghi/xoá; chạy migration; báo "passed" khi exit ≠ 0 |
 | `git.branch` | tạo/chuyển nhánh `<prefix><id>-<slug>` từ `branches.default` | tạo trên tree bẩn; chuyển khi người đang ở nhánh của họ |
 | `git.diff` | đọc lại toàn bộ thay đổi trước khi commit | commit diff chưa đọc |
-| `git.commit` | commit trên nhánh làm việc, sau `approvals.commit` | `--amend` lên commit đã push; message chứa secret/log/trace |
+| `git.commit` | commit trên nhánh làm việc, sau `approvals.commit`, stage đúng file trong danh sách của plan | `--amend` lên commit đã push; message chứa secret/log/trace; stage file dưới `agent/` |
 | `git.push` | push nhánh làm việc, sau `approvals.push` hoặc `releases.push` | `--force`; push nhánh `protected` |
 | `secret.scan` | quét diff và mọi text sắp ghi ra, tìm token/key/connection string | bỏ qua vì "chắc không có" |
 

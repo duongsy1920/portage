@@ -18,8 +18,9 @@ Chưa merge. Merge là của anh."** Routine này có ba lần vào, mỗi lần
      task đụng) → ## Corrections của mọi file sắp đụng. Ghi docs_read có ngày vào TASK.md.
 0.2  Xác nhận đang ở PROJECT.path, rồi tuỳ routine (CONTRACT §4): intake/analyze/plan — đứng ở
      default hoặc nhánh của task, tree bẩn không chặn nhưng ghi vào run record · implement lúc
-     tạo nhánh — tree sạch, đang ở default · implement (nhánh đã có)/verify/review — đang ở nhánh
-     của task, mọi file đang sửa nằm trong "File sẽ đụng" của plan.md. Sai → BLOCKED, dừng.
+     tạo nhánh — tree sạch ngoài agent/, đang ở default · implement (nhánh đã có)/verify/review —
+     đang ở nhánh của task, mọi file đang sửa ngoài agent/ nằm trong "File sẽ đụng" của plan.md.
+     Sai → BLOCKED, dừng.
 0.3  Đọc TASK.md → kiểm T1–T7 (CONTRACT §6.2) cho bước sắp làm. Vi phạm → BLOCKED kèm mã.
 0.4  Đọc logs/runs/*-<task-id>-* → biết run trước dừng ở đâu. Đừng làm lại việc đã xong.
 ```
@@ -36,9 +37,11 @@ Chưa merge. Merge là của anh."** Routine này có ba lần vào, mỗi lần
 ## A. Review
 
 ### A1 — Đọc diff, so với plan
-`git.diff` toàn bộ nhánh so với `branches.default`. **Đọc hết** — diff chưa đọc là thay
-đổi đang đoán. So từng file với **File sẽ đụng** của plan.md: file ngoài danh sách → ghi
-`## Vượt plan` trong review.md, và đó là một điểm **đề nghị revert** trừ khi có lý do.
+`git.diff` toàn bộ nhánh so với `branches.default`, **cộng** mọi file đang sửa chưa commit
+ngoài `agent/`. **Đọc hết** — diff chưa đọc là thay đổi đang đoán. So từng file với **File sẽ
+đụng** của plan.md: file ngoài danh sách → ghi `## Vượt plan` trong review.md, và đó là một
+điểm **đề nghị revert** trừ khi có lý do. File dưới `agent/` không nằm trong review — đó là
+trạng thái của agent, không phải thay đổi của task (CONTRACT §4).
 
 ### A2 — `secret.scan` toàn bộ diff
 Bị đánh dấu → **không đi tới cửa commit.** Ghi rõ file:dòng và loại, đề nghị thay giá trị
@@ -62,6 +65,10 @@ Mọi dòng dưới đây mô tả một thay đổi trên nhánh. Chưa merge. 
 <một dòng: revert commit <hash> / xoá nhánh — nói rõ cái nào>
 ## Left for you
 <việc chỉ người làm được: chạy môi trường thiếu, quyết định kinh doanh, merge. Không có → "nothing">
+## Xem thử
+<lệnh chạy thử trên nhánh này (chép được, chạy từ gốc repo) · mở gì / gọi gì · bấm gì · sẽ thấy gì.
+Việc UI: ảnh chụp ở tasks/<id>/shots/*.png, mỗi ảnh một dòng "ảnh này chứng minh gì".
+Việc không có gì để nhìn: một lệnh cho thấy hành vi mới và một lệnh cho thấy nó từ chối đúng>
 ## Compare
 <nhánh> so với <default>
 
@@ -101,12 +108,18 @@ gợi xoá trong run record (không tự xoá).
 
 ### A6 — Cửa commit
 `status: WAITING_HUMAN`, `waiting_for: commit-approval`. Nói với người: review.md ở đâu,
-dòng **Kết luận — đề nghị** nói gì, và "Left for you" có gì.
+mục **Xem thử** nói làm gì, dòng **Kết luận — đề nghị** nói gì, và "Left for you" có gì.
+
+Đây là **điểm dừng duy nhất** của một vòng khi kênh `plan` đã nhả (ADR-007). Người có ba
+cách trả lời: duyệt commit · từ chối · **đổi hướng** (*"sửa X"*). Đổi hướng không mở task
+mới: skill ghi dòng đó vào `## Corrections`, `plan` viết mục *Sửa theo đổi hướng*, rồi
+implement → verify → review chạy lại trên **cùng nhánh** và dừng lại ở đây.
 
 ## B. Commit (sau `approvals.commit`)
-`git.commit` trên nhánh task. Message: dòng đầu của **What changed and why** · dòng trống
-· `Task: <id>` · dòng trống · trailer theo quy ước của file luật project nếu có. Qua
-`secret.scan`. Không trace, không log, không đường dẫn tuyệt đối.
+`git.commit` trên nhánh task, **stage đúng các file trong "File sẽ đụng"** — không `git add
+-A`, không bao giờ file dưới `agent/` (CONTRACT §4, R1). Message: dòng đầu của **What changed
+and why** · dòng trống · `Task: <id>` · dòng trống · trailer theo quy ước của file luật project
+nếu có. Qua `secret.scan`. Không trace, không log, không đường dẫn tuyệt đối.
 Rồi: `releases` có `push` → làm **C** luôn trong run này, ghi rõ *"push qua kênh đã nhả"*.
 Không → `status: WAITING_HUMAN`, `waiting_for: push-approval`.
 

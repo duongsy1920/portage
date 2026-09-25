@@ -9,4 +9,6 @@ nợ trong `../knowledge/`. Định dạng: `- [ ] <điều cần hiểu> — t�
 
 ## portage
 
-*(chưa có)*
+- [ ] `shared.Rate.String()` in `150.0000%` — định dạng phần trăm khi hiện cho người vận hành — từ T-001 · 2026-09-25
+- [ ] `yaml.v3` decode scalar không ngoặc kép vào trường `string` thế nào, và `KnownFields` bắt gì — từ T-001 · 2026-09-25
+- [ ] Go: khi nào struct literal phải viết theo tên trường (bảng test có trường tuỳ chọn) — từ T-001 · 2026-09-25

@@ -13,11 +13,13 @@ commands:
   test:    go test ./...
   fmt:     gofmt -l .
   lint:    go vet ./...
+  smoke:   scripts/smoke.sh          # cần PORTAGE_DSN trong môi trường; ghi hộ theo lời anh 25/09 ("làm hết đi")
 branches:
   default:   main
   protected: [main]
   prefix:    agent/
-releases:  []
+releases:
+  - {channel: plan, since: 2026-09-25, note: "anh quyết sau khi xem demo ở cửa commit (ADR-007); ghi hộ theo lời anh trong chat"}
 ```
 
 ## Ghi chú cho agent khi đọc luật của repo này

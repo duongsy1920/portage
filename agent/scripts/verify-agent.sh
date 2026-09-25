@@ -143,8 +143,8 @@ hits=$(grep -rnE 'AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY|ghp_[A-Za-z0-9]
 [ -z "$hits" ] && ok "không chuỗi giống credential trong agent/" || { fail "không chuỗi giống credential"; echo "$hits" | sed 's/^/     /'; }
 
 # 14 — agent/ holds only Markdown, this script, and PAUSED: no source files of any language
-hits=$(find . -type f ! -name '*.md' ! -path './scripts/*.sh' ! -name PAUSED ! -name '.gitkeep' | sort)
-[ -z "$hits" ] && ok "agent/ chỉ có .md, scripts/*.sh, PAUSED" "($(find . -type f | wc -l) file)" || { fail "agent/ chỉ có .md, scripts/*.sh, PAUSED"; echo "$hits" | sed 's/^/     /'; }
+hits=$(find . -type f ! -name '*.md' ! -path './scripts/*.sh' ! -name PAUSED ! -name '.gitkeep' ! -path './projects/*/tasks/*/shots/*.png' | sort)
+[ -z "$hits" ] && ok "agent/ chỉ có .md, scripts/*.sh, PAUSED, tasks/*/shots/*.png" "($(find . -type f | wc -l) file)" || { fail "agent/ chỉ có .md, scripts/*.sh, PAUSED, shots/*.png"; echo "$hits" | sed 's/^/     /'; }
 
 # 15 — every ADR has a "Xem lại khi" section; top-level rule files end with ## Corrections
 bad=0

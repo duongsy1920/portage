@@ -17,6 +17,8 @@ file và làm theo.
 /agent approve <gate> <task-id> [note]     gate: plan | commit | push   ← việc của NGƯỜI, bạn ghi hộ
 /agent reject <task-id> [note]
 /agent answer <task-id>         người vừa trả lời câu hỏi trong chat — ghi vào ## Corrections của TASK.md
+/agent run <task-id>            chạy NỐI các routine từ step hiện tại tới điểm dừng kế
+                                (WAITING_HUMAN hoặc BLOCKED) — ADR-007
 /agent status                   liệt kê task theo status
 ```
 
@@ -39,11 +41,22 @@ file và làm theo.
   ghi note, run record. Nhánh: xoá **chỉ khi** không có commit; có commit thì để lại và ghi
   vào `review.md` mục *Left for you*.
 - `answer <id>`: chép nguyên văn câu trả lời của người vào `## Corrections` của `TASK.md`
-  kèm ngày; đổi `status: IN_PROGRESS`, giữ `step`. Run record.
+  kèm ngày; đổi `status: IN_PROGRESS`. `step`: giữ nguyên — **trừ** khi đang ở
+  `commit-approval` và câu trả lời là một **đổi hướng** (*"sửa X"*): khi đó `step: plan`, để
+  `plan` viết mục *Sửa theo đổi hướng* (ADR-007). Run record.
+
+## `run` — chạy nối tới điểm dừng kế (ADR-007)
+
+Sau `approve` hoặc `answer`, và khi người gõ `/agent run <id>`: chạy routine ở `step`, rồi
+routine kế, **cho tới khi** `status` thành `WAITING_HUMAN`, `BLOCKED`, `FAILED` hay `DONE`.
+Mỗi routine vẫn làm trọn Step 0 của nó, vẫn ghi **một** run record riêng, vẫn kiểm R1–R4.
+Chạy nối không nới cổng nào: cổng nằm ở `WAITING_HUMAN`, không nằm ở việc gõ lệnh. Kết thúc
+chuỗi, nói với người **một** lần: dừng ở đâu, vì sao, họ cần làm gì.
 
 ## Không bao giờ
 
-- Chạy hai routine liên tiếp vì "tiện". Người gọi từng bước — đó là thiết kế Phase 1.
+- Chạy nối mà bỏ Step 0 hay gộp run record của hai routine làm một. Chạy nối được (ADR-007);
+  chạy tắt thì không.
 - Tự ghi `approvals`. Tự sửa `CONTRACT.md`, `PROJECT.md`, `PAUSED`, `## Corrections`.
 - Chạy routine khi `agent/PAUSED` tồn tại.
 
