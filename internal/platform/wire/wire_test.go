@@ -197,6 +197,9 @@ func wholeFlow(t *testing.T, g wire.Graph) {
 		Total  struct {
 			Amount string
 		} `json:"total"`
+		Balance struct {
+			Amount string
+		} `json:"balance"`
 		Refund *struct {
 			Amount string
 		} `json:"refund"`
@@ -288,6 +291,18 @@ func wholeFlow(t *testing.T, g wire.Graph) {
 	_ = json.Unmarshal(s.expect(s.call("GET", "/orders/"+order, "", s.as("operator")), 200).Body.Bytes(), &ov)
 	if ov.Status != "in_transit" {
 		t.Fatalf("order after batch_shipped = %s, want in_transit", ov.Status)
+	}
+	// The read model's balance is ordering's balance — the same order, the
+	// same number, through two different doors (T-002).
+	var fromReadModel *summaryRow
+	for _, row := range s.myOrders(t) {
+		if row.Order == order {
+			r := row
+			fromReadModel = &r
+		}
+	}
+	if fromReadModel == nil || fromReadModel.Balance.Amount != ov.Balance.Amount || ov.Balance.Amount != "2696860" {
+		t.Fatalf("balance: read model %+v vs ordering %q, want both 2696860", fromReadModel, ov.Balance.Amount)
 	}
 	s.expect(s.call("POST", "/orders/"+order+"/balance", `{"amount":"2696860","currency":"VND"}`, s.as("operator")), 204)
 	s.expect(s.call("POST", "/orders/"+order+"/deliver", "", s.as("operator")), 204)
@@ -527,6 +542,9 @@ type summaryRow struct {
 	ShopReference string `json:"shop_reference"`
 	DepositPaid   bool   `json:"deposit_paid"`
 	BalancePaid   bool   `json:"balance_paid"`
+	Balance       struct {
+		Amount string `json:"amount"`
+	} `json:"balance"`
 }
 
 func (s *system) myOrders(t *testing.T) []summaryRow {

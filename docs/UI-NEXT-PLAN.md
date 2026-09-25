@@ -75,7 +75,7 @@ Thêm vào `reporting.OrderSummary`, tất cả nullable, **không backfill** (c
 Chịu sai thứ tự như mọi handler của projector (§20 của WALKTHROUGH): event nào cũng tạo được dòng.
 Test giao ba event ngược chiều.
 
-### B. `summaryView` thêm `balance`
+### B. `summaryView` thêm `balance` — *đã làm, T-002 (25/09), SETUP §9 đợt 23*
 
 `balance` = `Total − Deposit`, tính ở adapter bằng đúng `shared.Money.Sub`. Xoá `balanceOf` khỏi
 `words.js` và hai chỗ gọi. Test: số trong JSON bằng số `CustomerOrder.Balance()` cho cùng một đơn.

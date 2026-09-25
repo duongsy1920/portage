@@ -32,8 +32,15 @@ type summaryView struct {
 	// customer's behalf would defeat the reason attribution exists (P10).
 	PlacedByID string `json:"placed_by_id,omitempty"`
 
-	Total   moneyView  `json:"total"`
-	Deposit moneyView  `json:"deposit"`
+	Total   moneyView `json:"total"`
+	Deposit moneyView `json:"deposit"`
+	// Balance is total − deposit, the same subtraction as
+	// ordering.CustomerOrder.Balance(), done here from the two columns the
+	// row already carries — DERIVED at read time, never stored, so there is
+	// no third number to keep in step. A pointer so that a corrupt row (the
+	// two in different currencies, which PlaceOrder never allows) shows up
+	// as a MISSING field the screen renders as "—", not as a crash.
+	Balance *moneyView `json:"balance,omitempty"`
 	Refund  *moneyView `json:"refund,omitempty"` // only once cancelled
 
 	DepositPaid bool `json:"deposit_paid"`
@@ -60,6 +67,10 @@ func summaryViewOf(s reportingapp.OrderSummary, staff bool) summaryView {
 	}
 	if staff {
 		v.ShopReference = s.ShopReference
+	}
+	if balance, err := s.Total.Sub(s.Deposit); err == nil {
+		b := viewOf(balance)
+		v.Balance = &b
 	}
 	if s.Refund.IsValid() && s.Status == ordering.StatusCancelled {
 		refund := viewOf(s.Refund)

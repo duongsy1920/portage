@@ -199,19 +199,6 @@ export function dayMonth(iso) {
 }
 
 /**
- * balanceOf is what is left after the deposit, the same subtraction as
- * ordering.CustomerOrder.Balance(). The order summary carries total and
- * deposit but not the balance itself, and this screen may not add a field to
- * the API, so it does the one subtraction the domain defines — in integers,
- * because money is never a float here either.
- */
-export function balanceOf(o) {
-  const t = o && o.total, d = o && o.deposit;
-  if (!t || !d || t.currency !== d.currency || !/^\d+$/.test(t.amount) || !/^\d+$/.test(d.amount)) return null;
-  return { amount: String(BigInt(t.amount) - BigInt(d.amount)), currency: t.currency };
-}
-
-/**
  * journeyOf turns one order summary into the strip's cells.
  *   viewer   "customer" | "staff": decides which stage is "waiting for you"
  *   facts    what the caller knows beyond the summary, all of it read from the
@@ -243,7 +230,7 @@ export function journeyOf(o, viewer = "customer", facts = {}) {
     if (o.status === "in_transit" && !o.balance_paid) yours = 5; // customer pays, staff takes it
   }
 
-  const balance = balanceOf(o);
+  const balance = o.balance; // from the API since T-002: the read model does the subtraction, not this screen
   const fill = {
     quote:     { value: o.total, sub: o.placed_at ? "đặt " + dayMonth(o.placed_at) : "" },
     deposit:   { value: o.deposit, sub: o.deposit_paid ? "đã nhận" : (stopped ? "" : "cần chuyển") },

@@ -1620,3 +1620,15 @@ Ba nhánh rẽ khi chạy: `scripts/smoke.sh` **không có bit thực thi** tron
 đây gọi qua `bash`); `PORTAGE_TEST_DSN` đặt sẵn trong shell trỏ cổng 5433 làm 37 test đỏ vì sai mật
 khẩu — môi trường, không phải code; máy Windows có một `internal/adapter/config/` chưa commit trùng
 tên (`UI-REDESIGN-PLAN.md` §9), bản này thay nó.
+
+### Đợt 23 (25/09) — `balance` trên bảng đọc đơn (T-002, task thứ hai của Coding Agent)
+
+Nợ từ đợt 21; thiết kế có sẵn ở `docs/UI-NEXT-PLAN.md` §B. Vòng này chạy theo ADR-007: không dừng
+ở plan, một điểm dừng ở cửa commit. Hồ sơ: `agent/projects/portage/tasks/T-002-balance-field/`.
+
+| Quyết định / bug | Chỗ nó nằm |
+|---|---|
+| `balance` là giá trị **dẫn xuất**, tính lúc đọc bằng `shared.Money.Sub` từ hai cột đã có; không migration, không cột mới — không có truy vấn nào lọc hay sắp theo nó | `summaries.go` `summaryViewOf` |
+| Con trỏ `omitempty`: dòng bảng đọc hỏng (hai tiền tệ khác nhau, `PlaceOrder` không cho phép) → **thiếu** trường, màn hình in "—"; không panic, không im lặng vì thiếu là thấy được | `summaryView.Balance` |
+| Xoá `balanceOf` khỏi JS và ba chỗ gọi: một con số, một nguồn — phép tính của domain không còn bản chép ở màn hình | `words.js`, `customer.js`, `staff.js` |
+| Test "cùng một đơn, hai cửa": trong `wholeFlow`, `balance` của `/me/orders` bằng `balance` của `GET /orders/{id}` (= `CustomerOrder.Balance()`) | `wire_test.go` |

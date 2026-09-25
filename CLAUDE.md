@@ -143,7 +143,7 @@ hay API. Xem mục **Giao diện** bên dưới và SETUP §9 đợt 21.
 task đầu tiên của Coding Agent (`agent/projects/portage/tasks/T-001-ratecard-yaml/`). Không Docker
 265 `--- PASS` (+6); Postgres tạm 297 PASS + 1 SKIP hai lần; smoke hai lần đúng số vàng. SETUP §9 đợt 22.
 
-**Còn nợ:** trường `balance` trong `GET /orders` (màn hình đang tự trừ tổng − cọc) ·
+**Còn nợ:**
 một `adapter/merchant/<shop>.go` thật (chưa shop nào cho API) · cổng thanh toán ·
 chạy lại `scripts/smoke.sh` qua `portage-postgres` thật (không phải bản tạm) khi
 cổng 5433 rảnh lại.

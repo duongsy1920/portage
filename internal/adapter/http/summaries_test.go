@@ -18,6 +18,7 @@ type summaryJSON struct {
 	Status        string `json:"status"`
 	Tracking      string `json:"tracking"`
 	Total         money  `json:"total"`
+	Balance       *money `json:"balance"`
 	ShopReference string `json:"shop_reference"`
 	DepositPaid   bool   `json:"deposit_paid"`
 	PlacedByID    string `json:"placed_by_id"`
@@ -48,6 +49,27 @@ func (a *api) seedSummary(t *testing.T, customer shared.ID, status ordering.Orde
 		t.Fatal(err)
 	}
 	return id
+}
+
+// The read model carries total and deposit; the balance is derived from them
+// at read time, the same subtraction ordering does, so neither screen has to
+// do arithmetic on money. Both routes, because both screens show it.
+func TestOrders_balanceIsTotalMinusDeposit(t *testing.T) {
+	a := newAPI()
+	a.seedSummary(t, a.customerID, ordering.StatusInTransit, now)
+
+	for _, route := range []struct {
+		path string
+		as   func() map[string]string
+	}{{"/me/orders", a.asCustomer}, {"/orders", a.asOperator}} {
+		rows := summariesOf(t, a.call(t, "GET", route.path, "", route.as()).Body)
+		if len(rows) != 1 || rows[0].Balance == nil {
+			t.Fatalf("%s: rows = %+v, want one row with a balance", route.path, rows)
+		}
+		if got := rows[0].Balance; got.Amount != "2696860" || got.Currency != "VND" {
+			t.Fatalf("%s: balance = %+v, want 2696860 VND (5393720 − 2696860)", route.path, got)
+		}
+	}
 }
 
 // P10: an order placed for a customer by an operator shows who did it, and to

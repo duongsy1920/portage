@@ -16,7 +16,7 @@
 import { React, html, Top, Sheet, Problem, Field, Steps, Journey, Keys, Icon, Toasts, PageHead,
   Skeleton, Empty, useToasts, usePoll, useAction } from "./ui.js";
 import { call, money, retryOn, getTokens, setTokens } from "./portage.js";
-import { TASK, PARCEL, BATCH, say, friendly, categoryWords, balanceOf, grams, dayMonth } from "./words.js";
+import { TASK, PARCEL, BATCH, say, friendly, categoryWords, grams, dayMonth } from "./words.js";
 
 const { useState, useEffect, useCallback, useMemo, useRef } = React;
 
@@ -270,7 +270,7 @@ function TaskSheet({ task: t, order, facts, onDone, next }) {
 function MoneySheet({ order: o, facts, onDone }) {
   const act = useAction();
   const which = o.deposit_paid ? "balance" : "deposit";
-  const amount = o.deposit_paid ? balanceOf(o) : o.deposit;
+  const amount = o.deposit_paid ? o.balance : o.deposit;
 
   return html`
     <${Sheet} label=${o.product_name || "đơn chờ tiền"}>
@@ -621,7 +621,7 @@ function App() {
     ],
     money: owedOrders && owedOrders.map(o => ({
       key: "m:" + o.order_id, name: o.product_name || "Sản phẩm chưa có tên", yours: true,
-      sub: `${money(o.deposit_paid ? balanceOf(o) : o.deposit)}, ${o.deposit_paid ? "phần còn lại" : "cọc"}`,
+      sub: `${money(o.deposit_paid ? o.balance : o.deposit)}, ${o.deposit_paid ? "phần còn lại" : "cọc"}`,
     })),
     deliver: toDeliver && toDeliver.map(o => ({
       key: "g:" + o.order_id, name: o.product_name || "Sản phẩm chưa có tên", yours: true, sub: "đã thu đủ, chờ giao",

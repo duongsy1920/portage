@@ -11,7 +11,7 @@
 import { React, html, Top, Section, Sheet, Problem, Field, Select, Journey, Keys, Toasts, PageHead,
   Skeleton, Empty, Icon, useToasts, usePoll, useAction } from "./ui.js";
 import { call, money, retryOn, getTokens, setTokens } from "./portage.js";
-import { QUOTE, ORDER, GOODS, NEXT_STEP, say, friendly, categoryWords, balanceOf } from "./words.js";
+import { QUOTE, ORDER, GOODS, NEXT_STEP, say, friendly, categoryWords } from "./words.js";
 
 const { useState, useEffect, useCallback, useMemo } = React;
 
@@ -307,7 +307,7 @@ function waitingFor(mine, quotes, orders) {
     if (o.status === "awaiting_deposit") {
       out.push({ key: "d" + i, target, name: o.product_name, text: `chuyển cọc ${money(o.deposit)} cho nhân viên` });
     } else if (o.status === "in_transit" && !o.balance_paid) {
-      out.push({ key: "b" + i, target, name: o.product_name, text: `chuyển phần còn lại ${money(balanceOf(o))} cho nhân viên` });
+      out.push({ key: "b" + i, target, name: o.product_name, text: `chuyển phần còn lại ${money(o.balance)} cho nhân viên` });
     }
   });
   return out;
