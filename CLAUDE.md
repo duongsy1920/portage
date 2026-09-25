@@ -65,6 +65,11 @@ về tận nhà.
    hạn báo giá              48 giờ
 ```
 
+Nguồn của các số này từ đợt 22: **`config/ratecard.yaml`** (chế độ Postgres, cờ `-ratecard`,
+đọc ở `internal/adapter/config`) và **fixture** cùng số trong `wire.go` (chế độ memory và
+test). `TestFixtureMatchesTheRateCardFile` giữ hai cái bằng nhau — đổi một bên mà quên bên
+kia là đỏ. Tỷ giá **không** nằm trong file: nó đổi hàng ngày qua `POST /fx`.
+
 **Số vàng** — smoke script phải luôn in ra đúng những con số này:
 
 ```
@@ -135,7 +140,6 @@ với `PORTAGE_TEST_DSN`, +7). `scripts/smoke.sh` thật cũng xanh hai lần sa
 hay API. Xem mục **Giao diện** bên dưới và SETUP §9 đợt 21.
 
 **Còn nợ:** trường `balance` trong `GET /orders` (màn hình đang tự trừ tổng − cọc) ·
-`config/ratecard.yaml` (bảng giá đang là hằng trong `wire.go`) ·
 một `adapter/merchant/<shop>.go` thật (chưa shop nào cho API) · cổng thanh toán ·
 chạy lại `scripts/smoke.sh` qua `portage-postgres` thật (không phải bản tạm) khi
 cổng 5433 rảnh lại.

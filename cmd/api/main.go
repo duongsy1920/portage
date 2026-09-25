@@ -38,6 +38,8 @@ import (
 func main() {
 	addr := flag.String("addr", ":8080", "listen address")
 	dsn := flag.String("dsn", "", "Postgres DSN; empty runs in memory")
+	ratecard := flag.String("ratecard", "config/ratecard.yaml",
+		"rate card: the business numbers every quote is built with (Postgres mode; the in-memory graph keeps a built-in fixture)")
 	bootstrap := flag.String("bootstrap-operator-token", "",
 		"Postgres only: create the FIRST operator token, and only while api_tokens is empty")
 	web := flag.String("web", "", "serve the browser console from this directory at /ui/ (dev)")
@@ -74,7 +76,7 @@ func main() {
 		defer cancelConnect()
 		var closeFn func()
 		var err error
-		g, closeFn, err = wire.Postgres(connectCtx, clock.System{}, *dsn)
+		g, closeFn, err = wire.Postgres(connectCtx, clock.System{}, *dsn, *ratecard)
 		if err != nil {
 			log.Fatalf("portage api: %v", err)
 		}

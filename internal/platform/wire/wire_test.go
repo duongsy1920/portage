@@ -11,10 +11,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/duongsy/portage/internal/adapter/config"
 	httpapi "github.com/duongsy/portage/internal/adapter/http"
 	"github.com/duongsy/portage/internal/adapter/postgres"
 	"github.com/duongsy/portage/internal/adapter/postgres/pgtest"
 	pricingapp "github.com/duongsy/portage/internal/app/pricing"
+	"github.com/duongsy/portage/internal/domain/pricing"
 	"github.com/duongsy/portage/internal/domain/shared"
 	"github.com/duongsy/portage/internal/platform/auth"
 	"github.com/duongsy/portage/internal/platform/clock"
@@ -23,6 +25,14 @@ import (
 )
 
 var now = time.Date(2026, 9, 4, 19, 0, 0, 0, time.UTC)
+
+// rateCardFile is the real one, not a copy: the Postgres tests here start the
+// way a deployment does.
+const rateCardFile = "../../../config/ratecard.yaml"
+
+// unreachableDSN is a made-up connection string to a port nothing listens on:
+// the way to prove something fails BEFORE the database is reached.
+const unreachableDSN = "postgres://nobody:nothing@127.0.0.1:1/none?sslmode=disable"
 
 // system is a wired graph behind one http.Handler plus its relay — the two
 // processes of a deployment (api, worker) in one test, driven by hand.
@@ -342,7 +352,7 @@ func TestMemory_runsTheWholeFlow(t *testing.T) {
 // without PORTAGE_TEST_DSN like every integration test.
 func TestPostgres_runsTheWholeFlow(t *testing.T) {
 	pool := pgtest.Pool(t) // skip without a DSN; hold the lock; start from an empty database
-	g, closeFn, err := wire.Postgres(context.Background(), clock.FixedAt(now), pgtest.DSN(t))
+	g, closeFn, err := wire.Postgres(context.Background(), clock.FixedAt(now), pgtest.DSN(t), rateCardFile)
 	if err != nil {
 		t.Fatalf("wire.Postgres: %v", err)
 	}
@@ -383,8 +393,62 @@ func mustID(t *testing.T, s string) shared.ID {
 func TestPostgres_badDSNFailsAtStartUp(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
-	if _, _, err := wire.Postgres(ctx, clock.System{}, "postgres://nobody:nothing@127.0.0.1:1/none?sslmode=disable"); err == nil {
+	if _, _, err := wire.Postgres(ctx, clock.System{}, unreachableDSN, rateCardFile); err == nil {
 		t.Fatal("a wrong DSN must fail when wiring, not on the first request")
+	}
+}
+
+// The rate card is read BEFORE the database is touched: a wrong path fails
+// with the file's name, not with a connection error. This needs no Postgres,
+// so the operator-facing error is checked on every run, not only in CI.
+func TestPostgres_refusesAMissingRateCardBeforeConnecting(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	_, _, err := wire.Postgres(ctx, clock.System{}, unreachableDSN, "does-not-exist.yaml")
+	if err == nil {
+		t.Fatal("a missing rate card must fail when wiring")
+	}
+	if !strings.Contains(err.Error(), "does-not-exist.yaml") {
+		t.Fatalf("error %q does not name the file", err)
+	}
+	if strings.Contains(err.Error(), "127.0.0.1") {
+		t.Fatalf("the database was tried before the rate card was read: %v", err)
+	}
+}
+
+// wire.Memory keeps the business numbers as a fixture so dev runs and tests
+// need no file; production reads config/ratecard.yaml. This test is the only
+// thing keeping the two equal: change one and forget the other, and it goes
+// red — which is the point of having it.
+func TestFixtureMatchesTheRateCardFile(t *testing.T) {
+	rc, err := config.Load(rateCardFile)
+	if err != nil {
+		t.Fatalf("config.Load: %v", err)
+	}
+	g := wire.Memory(clock.FixedAt(now))
+
+	if got, want := g.Pricing.Policy, rc.Policy; got != want {
+		t.Errorf("quote policy: fixture %+v, file %+v", got, want)
+	}
+	for _, category := range []string{"footwear", "apparel", "electronics", "not-in-either"} {
+		if got, want := g.Pricing.Classification.ClassOf(category), rc.Classification.ClassOf(category); got != want {
+			t.Errorf("class of %q: fixture %q, file %q", category, got, want)
+		}
+	}
+	if len(rc.Lanes) != 1 {
+		t.Fatalf("file has %d lanes, the fixture has 1", len(rc.Lanes))
+	}
+	want := rc.Lanes[0]
+	lane, err := g.Pricing.Lanes.ByCode(context.Background(), want.Code)
+	if err != nil {
+		t.Fatalf("fixture has no lane %s: %v", want.Code, err)
+	}
+	got := pricing.LaneDetails{
+		Code: lane.Code(), Name: lane.Name(), Divisor: lane.Divisor(), Step: lane.Step(), Rates: lane.Rates(),
+		BatterySurcharge: lane.BatterySurcharge(), Duty: lane.DutyPolicy(),
+	}
+	if got != want {
+		t.Errorf("lane %s: fixture %+v, file %+v", want.Code, got, want)
 	}
 }
 

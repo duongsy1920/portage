@@ -1,0 +1,37 @@
+# config/ratecard.yaml — the business numbers every quote is built with.
+#
+# Read at start-up by cmd/api and cmd/worker (flag -ratecard, Postgres mode).
+# The in-memory dev/test graph keeps the SAME numbers as a fixture in
+# internal/platform/wire/wire.go; TestFixtureMatchesTheRateCardFile keeps the
+# two equal. SETUP.md §7 is the human-readable source of every value here.
+#
+# Every number is a STRING and is parsed exactly — int64 minor units, never a
+# float64. An unknown key is an error, so a typo cannot silently fall back to
+# a default. The exchange rate is NOT here: it changes daily through POST /fx
+# and is state, not configuration.
+
+quote:
+  sales_tax: "8.81"           # % — Colorado sales tax, the Denver warehouse (SETUP §7)
+  margin_percent: "10"        # % of the landed cost, our service fee…
+  margin_floor_vnd: "500000"  # …but never less than this, in VND
+  deposit: "50"               # % the customer pays up front
+  ttl_hours: 48               # how long a quote stays a promise
+
+classes:                      # our category → the forwarder's goods class
+  footwear: branded           # anything not listed is "standard", the cheapest:
+  apparel: branded            # an omission shows up as a too-low quote at
+  electronics: electronics    # reconciliation, never as an overcharged customer
+
+lanes:
+  - code: us_forwarder
+    name: "US forwarder, Denver → Vietnam, air"
+    currency: USD
+    divisor: 5000             # cm³ per kg the carrier bills on
+    step_g: 500               # billing step, grams
+    rates:                    # per kg, by goods class (the forwarder's price list)
+      standard: "9.00"
+      branded: "10.00"
+      electronics: "12.00"
+      sensitive: "14.00"
+    battery_surcharge: "3.00" # per parcel with a lithium cell; leave out for none
+    duty: bundled             # bundled | itemised (then add duty_rate: "<percent>")

@@ -6,8 +6,11 @@
 //
 // The graph also carries the BUSINESS CONFIGURATION pricing quotes with (the
 // sales-tax rate, our margin, the deposit share, how long a quote lives, which
-// category is which goods class). Those are value objects built here, once,
-// and frozen into every quote — SETUP.md §7 in Go.
+// category is which goods class, the forwarder's lane and price list). The
+// Postgres graph reads them from config/ratecard.yaml through adapter/config;
+// the Memory graph keeps the same numbers as a FIXTURE below, and
+// TestFixtureMatchesTheRateCardFile keeps the two equal. Either way they are
+// value objects, frozen into every quote — SETUP.md §7.
 //
 // [PHP] Đây là services.yaml + config/packages/*.yaml dưới dạng hai hàm Go.
 // [PHP] Không autowire: mỗi dependency được tạo và cắm ngay trước mắt, và
@@ -22,6 +25,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/duongsy/portage/internal/adapter/config"
 	"github.com/duongsy/portage/internal/adapter/memory"
 	"github.com/duongsy/portage/internal/adapter/merchant"
 	"github.com/duongsy/portage/internal/adapter/openai"
@@ -143,7 +147,7 @@ func Memory(clk app.Clock) Graph {
 		Tokens:   devStatic,
 		Registry: devStatic,
 	}
-	if err := seed(context.Background(), g); err != nil {
+	if err := seed(context.Background(), g, []pricing.LaneDetails{fixtureLane()}); err != nil {
 		log.Fatalf("wire: seed: %v", err) // programmer data; a typo stops the process (convention 1)
 	}
 	return g
@@ -181,10 +185,17 @@ func mustID(s string) shared.ID {
 	return id
 }
 
-// Postgres connects, migrates, seeds (upserts, so a second start changes
-// nothing) and wires the Postgres adapters. A wrong DSN fails HERE, at
-// start-up — never on the first request. The returned close releases the pool.
-func Postgres(ctx context.Context, clk app.Clock, dsn string) (g Graph, closeFn func(), err error) {
+// Postgres reads the rate card, connects, migrates, seeds (upserts, so a
+// second start changes nothing) and wires the Postgres adapters. A wrong DSN
+// or a wrong rate card fails HERE, at start-up — never on the first request.
+// The rate card is read first: it is local and cheap, and an operator who
+// mistyped a number should not have to wait for a database to find out.
+// The returned close releases the pool.
+func Postgres(ctx context.Context, clk app.Clock, dsn, ratecard string) (g Graph, closeFn func(), err error) {
+	rc, err := config.Load(ratecard)
+	if err != nil {
+		return Graph{}, nil, err
+	}
 	pool, err := postgres.Connect(ctx, dsn)
 	if err != nil {
 		return Graph{}, nil, err
@@ -222,8 +233,8 @@ func Postgres(ctx context.Context, clk app.Clock, dsn string) (g Graph, closeFn 
 			Profiles:        postgres.NewProfileRepo(pool),
 			Rates:           postgres.NewExchangeRates(pool),
 			Reconciliations: postgres.NewReconciliationRepo(pool),
-			Policy:          quotePolicy(),
-			Classification:  goodsClasses(),
+			Policy:          rc.Policy,
+			Classification:  rc.Classification,
 		},
 		Ordering: orderingapp.Deps{
 			Clock:    clk,
@@ -263,18 +274,24 @@ func Postgres(ctx context.Context, clk app.Clock, dsn string) (g Graph, closeFn 
 		Tokens:    tokenRepo,
 		Registry:  tokenRepo,
 	}
-	if err := seed(ctx, g); err != nil {
+	if err := seed(ctx, g, rc.Lanes); err != nil {
 		pool.Close()
 		return Graph{}, nil, fmt.Errorf("wire: seed: %w", err)
 	}
 	return g, pool.Close, nil
 }
 
-// ── business configuration ───────────────────────────────────────────────────
+// ── business configuration: the FIXTURE ──────────────────────────────────────
+//
+// Production reads these numbers from config/ratecard.yaml (adapter/config);
+// the three functions below are the same numbers for the Memory graph, so a
+// dev run and every test start without a file. They are the test's data, not
+// the operator's: a typo here is a programmer error, hence Must-style panics
+// (convention 1) — and TestFixtureMatchesTheRateCardFile fails the build the
+// day one side is changed without the other.
 
-// quotePolicy is the set of constants every quote is built with (SETUP.md §7):
-// Denver sales tax, 10 % margin with a 500 000 ₫ floor, half up front, 48 h.
-// A wrong constant here is a programmer error, hence Must-style panics.
+// quotePolicy is the fixture's quote policy (SETUP.md §7): Denver sales tax,
+// 10 % margin with a 500 000 ₫ floor, half up front, 48 h.
 func quotePolicy() pricing.QuotePolicy {
 	margin, err := pricing.NewMarginPolicy(shared.MustParsePercent("10"), shared.MustParseMoney("500000", shared.VND))
 	if err != nil {
@@ -292,9 +309,10 @@ func quotePolicy() pricing.QuotePolicy {
 	return policy
 }
 
-// goodsClasses maps OUR categories onto the forwarder's price list. Anything
-// not listed is "standard" — the cheapest class, so an omission shows up as
-// a too-low quote at reconciliation, never as an overcharged customer.
+// goodsClasses is the fixture's map of OUR categories onto the forwarder's
+// price list. Anything not listed is "standard" — the cheapest class, so an
+// omission shows up as a too-low quote at reconciliation, never as an
+// overcharged customer.
 func goodsClasses() pricing.Classification {
 	c, err := pricing.NewClassification(map[string]pricing.GoodsClass{
 		"footwear":    pricing.ClassBranded,
@@ -309,14 +327,16 @@ func goodsClasses() pricing.Classification {
 
 // ── dev seed ─────────────────────────────────────────────────────────────────
 
-// seed gives every fresh system the reference data the docs and demos use.
-// It is DEV data; a deployment defines these through the API (categories
-// already can; lanes and rates get their endpoints with auth, P9).
-func seed(ctx context.Context, g Graph) error {
+// seed gives every fresh system the reference data the docs and demos use:
+// the categories, the lanes it is handed (the rate card's, or the fixture's)
+// and today's exchange rate. Categories are DEV data; a deployment defines
+// them through the API. Lanes come from the rate card on purpose — they are
+// the forwarder's price list, and that is configuration, not demo data.
+func seed(ctx context.Context, g Graph, lanes []pricing.LaneDetails) error {
 	if err := seedCategories(ctx, g.Catalog); err != nil {
 		return err
 	}
-	return seedPricing(ctx, g.Pricing)
+	return seedPricing(ctx, g.Pricing, lanes)
 }
 
 // seedCategories runs THROUGH the use case, so each start-up also announces
@@ -343,19 +363,17 @@ func seedCategories(ctx context.Context, deps catalogapp.Deps) error {
 	return nil
 }
 
-// seedPricing: the one lane in use (the forwarder's price list, SETUP.md §7)
-// and today's rate. The lane goes THROUGH DefineLane so it is announced —
-// logistics keeps the divisor and the step to split freight. The rate goes
-// straight to the repository: nobody listens for rates.
-func seedPricing(ctx context.Context, deps pricingapp.Deps) error {
+// fixtureLane is the fixture's lane: the forwarder's price list (SETUP.md §7)
+// as config/ratecard.yaml also states it.
+func fixtureLane() pricing.LaneDetails {
 	usd := func(s string) shared.Money {
 		return shared.MustParseMoney(s, shared.USD)
 	}
 	rates, err := pricing.NewRateCard(usd("9.00"), usd("10.00"), usd("12.00"), usd("14.00"))
 	if err != nil {
-		return err
+		panic(err)
 	}
-	lane, err := pricing.NewShippingLane(pricing.LaneDetails{
+	return pricing.LaneDetails{
 		Code:             pricing.MustParseLaneCode("us_forwarder"),
 		Name:             "US forwarder, Denver → Vietnam, air",
 		Divisor:          5000,
@@ -363,15 +381,20 @@ func seedPricing(ctx context.Context, deps pricingapp.Deps) error {
 		Rates:            rates,
 		BatterySurcharge: usd("3.00"),
 		Duty:             pricing.DutyBundled(),
-	})
-	if err != nil {
-		return err
 	}
-	if err := pricingapp.NewDefineLaneHandler(deps).Handle(ctx, pricing.LaneDetails{
-		Code: lane.Code(), Name: lane.Name(), Divisor: lane.Divisor(), Step: lane.Step(), Rates: lane.Rates(),
-		BatterySurcharge: lane.BatterySurcharge(), Duty: lane.DutyPolicy(),
-	}); err != nil {
-		return fmt.Errorf("lane %s: %w", lane.Code(), err)
+}
+
+// seedPricing: every lane it is handed, and today's rate. A lane goes
+// THROUGH DefineLane so it is announced — logistics keeps the divisor and the
+// step to split freight — and so a restart with a changed rate card
+// redefines the lane the same way POST would. The rate goes straight to the
+// repository: nobody listens for rates.
+func seedPricing(ctx context.Context, deps pricingapp.Deps, lanes []pricing.LaneDetails) error {
+	define := pricingapp.NewDefineLaneHandler(deps)
+	for _, lane := range lanes {
+		if err := define.Handle(ctx, lane); err != nil {
+			return fmt.Errorf("lane %s: %w", lane.Code, err)
+		}
 	}
 	// Through the handler, not the repository: the seed takes the same road
 	// POST /fx takes, so a rule added to that road applies to the seed too.

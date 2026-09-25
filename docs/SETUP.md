@@ -810,22 +810,23 @@ merchant. Symfony có named arguments; Go không.
 ---
 ## 7. Số liệu nghiệp vụ đã chốt
 
-> Code trỏ vào mục này ở nhiều chỗ (`wire.go`, `pricing/lane.go`, `policy.go`,
-> `quote_test.go`). **Đổi số ở đây là phải đổi cả code và test vàng.**
+> Code trỏ vào mục này ở nhiều chỗ (`config/ratecard.yaml`, `wire.go`, `pricing/lane.go`,
+> `policy.go`, `quote_test.go`). **Đổi số ở đây là phải đổi cả file cấu hình, fixture và
+> test vàng** — `TestFixtureMatchesTheRateCardFile` bắt được khi file và fixture lệch nhau.
 
 | Tham số | Giá trị | Nằm ở đâu trong code |
 |---|---|---|
 | Tỷ giá | 26.000 ₫/USD | `wire.seedPricing` |
 | Thuế bán hàng Colorado | 8,81 % | kho Denver |
 | Cọc khách trả trước | 50 % giá trị đơn | `ordering.CustomerOrder` |
-| Phí dịch vụ | max(10 %, sàn 500.000 ₫) | `wire.quotePolicy()` |
-| Quy đổi thể tích | mm³ / 5000, bước cân 500 g | `wire.seedPricing` |
-| Hạn báo giá | 48 h | `wire.quotePolicy()` — chụp vào **từng** quote |
-| Giá cân | 9/10/12/14 USD/kg + phụ thu pin 3 USD | `wire.seedPricing` |
-| Phân loại hàng | footwear, apparel → branded · electronics → electronics · còn lại standard | `wire.goodsClasses()` |
+| Phí dịch vụ | max(10 %, sàn 500.000 ₫) | `ratecard.yaml` `quote` · fixture `wire.quotePolicy()` |
+| Quy đổi thể tích | mm³ / 5000, bước cân 500 g | `ratecard.yaml` `lanes[0]` · fixture `wire.fixtureLane()` |
+| Hạn báo giá | 48 h | `ratecard.yaml` `quote.ttl_hours` — chụp vào **từng** quote |
+| Giá cân | 9/10/12/14 USD/kg + phụ thu pin 3 USD | `ratecard.yaml` `lanes[0].rates` · fixture `wire.fixtureLane()` |
+| Phân loại hàng | footwear, apparel → branded · electronics → electronics · còn lại standard | `ratecard.yaml` `classes` · fixture `wire.goodsClasses()` |
 
-> ⚠️ `goodsClasses()` **thiếu một dòng** → món đó rơi về `standard` → **báo giá
-> THẤP**, và chỉ lộ ra ở bước đối soát cuối cùng.
+> ⚠️ `classes` trong file (hay `goodsClasses()`) **thiếu một dòng** → món đó rơi về
+> `standard` → **báo giá THẤP**, và chỉ lộ ra ở bước đối soát cuối cùng.
 
 **Số vàng — `scripts/smoke.sh` phải luôn in đúng những con số này:**
 
@@ -849,7 +850,6 @@ variance -2.50 USD          (quoted 163.22+25.00, actual 163.22+27.50)
 
 ### Còn nợ trong code
 
-- [ ] `config/ratecard.yaml` — bảng giá đang là **hằng** trong `wire.go`
 - [ ] `adapter/merchant/<shop>.go` — ACL **thật** (chưa shop nào cho API)
 - [ ] Cổng thanh toán
 
@@ -1585,3 +1585,23 @@ console 26/26, reduced-motion rút mọi hiệu ứng về 1e-06 s, `gofmt` và 
 **Chưa làm:** `flow.html` (D3), màn hình bảng giá cước (D4), trường `balance` trong API,
 số cân, ngày mua, ngày bay cho dải hành trình của **khách** (cần một trường mới trong bảng đọc đơn), và một route liệt kê lô. Chưa có ảnh chụp trong docs; UI-GUIDE mô tả bằng chữ và
 sơ đồ ASCII.
+
+### Đợt 22 (25/09) — bảng giá ra `config/ratecard.yaml` (T-001, task đầu tiên của Coding Agent)
+
+Nợ ghi từ đợt 9. Làm theo quy trình `agent/` (`docs/CODING-AGENT.md`): intake → analyze có
+challenge (4 câu, mỗi câu kèm đề nghị, anh đồng ý hết) → plan → duyệt → implement. Hồ sơ đầy đủ
+ở `agent/projects/portage/tasks/T-001-ratecard-yaml/`.
+
+| Quyết định / bug | Chỗ nó nằm |
+|---|---|
+| File chứa **mọi** số nghiệp vụ của báo giá và cước (`quote` · `classes` · `lanes`), **trừ tỷ giá** — tỷ giá đổi theo ngày qua `POST /fx`, là trạng thái, không phải cấu hình | `config/ratecard.yaml` |
+| YAML qua `gopkg.in/yaml.v3`, **chỉ** ở adapter; domain vẫn stdlib + uuid (guard `decisions_test.go` không đổi). Mọi số là **chuỗi** → `shared.Parse*`, không qua float. Khoá lạ là lỗi (`KnownFields`), để gõ sai tên trường không âm thầm rơi về mặc định | `internal/adapter/config/ratecard.go` |
+| Adapter **không tự validate** (quy ước 8): gọi `pricing.New*`, chỉ thêm **tên trường** vào lỗi (`quote.deposit`, `lanes[0].rates.standard`). File sai là input người vận hành → `error`, api không khởi động (quy ước 1) — comment cũ ở `wire.go` "wrong constant = programmer error" đã đổi theo | `ratecard.go` `field()` |
+| `wire.Postgres(ctx, clk, dsn, ratecard)` đọc file **trước** khi kết nối: hỏng thì hỏng ngay và nói đúng file; test không cần Postgres kiểm được điều này | `wire.go`, `TestPostgres_refusesAMissingRateCardBeforeConnecting` |
+| `wire.Memory` **giữ hằng làm fixture**, tên hàm giữ nguyên để bốn chỗ trong file này không lỗi thời; một test nạp file thật và so từng giá trị với fixture — hai nguồn không lệch nhau được | `wire.quotePolicy()` · `goodsClasses()` · `fixtureLane()`, `TestFixtureMatchesTheRateCardFile` |
+| Cờ `-ratecard` ở **cả** `cmd/api` và `cmd/worker` (worker cũng dựng graph và seed — phát hiện ở analyze lần hai), mặc định `config/ratecard.yaml` tương đối cwd, đúng cách mọi lệnh trong docs đã chạy từ gốc repo → smoke, CI, lệnh trong docs không phải đổi | `cmd/api/main.go`, `cmd/worker/main.go` |
+| `lanes` là **danh sách** dù hôm nay một phần tử: thêm lane sau này không đổi định dạng file. Seed lặp `DefineLane` cho từng lane — khởi động lại với file đã đổi = định nghĩa lại lane, logistics nghe `lane_defined` và cập nhật; báo giá và kiện đã tính **giữ số cũ** vì policy/lane được chụp vào Quote | `wire.seedPricing`, `policy.go:63` |
+| Test **bảng** đầu tiên của repo (`learn/PLAN-BO-SUNG.md` nợ mẫu này): 11 dòng, mỗi dòng hỏng đúng một trường và lỗi phải nêu đúng tên trường | `ratecard_test.go` |
+
+**Mốc đo trước task:** `go test ./... -v | grep -c '^--- PASS'` = **259** không có `PORTAGE_TEST_DSN`
+(máy Linux, 25/09). Kết quả sau task ghi trong thân PR của nhánh `agent/T-001-ratecard-yaml`.

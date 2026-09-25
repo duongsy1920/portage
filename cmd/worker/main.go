@@ -33,6 +33,7 @@ import (
 
 func main() {
 	dsn := flag.String("dsn", "", "Postgres DSN (required: the worker reads the shared outbox)")
+	ratecard := flag.String("ratecard", "config/ratecard.yaml", "rate card: the business numbers every quote is built with")
 	every := flag.Duration("every", time.Second, "pause between passes")
 	batch := flag.Int("batch", 100, "rows per pass")
 	sweep := flag.Duration("sweep", time.Minute, "pause between quote-expiry sweeps; 0 turns the sweep off")
@@ -45,7 +46,7 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	g, closeFn, err := wire.Postgres(ctx, clock.System{}, *dsn)
+	g, closeFn, err := wire.Postgres(ctx, clock.System{}, *dsn, *ratecard)
 	if err != nil {
 		log.Fatalf("cmd/worker: %v", err)
 	}
