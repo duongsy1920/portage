@@ -58,8 +58,12 @@ jobs:
       - name: domain imports only stdlib + allowlist
         run: |
           allow='^github\.com/google/uuid$'
+          # A dot marks a non-stdlib import. The module's own domain packages
+          # (pricing → shared, …) carry a dot too and are allowed, exactly as
+          # internal/domain/decisions_test.go allows them.
+          mod=$(go list -m)
           bad=$(go list -f '{{range .Imports}}{{println .}}{{end}}' ./internal/domain/... \
-                | sort -u | grep '\.' | grep -Ev "$allow" || true)
+                | sort -u | grep '\.' | grep -Ev "^${mod}/internal/domain/" | grep -Ev "$allow" || true)
           if [ -n "$bad" ]; then
             echo "internal/domain đang import thứ ngoài allowlist:"; echo "$bad"; exit 1
           fi
