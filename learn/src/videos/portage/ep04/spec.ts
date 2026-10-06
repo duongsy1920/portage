@@ -1,4 +1,5 @@
 import type { EpisodeSpec } from "../../registry";
+import { RECAP } from "./recap";
 import { P4S1 } from "./scenes/P4S1";
 import { P4S2 } from "./scenes/P4S2";
 import { P4S3 } from "./scenes/P4S3";
@@ -14,6 +15,8 @@ export const EP04 = {
   title: "Port & Adapter, và luật chiều phụ thuộc",
   scenePrefix: "Ep04-S",
   outDir: "mua3-portage/ep04-port-adapter",
+  recap: RECAP,
+  anchors: ["SNIPPETS.guard"],
   scenes: [
     { name: "1 · Con số đo được", component: P4S1, durationInFrames: 360 },
     { name: "2 · Mũi tên chạy vào trong", component: P4S2, durationInFrames: 500 },

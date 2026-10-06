@@ -1,4 +1,5 @@
 import type { EpisodeSpec } from "../../registry";
+import { RECAP } from "./recap";
 import { B1Hook } from "./scenes/B1Hook";
 import { B2VO } from "./scenes/B2VO";
 import { B3Recap } from "./scenes/B3Recap";
@@ -15,6 +16,8 @@ export const DDD_EP02 = {
   title: "Value Object và Entity",
   scenePrefix: "Ddd-Ep02-S",
   outDir: "mua2-ddd/ep02-value-object",
+  recap: RECAP,
+  anchors: ["GO_SNIPPETS.valueReceiver"],
   scenes: [
     { name: "1 · Một câu hỏi tách xong", component: B1Hook, durationInFrames: 360 },
     { name: "2 · Từ vựng: value object", component: B2VO, durationInFrames: 520 },

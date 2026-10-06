@@ -56,8 +56,8 @@ Mục tiêu từng tập là **một** điều, và mỗi tập neo vào code th
 | 6 | Zero value: Go không có null | mỗi kiểu một giá trị mặc định, constructor phải tự vệ | `NewMoney` panic · `IsZero()` | **xong** |
 | 7 | Embedding: giống kế thừa nhưng không phải | `struct{ shared.ID }`, nhúng `shared.Events` | `id.go` · 8 chỗ nhúng | **xong** |
 | 8 | slice, map và ba cái bẫy | `append` phải gán lại, map duyệt ngẫu nhiên, so sánh struct | bug thật: thứ tự `CategoryRepo.All()` | **xong** |
-| 9 | defer, panic, recover | `defer` chạy khi nào, panic giết cả process | 95 `defer` · 33 `panic` | **xong** |
-| 10 | Đồng thời: goroutine, mutex, channel | repo có 3 goroutine và 25 mutex, **không có channel** — nói thẳng, rồi dạy channel riêng vì phỏng vấn sẽ hỏi | `cmd/api` · `adapter/memory` | **xong** |
+| 9 | defer, panic, recover | `defer` chạy khi nào, panic giết cả process | 96 `defer` · 33 `panic` | **xong** |
+| 10 | Đồng thời: goroutine, mutex, channel | repo có 3 goroutine và 25 mutex, **không tự tạo channel nào nhưng đọc từ channel 4 lần** (`<-ctx.Done()`, `<-ticker.C` trong `select` của worker) — nói đúng, rồi dạy channel riêng vì phỏng vấn sẽ hỏi. *(Sửa 06/10: bản đầu nói "0 channel", đúng với khai báo, sai với thứ người đọc gặp ở `worker.go`.)* | `cmd/api` · `adapter/memory` · `worker/worker.go` | **xong** |
 
 Quy tắc trung thực của mùa 1: thứ gì **không có** trong repo thì nói rõ là không
 có, rồi dạy riêng. Channel và `sync.WaitGroup` rơi vào nhóm đó.
@@ -333,7 +333,7 @@ Trước khi render bất cứ thứ gì, đếm lại số:
 
 ```bash
 cd learn
-./scripts/verify-numbers.sh        # 10 con số của GO_USAGE vs repo Go thật
+./scripts/verify-numbers.sh        # 12 con số của GO_USAGE vs repo Go thật
 ```
 
 Kết quả xuất ra `out/`, chia theo mùa và tập:
@@ -359,7 +359,9 @@ tua cả video.
 ## 11. Việc còn lại
 
 **Cả 24 tập đã dựng xong.** Mỗi tập một video và một bản in A3, cùng nằm trong
-`out/<mùa>/<tập>/`. Tất cả đã qua bốn cửa kiểm ở §12.
+`out/<mùa>/<tập>/`. Tất cả đã qua bốn cửa kiểm ở §12. Từ 06/10 có **trang học**
+(`hub/`, `npm run hub`) để đi hết lộ trình mà không mở Studio — xem `README.md` và
+`HUB-PLAN.md`. Bảng dưới là thứ `scripts/verify-hub.py` đối chiếu với `spec.ts`.
 
 | Tập | Tên | Cảnh | Dài |
 |---|---|---|---|
@@ -390,7 +392,8 @@ tua cả video.
 
 Còn lại:
 
-- [ ] Xem lại bằng mắt từng video (checker chỉ đo lề, không đo nhịp kể chuyện)
+- [ ] Xem lại bằng mắt từng video (checker chỉ đo lề, không đo nhịp kể chuyện) —
+      giờ xem trong trang học, không cần mp4
 - [ ] Khi một con số trong repo Go đổi: `./scripts/verify-numbers.sh`, sửa
       `src/data/portage.ts`, rồi render lại tập nào dùng con số đó
 - [ ] Khi code Go đổi: `python3 scripts/verify-snippets.py` để biết snippet nào lệch file
@@ -404,9 +407,10 @@ lỗi hình lọt qua cả hai. Bốn lệnh này thì bắt được:
 
 ```bash
 cd learn
-./scripts/verify-numbers.sh        # 11 con số GO_USAGE vs repo Go thật
+./scripts/verify-numbers.sh        # 12 con số GO_USAGE vs repo Go thật
 python3 scripts/verify-snippets.py # 30 snippet: mọi dòng code có thật trong file nó khai
 python3 scripts/check-overflow.py  # 110 cảnh: không cảnh nào tràn khung
+python3 scripts/verify-hub.py      # cửa thứ năm (06/10): recap.ts, anchors, roadmap, 17 câu HOC, bảng §11
 # và sau khi render: mọi mp4 phải có đúng 1 track âm thanh
 for f in out/*/*/video.mp4; do
   echo "$f $(node_modules/@remotion/compositor-linux-x64-gnu/ffmpeg -i "$f" 2>&1 | grep -c 'Audio: aac')"
@@ -417,7 +421,8 @@ Mỗi cửa sinh ra từ một lỗi thật đã xảy ra:
 
 | Cửa | Lỗi nó bắt được lần đầu |
 |---|---|
-| `verify-numbers.sh` | `assertions` khai 53 nhưng repo có 48; `defers` khai 96 vì đếm cả một chữ `defer` nằm trong comment |
+| `verify-numbers.sh` | `assertions` khai 53 nhưng repo có 48; `defers` khai 96 vì đếm cả một chữ `defer` nằm trong comment. Và một lỗi nó **không** bắt được (06/10): `channels` đếm `chan ` ra 0, đúng — nhưng code đọc channel 4 lần; cửa kiểm đếm đúng thứ được bảo đếm, mà thứ được bảo đếm sai. Giờ là hai con số |
 | `verify-snippets.py` | snippet `oneDoor` viết `StatusPlaced`/`ErrWrongStatus` — hai cái tên không tồn tại trong repo; `repoPort` âm thầm bỏ mất method `All()`; `mainOnce` viết `go relay.Run(ctx)` trong khi file thật là `go func() { … }()` |
 | `check-overflow.py` | chữ bị cắt dưới đáy khung ở 1:04 tập 1 — người học báo, không phải máy |
 | đếm track âm thanh | Mùa 3 tập 1 ra lò câm vì dựng trước khi có `Sfx.tsx` |
+| `verify-hub.py` | sinh ra cùng trang học: dữ liệu "Nhớ lại" từng nằm trong 24 file TSX, trang học mà chép sang file thứ hai là hai nguồn cho một sự thật. Giờ `recap.ts` là nguồn, cảnh và trang cùng đọc; `anchors` sinh từ cảnh và được đếm lại |

@@ -1,4 +1,5 @@
 import type { EpisodeSpec } from "../../registry";
+import { RECAP } from "./recap";
 import { I1Hook } from "./scenes/I1Hook";
 import { I2TwoValues } from "./scenes/I2TwoValues";
 import { I3Sentinel } from "./scenes/I3Sentinel";
@@ -23,6 +24,8 @@ export const GO_EP03 = {
   title: "Lỗi là giá trị trả về",
   scenePrefix: "Go-Ep03-S",
   outDir: "mua1-go/ep03-loi-la-gia-tri",
+  recap: RECAP,
+  anchors: ["GO_SNIPPETS.errorsIs", "GO_SNIPPETS.parseMoney", "GO_SNIPPETS.sentinels", "GO_USAGE.errorsIs", "GO_USAGE.wrap", "PHP_SNIPPETS.tryCatch"],
   scenes: [
     { name: "1 · Không có try/catch", component: I1Hook, durationInFrames: 320 },
     { name: "2 · Trả về hai giá trị", component: I2TwoValues, durationInFrames: 520 },

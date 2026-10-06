@@ -194,16 +194,23 @@ learn/out/mua2-ddd/       6 tập — DDD, bằng ví dụ Symfony đã quen
 learn/out/mua3-portage/   8 tập — vì sao project thật này trông như vậy
 ```
 
-**Thêm một tập** = một `spec.ts` + vài cảnh + một dòng trong `src/videos/index.ts`.
-Không sửa `Root.tsx`, không sửa script nào.
+**Thêm một tập** = một `spec.ts` + một `recap.ts` (4 ý · 3 câu phỏng vấn · tập sau) + vài
+cảnh + một dòng trong `src/videos/index.ts`. Không sửa `Root.tsx`, không sửa script nào.
 
-**Bốn cửa kiểm trước khi báo xong** (`tsc` xanh không chứng minh được gì):
+**Trang học** (`learn/hub/`, từ 06/10): `cd learn && npm run hub` → `http://localhost:5173/`.
+Bản đồ 24 tập, phát tập bằng `@remotion/player` (không cần mp4), bản in, neo vào code, tự kiểm
+tra, ôn tập 1/3/7 ngày, đối chiếu roadmap.sh. Dữ liệu là của video (`recap.ts`, `anchors`),
+không chép. Thiết kế: `learn/HUB-PLAN.md`. Đăng GitHub Pages: workflow `.github/workflows/hub.yml`
+đã có, anh bật Settings → Pages → Source: GitHub Actions một lần.
+
+**Năm cửa kiểm trước khi báo xong** (`tsc` xanh không chứng minh được gì):
 
 ```bash
 cd learn
-./scripts/verify-numbers.sh        # 11 con số vs repo Go thật
+./scripts/verify-numbers.sh        # 12 con số vs repo Go thật
 python3 scripts/verify-snippets.py # mọi dòng code lên hình có thật trong file nó khai
 python3 scripts/check-overflow.py  # 110 cảnh, không cảnh nào tràn khung
+python3 scripts/verify-hub.py      # trang học không nói sai về video
 ./scripts/render-plates.sh         # 24 bản in → PNG @2x + PDF A3
 ```
 

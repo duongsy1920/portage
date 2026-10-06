@@ -63,6 +63,11 @@ dối. Giá của việc nói chính xác là một câu.
 Đây cũng là bằng chứng cho thấy cửa `verify-numbers.sh` chưa đủ: nó đếm đúng thứ
 tôi bảo nó đếm, mà thứ tôi bảo nó đếm lại là thứ sai.
 
+**Đã sửa 06/10/2026:** `GO_USAGE.channelsDeclared: 0` + `channelsRead: 4`, cả hai có
+lệnh đếm và nằm trong `verify-numbers.sh` (12 con số). Cảnh 1 hiện bốn ô số thay vì ba,
+callout trích đúng dòng `case <-ctx.Done():`; cảnh 2, 3, 4 và màn nhớ lại đổi lời; bản in
+1.10 đổi tiêu đề, ô đếm và thuật ngữ. Tập 10 và bản in đã render lại.
+
 ---
 
 ## 3. Tự phản biện trước khi đề xuất
@@ -259,10 +264,11 @@ vừa là build tooling). Không làm tròn cho đẹp.
 
 ## 10. Việc phải làm, theo thứ tự
 
-1. **Sửa lời "0 channel" của tập 10** (§2) — làm trước, vì đó là lỗi đang nằm
-   trên hình, không phải thiếu sót.
-2. Chuyển `/tmp/gap.py` thành `scripts/roadmap-gap.py` để chạy lại được, và
-   thêm `channelsRead` vào `verify-numbers.sh`.
+1. ~~**Sửa lời "0 channel" của tập 10** (§2)~~ — **đã làm 06/10/2026**.
+2. ~~Chuyển `/tmp/gap.py` thành `scripts/roadmap-gap.py` để chạy lại được, và
+   thêm `channelsRead` vào `verify-numbers.sh`.~~ — **đã làm 06/10/2026**, cùng trang học:
+   `src/data/roadmap.ts` (101 mục, mỗi mục một nhãn) + `scripts/roadmap-gap.py` (mục "đã dạy"
+   phải có từ khoá trên hình của tập nó trỏ tới).
 3. Dựng T11 → T16, mỗi tập đủ bốn cửa kiểm ở `CURRICULUM.md` §12.
 4. Hai bản in nhóm B.
 5. Ba bài tập nhóm C, viết vào `docs/HOC.md`.

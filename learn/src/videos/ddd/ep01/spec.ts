@@ -1,4 +1,5 @@
 import type { EpisodeSpec } from "../../registry";
+import { RECAP } from "./recap";
 import { A1Hook } from "./scenes/A1Hook";
 import { A2Where } from "./scenes/A2Where";
 import { A3Rich } from "./scenes/A3Rich";
@@ -21,6 +22,8 @@ export const DDD_EP01 = {
   title: "Mô hình thiếu máu",
   scenePrefix: "Ddd-Ep01-S",
   outDir: "mua2-ddd/ep01-thieu-mau",
+  recap: RECAP,
+  anchors: ["DDD_SNIPPETS.oneDoor", "PHP_SNIPPETS.anemic"],
   scenes: [
     { name: "1 · Luật nằm ở đâu", component: A1Hook, durationInFrames: 340 },
     { name: "2 · Nó rơi thành nhiều bản", component: A2Where, durationInFrames: 480 },

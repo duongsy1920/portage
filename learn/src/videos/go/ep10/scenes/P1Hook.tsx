@@ -9,16 +9,19 @@ import { EASE } from "../../../../design/motion";
 import { GO_USAGE } from "../../../../data/portage";
 
 /**
- * Season 1, episode 10, scene 1 — the numbers, including the zero.
+ * Season 1, episode 10, scene 1 — the numbers, including the zero AND the four.
  *
- * The zero is the point. Every Go tutorial opens with channels; this codebase
- * has none, and saying so first is the honest way in. It also sets up the
- * episode's real question: when would you reach for one?
+ * The zero is the point: every Go tutorial opens with channels, and this
+ * codebase never creates one. But it does READ from four — <-ctx.Done() and
+ * <-ticker.C inside two select blocks — and a learner who opens worker.go on
+ * day one meets exactly that line. Saying "0 channel" alone was true of
+ * declarations and false of what they would see, so both numbers are shown.
  */
 const FIGURES = [
   { n: GO_USAGE.goroutines, label: "goroutine", color: COLOR.go, at: 30 },
   { n: GO_USAGE.mutex, label: "sync.Mutex", color: COLOR.danger, at: 80 },
-  { n: GO_USAGE.channels, label: "channel", color: COLOR.textFaint, at: 140 },
+  { n: GO_USAGE.channelsDeclared, label: "channel tự tạo", color: COLOR.textFaint, at: 140 },
+  { n: GO_USAGE.channelsRead, label: "lần đọc channel", color: COLOR.money, at: 185 },
 ] as const;
 
 export const P1Hook: React.FC = () => {
@@ -31,7 +34,7 @@ export const P1Hook: React.FC = () => {
           Repo này có bao nhiêu channel?
         </Headline>
 
-        <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 90 }}>
+        <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 44 }}>
           {FIGURES.map((f) => (
             <Interactive.Div
               key={f.label}
@@ -61,8 +64,9 @@ export const P1Hook: React.FC = () => {
 
         <div style={{ marginBottom: 26 }}>
           <Callout delay={230} accent={COLOR.money}>
-            Không. Một cái cũng không. Mọi bài dạy Go đều mở đầu bằng channel, còn hệ
-            thật này chạy bằng khoá — và phỏng vấn thì vẫn sẽ hỏi channel.
+            Không tự tạo cái nào — hệ thật này chạy bằng khoá. Nhưng mở worker.go sẽ gặp{" "}
+            <span style={{ color: COLOR.money }}>{"case <-ctx.Done():"}</span> — bốn lần đọc từ
+            channel của context và ticker, chỉ để biết khi nào dừng. Và phỏng vấn thì vẫn sẽ hỏi channel.
           </Callout>
         </div>
       </div>

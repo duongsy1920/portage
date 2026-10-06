@@ -1,4 +1,5 @@
 import type { EpisodeSpec } from "../../registry";
+import { RECAP } from "./recap";
 import { J1Hook } from "./scenes/J1Hook";
 import { J2Copy } from "./scenes/J2Copy";
 import { J3Pointer } from "./scenes/J3Pointer";
@@ -22,6 +23,8 @@ export const GO_EP04 = {
   title: "Receiver: (m Money) và (e *Events)",
   scenePrefix: "Go-Ep04-S",
   outDir: "mua1-go/ep04-receiver",
+  recap: RECAP,
+  anchors: ["GO_SNIPPETS.pointerReceiver", "GO_SNIPPETS.valueReceiver", "GO_USAGE.pointerReceivers", "GO_USAGE.valueReceivers"],
   scenes: [
     { name: "1 · Một dấu sao", component: J1Hook, durationInFrames: 330 },
     { name: "2 · Go chép cả struct", component: J2Copy, durationInFrames: 540 },

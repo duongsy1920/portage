@@ -31,7 +31,7 @@ const PACKETS: FlowPacket[] = [
 ];
 
 export const P3Channel: React.FC = () => (
-  <Stage eyebrow="MÙA 1 · TẬP 10 · CẢNH 3 · NGOÀI PORTAGE" source="repo không dùng cái này — dạy riêng vì phỏng vấn sẽ hỏi">
+  <Stage eyebrow="MÙA 1 · TẬP 10 · CẢNH 3 · NGOÀI PORTAGE" source="repo chỉ đọc channel của context và ticker, không tự tạo — dạy riêng vì phỏng vấn sẽ hỏi">
     <Cues
       items={[
         { at: 20, sound: "appear" },

@@ -1,4 +1,5 @@
 import type { EpisodeSpec } from "../../registry";
+import { RECAP } from "./recap";
 import { N1Hook } from "./scenes/N1Hook";
 import { N2Why } from "./scenes/N2Why";
 import { N3MapOrder } from "./scenes/N3MapOrder";
@@ -17,6 +18,8 @@ export const GO_EP08 = {
   title: "slice, map và ba cái bẫy",
   scenePrefix: "Go-Ep08-S",
   outDir: "mua1-go/ep08-slice-map",
+  recap: RECAP,
+  anchors: ["GO_SNIPPETS.mapOrder"],
   scenes: [
     { name: "1 · Dòng mất dữ liệu", component: N1Hook, durationInFrames: 360 },
     { name: "2 · Vì sao phải gán lại", component: N2Why, durationInFrames: 500 },

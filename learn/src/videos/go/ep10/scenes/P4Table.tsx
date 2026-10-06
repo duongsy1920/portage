@@ -22,7 +22,7 @@ export const P4Table: React.FC = () => (
           rows={[
             { about: "Hình dạng bài toán", php: "nhiều goroutine cùng chạm một dữ liệu", go: "chuyển việc từ goroutine này sang cái kia", at: 40 },
             { about: "Ví dụ", php: "một map trong bộ nhớ, một bộ đếm", go: "hàng đợi việc, kết quả trả về, tín hiệu dừng", at: 90 },
-            { about: "Trong repo này", php: "25 chỗ", go: "0 chỗ", at: 140 },
+            { about: "Trong repo này", php: "25 chỗ", go: "0 tự tạo · 4 lần đọc, đều là tín hiệu dừng", at: 140 },
             { about: "Hỏng thì hỏng kiểu gì", php: "quên mở khoá → treo; quên khoá → dữ liệu hỏng", go: "không ai lấy → treo; đóng hai lần → panic", at: 190 },
             { about: "Công cụ dò", php: "go test -race", go: "go test -race, và pprof xem goroutine treo", at: 240 },
           ]}

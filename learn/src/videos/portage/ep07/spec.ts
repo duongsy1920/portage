@@ -1,4 +1,5 @@
 import type { EpisodeSpec } from "../../registry";
+import { RECAP } from "./recap";
 import { P7S1 } from "./scenes/P7S1";
 import { P7S2 } from "./scenes/P7S2";
 import { P7S3 } from "./scenes/P7S3";
@@ -15,6 +16,8 @@ export const EP07 = {
   title: "Màn hình cần bốn context: đừng JOIN",
   scenePrefix: "Ep07-S",
   outDir: "mua3-portage/ep07-read-model",
+  recap: RECAP,
+  anchors: [],
   scenes: [
     { name: "1 · Bốn vùng, không JOIN", component: P7S1, durationInFrames: 400 },
     { name: "2 · Nghe rồi tự ghi", component: P7S2, durationInFrames: 420 },

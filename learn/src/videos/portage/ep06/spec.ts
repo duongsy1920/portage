@@ -1,4 +1,5 @@
 import type { EpisodeSpec } from "../../registry";
+import { RECAP } from "./recap";
 import { P6S1 } from "./scenes/P6S1";
 import { P6S2 } from "./scenes/P6S2";
 
@@ -13,6 +14,8 @@ export const EP06 = {
   title: "Báo giá là một bức ảnh, và đối soát",
   scenePrefix: "Ep06-S",
   outDir: "mua3-portage/ep06-bao-gia",
+  recap: RECAP,
+  anchors: ["SNIPPETS.reconciliation"],
   scenes: [
     { name: "1 · Ảnh chụp, không phải phép tính", component: P6S1, durationInFrames: 400 },
     { name: "2 · Nhớ lại", component: P6S2, durationInFrames: 460 },

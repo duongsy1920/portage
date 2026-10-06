@@ -1,4 +1,5 @@
 import type { EpisodeSpec } from "../../registry";
+import { RECAP } from "./recap";
 import { K1Hook } from "./scenes/K1Hook";
 import { K2Duck } from "./scenes/K2Duck";
 import { K3Assert } from "./scenes/K3Assert";
@@ -22,6 +23,8 @@ export const GO_EP05 = {
   title: "Interface ngầm: Go không có implements",
   scenePrefix: "Go-Ep05-S",
   outDir: "mua1-go/ep05-interface-ngam",
+  recap: RECAP,
+  anchors: ["GO_SNIPPETS.assertion", "GO_SNIPPETS.portInterface", "GO_USAGE.assertions"],
   scenes: [
     { name: "1 · Không có implements", component: K1Hook, durationInFrames: 330 },
     { name: "2 · Mũi tên chạy vào trong", component: K2Duck, durationInFrames: 520 },

@@ -1,4 +1,5 @@
 import type { EpisodeSpec } from "../../registry";
+import { RECAP } from "./recap";
 import { P1Hook } from "./scenes/P1Hook";
 import { P2Why } from "./scenes/P2Why";
 import { P3Channel } from "./scenes/P3Channel";
@@ -20,6 +21,8 @@ export const GO_EP10 = {
   title: "Đồng thời: goroutine, mutex, channel",
   scenePrefix: "Go-Ep10-S",
   outDir: "mua1-go/ep10-dong-thoi",
+  recap: RECAP,
+  anchors: ["GO_SNIPPETS.mutex", "GO_USAGE.channelsDeclared", "GO_USAGE.channelsRead", "GO_USAGE.goroutines", "GO_USAGE.mutex"],
   scenes: [
     { name: "1 · Bao nhiêu channel?", component: P1Hook, durationInFrames: 360 },
     { name: "2 · Vì sao khoá", component: P2Why, durationInFrames: 540 },

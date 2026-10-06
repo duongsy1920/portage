@@ -1,4 +1,5 @@
 import type { EpisodeSpec } from "../../registry";
+import { RECAP } from "./recap";
 import { G1Hook } from "./scenes/G1Hook";
 import { G2Php } from "./scenes/G2Php";
 import { G3Go } from "./scenes/G3Go";
@@ -25,6 +26,8 @@ export const GO_EP01 = {
   title: "PHP chết sau mỗi request. Go thì không.",
   scenePrefix: "Go-Ep01-S",
   outDir: "mua1-go/ep01-vong-doi",
+  recap: RECAP,
+  anchors: ["GO_SNIPPETS.ctx", "GO_SNIPPETS.mainOnce", "GO_SNIPPETS.mutex", "GO_USAGE.ctx", "GO_USAGE.goroutines", "GO_USAGE.mutex"],
   scenes: [
     { name: "1 · Lời hứa", component: G1Hook, durationInFrames: 300 },
     { name: "2 · PHP-FPM: một request một đời", component: G2Php, durationInFrames: 560 },

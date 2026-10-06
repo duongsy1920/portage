@@ -666,10 +666,11 @@ export const GO_USAGE = {
   /**
    * defer statements. Đếm lại 17/09 bằng grep -rnE '^\s*defer ' (không tính
    * test): 95. Con số 96 cũ đếm nhầm một chữ `defer` nằm trong comment.
+   * Đếm lại 06/10: 96 — T-001 thêm `defer f.Close()` trong adapter/config.
    */
-  defers: 95,
-  /** fmt.Errorf with %w */
-  wrap: 456,
+  defers: 96,
+  /** fmt.Errorf with %w. 456 ngày 17/09; 462 ngày 06/10 (T-001, adapter/config). */
+  wrap: 462,
   /** errors.Is */
   errorsIs: 44,
   /**
@@ -690,6 +691,18 @@ export const GO_USAGE = {
    * (grep thô ra 7 vì tính cả 5 chỗ trong test và 1 dòng comment.)
    */
   recovers: 1,
-  /** channels — NONE. Said out loud in the episode, because an interview will ask. */
-  channels: 0,
+  /**
+   * Channels the shipping code CREATES: none — `chan` appears only in tests.
+   * Đếm: lines matching \bchan\b in internal/ and cmd/, tests and comment-only
+   * lines excluded — the `code` helper in scripts/verify-numbers.sh.
+   */
+  channelsDeclared: 0,
+  /**
+   * Channel RECEIVES in shipping code: four, all inside a `select` —
+   * <-ctx.Done() and <-ticker.C in worker/worker.go and worker/sweep.go.
+   * The episode used to say "0 channel". True of declarations, false of what a
+   * reader meets on day one in worker.go — so both numbers are shown now.
+   * Đếm: lines containing <- , same helper, same exclusions.
+   */
+  channelsRead: 4,
 } as const;

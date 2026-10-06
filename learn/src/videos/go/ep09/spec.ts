@@ -1,4 +1,5 @@
 import type { EpisodeSpec } from "../../registry";
+import { RECAP } from "./recap";
 import { O1Hook } from "./scenes/O1Hook";
 import { O2When } from "./scenes/O2When";
 import { O3Panic } from "./scenes/O3Panic";
@@ -17,6 +18,8 @@ export const GO_EP09 = {
   title: "defer, panic, recover",
   scenePrefix: "Go-Ep09-S",
   outDir: "mua1-go/ep09-defer-panic",
+  recap: RECAP,
+  anchors: ["GO_SNIPPETS.mutex", "GO_SNIPPETS.recoverTx", "GO_USAGE.defers", "GO_USAGE.mutex"],
   scenes: [
     { name: "1 · Hai dòng đi cùng nhau", component: O1Hook, durationInFrames: 330 },
     { name: "2 · Thoát kiểu gì cũng chạy", component: O2When, durationInFrames: 520 },

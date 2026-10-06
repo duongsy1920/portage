@@ -6,6 +6,7 @@ import { COLOR, RADIUS, TYPE } from "../../../../design/tokens";
 import { MONO } from "../../../../design/fonts";
 import { EASE } from "../../../../design/motion";
 import { Cues } from "../../../../components/Sfx";
+import { RECAP } from "../recap";
 
 /**
  * Scene 11 — recall, not summary.
@@ -14,13 +15,7 @@ import { Cues } from "../../../../components/Sfx";
  * the thing worth remembering: each step forces the next, and a learner who
  * can replay the forcing can rebuild the architecture from the business.
  */
-const CHAIN = [
-  { at: 30, text: "Một đơn sống 30 ngày, qua ba bên mình không điều khiển được." },
-  { at: 80, text: "Nên không transaction nào giữ nổi nó từ đầu tới cuối." },
-  { at: 130, text: "Nên phải tách thành nhiều aggregate, mỗi cái một lần ghi." },
-  { at: 180, text: "Mà chúng gọi cùng một từ bằng nhiều nghĩa, nên tách tiếp thành bounded context." },
-  { at: 230, text: "Không gọi hàm nhau được nữa, nên chúng kể lại bằng event." },
-] as const;
+const CHAIN = RECAP.points;
 
 export const S11Recap: React.FC = () => {
   const frame = useCurrentFrame();
@@ -118,10 +113,10 @@ export const S11Recap: React.FC = () => {
               fontWeight: 700,
             }}
           >
-            TẬP 2
+            {RECAP.next.label}
           </div>
           <div style={{ fontSize: TYPE.sub, fontWeight: 600 }}>
-            Event đi từ vùng này sang vùng kia bằng đường nào, và vì sao không bao giờ mất?
+            {RECAP.next.text}
           </div>
         </Interactive.Div>
       </div>

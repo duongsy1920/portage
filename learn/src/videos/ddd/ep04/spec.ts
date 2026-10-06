@@ -1,4 +1,5 @@
 import type { EpisodeSpec } from "../../registry";
+import { RECAP } from "./recap";
 import { D1Hook } from "./scenes/D1Hook";
 import { D2Guard } from "./scenes/D2Guard";
 import { D3Recap } from "./scenes/D3Recap";
@@ -15,6 +16,8 @@ export const DDD_EP04 = {
   title: "Repository là cổng",
   scenePrefix: "Ddd-Ep04-S",
   outDir: "mua2-ddd/ep04-repository",
+  recap: RECAP,
+  anchors: ["DDD_SNIPPETS.repoPort", "SNIPPETS.guard"],
   scenes: [
     { name: "1 · Domain khai, không cài", component: D1Hook, durationInFrames: 340 },
     { name: "2 · Từ vựng: port", component: D2Guard, durationInFrames: 540 },

@@ -1,4 +1,5 @@
 import type { EpisodeSpec } from "../../registry";
+import { RECAP } from "./recap";
 import { P2S1 } from "./scenes/P2S1";
 import { P2S2 } from "./scenes/P2S2";
 import { P2S3 } from "./scenes/P2S3";
@@ -14,6 +15,8 @@ export const EP02 = {
   title: "Outbox: hai việc, một transaction",
   scenePrefix: "Ep02-S",
   outDir: "mua3-portage/ep02-outbox",
+  recap: RECAP,
+  anchors: ["SNIPPETS.outboxAppend"],
   scenes: [
     { name: "1 · Khe hở", component: P2S1, durationInFrames: 360 },
     { name: "2 · Từ vựng: outbox", component: P2S2, durationInFrames: 520 },

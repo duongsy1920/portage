@@ -1,4 +1,5 @@
 import type { EpisodeSpec } from "../../registry";
+import { RECAP } from "./recap";
 import { S1Hook } from "./scenes/S1Hook";
 import { S2Transaction } from "./scenes/S2Transaction";
 import { S3Journey } from "./scenes/S3Journey";
@@ -31,6 +32,8 @@ export const EP01 = {
   title: "Vì sao project Go này bị chia làm năm?",
   scenePrefix: "Ep01-S",
   outDir: "mua3-portage/ep01-nam-vung",
+  recap: RECAP,
+  anchors: ["SNIPPETS.customerOrder", "SNIPPETS.guard", "SNIPPETS.purchaseTask", "SNIPPETS.subscribe"],
   scenes: [
     { name: "1 · Câu hỏi", component: S1Hook, durationInFrames: 290 },
     { name: "2 · Từ vựng: transaction", component: S2Transaction, durationInFrames: 470 },

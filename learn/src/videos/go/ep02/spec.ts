@@ -1,4 +1,5 @@
 import type { EpisodeSpec } from "../../registry";
+import { RECAP } from "./recap";
 import { H1Hook } from "./scenes/H1Hook";
 import { H2TypeAfter } from "./scenes/H2TypeAfter";
 import { H3Case } from "./scenes/H3Case";
@@ -28,6 +29,8 @@ export const GO_EP02 = {
   title: "Đọc một dòng Go",
   scenePrefix: "Go-Ep02-S",
   outDir: "mua1-go/ep02-doc-mot-dong",
+  recap: RECAP,
+  anchors: ["GO_SNIPPETS.minorMethod", "GO_SNIPPETS.moneyStruct", "GO_SNIPPETS.newMoney"],
   scenes: [
     { name: "1 · Bốn dòng chưa đọc được", component: H1Hook, durationInFrames: 300 },
     { name: "2 · Tên trước, kiểu sau", component: H2TypeAfter, durationInFrames: 520 },

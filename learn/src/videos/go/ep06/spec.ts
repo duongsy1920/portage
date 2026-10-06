@@ -1,4 +1,5 @@
 import type { EpisodeSpec } from "../../registry";
+import { RECAP } from "./recap";
 import { L1Hook } from "./scenes/L1Hook";
 import { L2Table } from "./scenes/L2Table";
 import { L3Guard } from "./scenes/L3Guard";
@@ -17,6 +18,8 @@ export const GO_EP06 = {
   title: "Zero value: Go không có null",
   scenePrefix: "Go-Ep06-S",
   outDir: "mua1-go/ep06-zero-value",
+  recap: RECAP,
+  anchors: ["GO_SNIPPETS.zeroGuard"],
   scenes: [
     { name: "1 · Dòng lẽ ra phải nổ", component: L1Hook, durationInFrames: 360 },
     { name: "2 · Bảng zero value", component: L2Table, durationInFrames: 500 },

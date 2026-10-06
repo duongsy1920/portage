@@ -1,4 +1,5 @@
 import type { EpisodeSpec } from "../../registry";
+import { RECAP } from "./recap";
 import { C1Hook } from "./scenes/C1Hook";
 import { C2Invariant } from "./scenes/C2Invariant";
 import { C3Recap } from "./scenes/C3Recap";
@@ -15,6 +16,8 @@ export const DDD_EP03 = {
   title: "Aggregate và invariant",
   scenePrefix: "Ddd-Ep03-S",
   outDir: "mua2-ddd/ep03-aggregate",
+  recap: RECAP,
+  anchors: ["DDD_SNIPPETS.oneDoor"],
   scenes: [
     { name: "1 · Một cụm, một cửa", component: C1Hook, durationInFrames: 380 },
     { name: "2 · Từ vựng: invariant", component: C2Invariant, durationInFrames: 520 },

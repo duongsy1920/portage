@@ -1,0 +1,55 @@
+# Publish the learning hub (learn/hub) to GitHub Pages — HUB-PLAN D3.
+#
+# One-time setup the workflow cannot do for you: Settings → Pages → Source:
+# "GitHub Actions". After that, every push to main that touches learn/ rebuilds
+# the page at https://duongsy1920.github.io/portage/
+#
+# The build is the same `npm run hub:build` a laptop runs; nothing here is
+# special to CI. The five learn/ gates are NOT run here on purpose: three of
+# them render video and need Chrome plus minutes of CPU, and they are gates on
+# the videos, not on the page. They run on the laptop before a push.
+name: learning-hub
+
+on:
+  push:
+    branches: [main]
+    paths: ["learn/**", ".github/workflows/hub.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: learn
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: learn/package-lock.json
+      - run: npm ci
+      - run: npm run hub:build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: learn/hub/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

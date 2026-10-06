@@ -1,8 +1,12 @@
 # HUB-PLAN.md — một trang web để đi hết lộ trình học Go
 
-> Plan viết 23/09/2026, **chưa làm gì**. Người thực hiện có thể là một agent khác: file này phải đủ
-> để bắt tay làm mà không đọc lại cuộc trò chuyện. Anh Sỹ chốt các mục ở **§8**. Mục nào chưa trả
-> lời thì làm theo **đề nghị** ghi ở đó.
+> Plan viết 23/09/2026. **Đã làm 06/10/2026** theo đúng đề nghị ở §8 (anh im lặng = làm theo đề
+> nghị): cả ba mùa (D1), `@remotion/player` sau khi H0 qua (D2), workflow GitHub Pages sẵn —
+> còn một cú bấm của anh ở Settings → Pages → Source: GitHub Actions (D3), "Nhớ lại" dời vào
+> `recap.ts` với 24/24 ảnh cảnh giống hệt trước (D4), 101 mục roadmap gõ từ PDF 06/09/2025 vào
+> `src/data/roadmap.ts` và `scripts/roadmap-gap.py` chạy lại được (D5 — con số 84 cũ không tái tạo
+> được vì script đã mất; 101 là số đếm được, và khác là bình thường, xem §4.4). Cách dùng:
+> `README.md`. Phần dưới giữ nguyên làm hồ sơ của quyết định.
 
 ---
 

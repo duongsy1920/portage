@@ -15,6 +15,24 @@ out/mua3-portage/   8 tập — vì sao project thật này trông như vậy
 Mỗi thư mục tập có: `video.mp4` · `cheatsheet.png` · `cheatsheet.pdf` · `canh/`
 (ảnh từng cảnh, để soi nhanh không cần mở video). `out/` không vào git.
 
+## Trang học — `hub/`
+
+Một trang web để **đi hết lộ trình** thay vì mở Studio: bản đồ 24 tập (tiếp theo là tập nào,
+đã xem bao nhiêu), phát từng tập bằng `@remotion/player` ngay từ composition (không cần mp4),
+mục lục cảnh bấm được, bản in trong trang, "neo vào code" link tới đúng commit đã kiểm, tự
+kiểm tra sau mỗi tập, ôn tập theo lịch 1/3/7 ngày, và bảng đối chiếu roadmap.sh. Tiến độ lưu
+trong trình duyệt, xuất/nhập JSON. Thiết kế và lý do: `HUB-PLAN.md`.
+
+```bash
+npm run hub            # http://localhost:5173/  (dev, sửa cảnh là thấy ngay)
+npm run hub:build      # hub/dist/ — tĩnh, mở ở bất kỳ đường dẫn nào
+npm run hub:preview    # xem bản build ở http://localhost:4173/
+```
+
+Dữ liệu của trang là dữ liệu của video, không chép: mỗi tập có `recap.ts` (4 ý · 3 câu phỏng
+vấn · tập sau) mà **cả cảnh "Nhớ lại" lẫn trang học cùng đọc**, và `anchors` trong `spec.ts`
+sinh từ chính các cảnh. Cửa kiểm thứ năm, `scripts/verify-hub.py`, canh việc đó.
+
 ## Lệnh
 
 ```bash
@@ -33,9 +51,11 @@ python3 scripts/stills.py          # ảnh từng cảnh cho mọi tập
 xảy ra thật:
 
 ```bash
-./scripts/verify-numbers.sh        # 11 con số trong data/portage.ts vs repo Go
+./scripts/verify-numbers.sh        # 12 con số trong data/portage.ts vs repo Go
 python3 scripts/verify-snippets.py # mọi dòng code lên hình có thật trong file nó khai
 python3 scripts/check-overflow.py  # 110 cảnh, không cảnh nào tràn khung
+python3 scripts/verify-hub.py      # trang học không nói sai về video: recap, anchors, roadmap, HOC
+node scripts/hub-check.mjs <url>   # trình duyệt thật: 24 tập phát tới cuối, 3 bề rộng, bàn phím, tiến độ
 ```
 
 Và sau khi render, mọi mp4 phải có đúng một track âm thanh:

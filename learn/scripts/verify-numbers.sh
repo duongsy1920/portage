@@ -6,6 +6,11 @@
 # inside a comment). Nobody noticed because nobody re-counted. Now the counting
 # is a command, not a memory.
 #
+# And a third lesson, 06/10: `channels` counted `chan ` and found 0, which was
+# true and still misleading — the code READS from four channels (ctx.Done(),
+# ticker.C) without declaring one. A check counts what it is told to count; the
+# thing it is told to count can itself be the wrong thing. Hence two numbers.
+#
 # Run from learn/.  Exit code 1 if anything drifted.
 set -uo pipefail
 # Resolve both paths BEFORE cd, or the relative one stops pointing anywhere.
@@ -31,6 +36,9 @@ check() { # <key> <counted>
 
 src() { grep -rn "$1" --include='*.go' internal/ cmd/ | grep -v _test | wc -l | tr -d ' '; }
 srcE() { grep -rnE "$1" --include='*.go' internal/ cmd/ | grep -v _test | wc -l | tr -d ' '; }
+# Same, but a line that is only a comment does not count — `chan` and `<-` are
+# ordinary words in prose, and a comment is not a channel.
+code() { grep -rnE "$1" --include='*.go' internal/ cmd/ | grep -v _test | grep -vE ':\s*//' | wc -l | tr -d ' '; }
 
 echo "Đếm lại GO_USAGE trên $REPO"
 check ctx              "$(src 'context.Context')"
@@ -40,11 +48,12 @@ check wrap             "$(src '%w')"
 check errorsIs         "$(src 'errors.Is')"
 check assertions       "$(grep -rn 'var _ .* = (\*' --include='*.go' internal/ cmd/ | wc -l | tr -d ' ')"
 check goroutines       "$(srcE '^\s*go [a-zA-Z]')"
-check channels         "$(src 'chan ')"
+check channelsDeclared "$(code '\bchan\b')"
+check channelsRead     "$(code '<-')"
 check recovers         "$(grep -rn 'recover()' --include='*.go' internal/ cmd/ | grep -v _test | grep -v '//' | wc -l | tr -d ' ')"
 check valueReceivers   "$(grep -rhoE '^func \([a-z]+ [A-Z][A-Za-z]*\)' --include='*.go' internal/domain/ | wc -l | tr -d ' ')"
 check pointerReceivers "$(grep -rhoE '^func \([a-z]+ \*[A-Z][A-Za-z]*\)' --include='*.go' internal/domain/ | wc -l | tr -d ' ')"
 
 echo
-if [ "$bad" -eq 0 ]; then echo "11 con số, khớp hết."; else echo "$bad con số lệch — sửa src/data/portage.ts rồi render lại."; fi
+if [ "$bad" -eq 0 ]; then echo "12 con số, khớp hết."; else echo "$bad con số lệch — sửa src/data/portage.ts rồi render lại."; fi
 exit $((bad > 0))

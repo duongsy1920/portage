@@ -1,4 +1,5 @@
 import type { EpisodeSpec } from "../../registry";
+import { RECAP } from "./recap";
 import { P8S1 } from "./scenes/P8S1";
 import { P8S2 } from "./scenes/P8S2";
 import { P8S3 } from "./scenes/P8S3";
@@ -17,6 +18,8 @@ export const EP08 = {
   title: "Máy được tạo nháp, không được xác nhận",
   scenePrefix: "Ep08-S",
   outDir: "mua3-portage/ep08-acl",
+  recap: RECAP,
+  anchors: [],
   scenes: [
     { name: "1 · Không được tự đọc trang shop", component: P8S1, durationInFrames: 380 },
     { name: "2 · Từ vựng: anti-corruption layer", component: P8S2, durationInFrames: 560 },

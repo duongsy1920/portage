@@ -1,4 +1,5 @@
 import type { EpisodeSpec } from "../../registry";
+import { RECAP } from "./recap";
 import { P5S1 } from "./scenes/P5S1";
 import { P5S2 } from "./scenes/P5S2";
 import { P5S3 } from "./scenes/P5S3";
@@ -15,6 +16,8 @@ export const EP05 = {
   title: "Điểm không thể quay đầu",
   scenePrefix: "Ep05-S",
   outDir: "mua3-portage/ep05-khong-quay-dau",
+  recap: RECAP,
+  anchors: ["DDD_SNIPPETS.oneDoor"],
   scenes: [
     { name: "1 · Trên trục thời gian", component: P5S1, durationInFrames: 380 },
     { name: "2 · Luật viết ra được", component: P5S2, durationInFrames: 520 },

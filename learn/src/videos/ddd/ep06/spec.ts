@@ -1,4 +1,5 @@
 import type { EpisodeSpec } from "../../registry";
+import { RECAP } from "./recap";
 import { F1Hook } from "./scenes/F1Hook";
 import { F2Term } from "./scenes/F2Term";
 import { F3Recap } from "./scenes/F3Recap";
@@ -18,6 +19,8 @@ export const DDD_EP06 = {
   title: "Domain Event",
   scenePrefix: "Ddd-Ep06-S",
   outDir: "mua2-ddd/ep06-domain-event",
+  recap: RECAP,
+  anchors: ["GO_SNIPPETS.pointerReceiver"],
   scenes: [
     { name: "1 · Ghi lại, không phát đi", component: F1Hook, durationInFrames: 360 },
     { name: "2 · Từ vựng: domain event", component: F2Term, durationInFrames: 520 },

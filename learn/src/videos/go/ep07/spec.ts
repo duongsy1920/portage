@@ -1,4 +1,5 @@
 import type { EpisodeSpec } from "../../registry";
+import { RECAP } from "./recap";
 import { M1Hook } from "./scenes/M1Hook";
 import { M2Promote } from "./scenes/M2Promote";
 import { M3NotInherit } from "./scenes/M3NotInherit";
@@ -17,6 +18,8 @@ export const GO_EP07 = {
   title: "Embedding: giống kế thừa nhưng không phải",
   scenePrefix: "Go-Ep07-S",
   outDir: "mua1-go/ep07-embedding",
+  recap: RECAP,
+  anchors: ["GO_SNIPPETS.embedEvents", "GO_SNIPPETS.typedID"],
   scenes: [
     { name: "1 · Field không có tên", component: M1Hook, durationInFrames: 330 },
     { name: "2 · Tìm method xuống một tầng", component: M2Promote, durationInFrames: 480 },

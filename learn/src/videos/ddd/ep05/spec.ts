@@ -1,4 +1,5 @@
 import type { EpisodeSpec } from "../../registry";
+import { RECAP } from "./recap";
 import { E1Hook } from "./scenes/E1Hook";
 import { E2Why } from "./scenes/E2Why";
 import { E3Recap } from "./scenes/E3Recap";
@@ -15,6 +16,8 @@ export const DDD_EP05 = {
   title: "Bounded Context",
   scenePrefix: "Ddd-Ep05-S",
   outDir: "mua2-ddd/ep05-bounded-context",
+  recap: RECAP,
+  anchors: ["DDD_SNIPPETS.variantCatalog", "DDD_SNIPPETS.variantOrdering", "DDD_SNIPPETS.variantProcurement"],
   scenes: [
     { name: "1 · Một chữ, ba nghĩa", component: E1Hook, durationInFrames: 380 },
     { name: "2 · Từ vựng: bounded context", component: E2Why, durationInFrames: 520 },

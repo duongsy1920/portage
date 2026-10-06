@@ -1,4 +1,5 @@
 import type { EpisodeSpec } from "../../registry";
+import { RECAP } from "./recap";
 import { P3S1 } from "./scenes/P3S1";
 import { P3S2 } from "./scenes/P3S2";
 import { P3S3 } from "./scenes/P3S3";
@@ -14,6 +15,8 @@ export const EP03 = {
   title: "Nhất quán sau cùng có mã trạng thái",
   scenePrefix: "Ep03-S",
   outDir: "mua3-portage/ep03-nhat-quan",
+  recap: RECAP,
+  anchors: [],
   scenes: [
     { name: "1 · Tạo xong, đọc lại 404", component: P3S1, durationInFrames: 400 },
     { name: "2 · Ba mã, ba câu chuyện", component: P3S2, durationInFrames: 480 },

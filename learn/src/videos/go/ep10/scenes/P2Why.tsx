@@ -42,7 +42,7 @@ export const P2Why: React.FC = () => (
                 {
                   at: 200,
                   tag: "channel để làm gì",
-                  text: "Channel là để chuyển giao việc từ goroutine này sang goroutine khác. Code này không chuyển giao gì cả.",
+                  text: "Channel là để chuyển giao việc từ goroutine này sang goroutine khác. Code này không chuyển giao gì — bốn lần đọc channel đều là tín hiệu dừng, thứ context đưa sẵn.",
                   accent: COLOR.go,
                 },
                 {

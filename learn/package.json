@@ -19,16 +19,23 @@
   "devDependencies": {
     "@remotion/eslint-config-flat": "4.0.525",
     "@types/react": "19.2.7",
+    "@types/react-dom": "19.2",
     "@types/web": "0.0.166",
+    "@vitejs/plugin-react": "^5.2.0",
     "eslint": "9.19.0",
     "prettier": "3.8.1",
-    "typescript": "5.9.3"
+    "puppeteer-core": "^25.12.0",
+    "typescript": "5.9.3",
+    "vite": "^7.3.6"
   },
   "scripts": {
     "dev": "remotion studio",
     "build": "remotion bundle",
     "upgrade": "remotion upgrade",
-    "lint": "eslint src && tsc"
+    "lint": "eslint src && tsc",
+    "hub": "vite --config hub/vite.config.ts",
+    "hub:build": "vite build --config hub/vite.config.ts",
+    "hub:preview": "vite preview --config hub/vite.config.ts"
   },
   "sideEffects": [
     "*.css"
