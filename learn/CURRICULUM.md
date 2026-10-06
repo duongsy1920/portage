@@ -30,7 +30,7 @@ Thứ tự đúng:
 
 ```
    MÙA 1 — GO           đọc được mọi file trong repo, và trả lời được phỏng vấn
-        │                về ngôn ngữ. 10 tập.
+        │                về ngôn ngữ. 10 tập, cộng 6 tập bổ sung theo roadmap.sh (06/10).
         ▼
    MÙA 2 — DDD          hiểu từ vựng và lý lẽ, bằng chính ví dụ Symfony đã quen.
         │                6 tập.
@@ -58,6 +58,12 @@ Mục tiêu từng tập là **một** điều, và mỗi tập neo vào code th
 | 8 | slice, map và ba cái bẫy | `append` phải gán lại, map duyệt ngẫu nhiên, so sánh struct | bug thật: thứ tự `CategoryRepo.All()` | **xong** |
 | 9 | defer, panic, recover | `defer` chạy khi nào, panic giết cả process | 96 `defer` · 33 `panic` | **xong** |
 | 10 | Đồng thời: goroutine, mutex, channel | repo có 3 goroutine và 25 mutex, **không tự tạo channel nào nhưng đọc từ channel 4 lần** (`<-ctx.Done()`, `<-ticker.C` trong `select` của worker) — nói đúng, rồi dạy channel riêng vì phỏng vấn sẽ hỏi. *(Sửa 06/10: bản đầu nói "0 channel", đúng với khai báo, sai với thứ người đọc gặp ở `worker.go`.)* | `cmd/api` · `adapter/memory` · `worker/worker.go` | **xong** |
+| 11 | Closure: hàm nhận hàm làm tham số | `InTx(ctx, func(ctx) error {…})` là hình dạng của mọi use case · closure bắt biến ngoài không cần `use` · `(err error)` cho defer ghi đè | `app/ports.go:46` · `register_merchant.go:31` · `postgres.go:83` — 38 chỗ gọi InTx | **xong** (06/10, PLAN-BO-SUNG §5) |
+| 12 | interface rỗng và type switch | `any` = mixed và cái giá của nó · `switch e := ev.(type)` 37 case ở một chỗ · `m, ok := x.(T)` — repo chỉ dùng dạng có ok | `shared/event.go:26` · `eventcodec/codec.go:70` · `subscribe.go:111` | **xong** (06/10) |
+| 13 | Generics: hai chỗ duy nhất trong repo | `on[T]` nhận closure có kiểu, trả handler không kiểu · `into[T]` ghi rõ T · constraint · khi nào generic, khi nào interface — **2 hàm, nói thẳng** | `subscribe.go:105` · `decode.go:66` | **xong** (06/10) |
+| 14 | select, ticker, và dừng một việc đang chạy | bốn lần đọc channel của tập 10, đọc kỹ · `ctx.Done()` là channel · WaitGroup + `close(start)` trong test đua migrate · đệm 1 · fan-out/fan-in **ngoài Portage** | `worker.go:127` · `postgres_test.go:103` · `openai_test.go:120` | **xong** (06/10) |
+| 15 | struct tag, JSON, và đường ra khỏi domain | tag là chuỗi sau kiểu, reflection đọc · 364 tag, 0 trong domain · Published Language = contracts V1 · hai cửa ra (outbox, HTTP), một cửa vào (Parse ngược) | `contracts/ordering_v1.go:11` · `ordering/events.go:12` · `http/quotes.go:64` | **xong** (06/10) |
+| 16 | Vì sao toàn bộ test chạy dưới hai giây | fake trong RAM, không mock · httptest không mở cổng · bảng + t.Run (hàng theo tên) · 7 guard go/ast · **0 Benchmark — nói thẳng** | `pricing_test.go:19` · `server_test.go:166` · `ratecard_test.go:96` · `decisions_test.go:225` | **xong** (06/10) |
 
 Quy tắc trung thực của mùa 1: thứ gì **không có** trong repo thì nói rõ là không
 có, rồi dạy riêng. Channel và `sync.WaitGroup` rơi vào nhóm đó.
@@ -68,10 +74,10 @@ có, rồi dạy riêng. Channel và `sync.WaitGroup` rơi vào nhóm đó.
 
 | # | Tên | Học được gì | |
 |---|---|---|---|
-| 1 | Mô hình thiếu máu | entity toàn setter, và vì sao luật nghiệp vụ rơi mất | **xong** |
+| 1 | Anemic model | entity toàn setter, và vì sao luật nghiệp vụ rơi mất | **xong** |
 | 2 | Value Object và Entity | cái gì có ID, cái gì không | **xong** |
 | 3 | Aggregate và invariant | một transaction một aggregate | **xong** |
-| 4 | Repository là cổng | đảo chiều phụ thuộc, domain không biết Postgres tồn tại | **xong** |
+| 4 | Repository là một port | đảo chiều phụ thuộc, domain không biết Postgres tồn tại | **xong** |
 | 5 | Bounded Context | một từ, một nghĩa, trong một vùng | **xong** |
 | 6 | Domain Event | aggregate chỉ ghi, tầng app mới phát | **xong** |
 
@@ -100,8 +106,8 @@ có, rồi dạy riêng. Channel và `sync.WaitGroup` rơi vào nhóm đó.
 |---|---|---|---|
 | 1 | Vì sao project này bị chia làm năm | năm vùng, và vì sao không gộp lại được | **xong** |
 | 2 | Outbox: hai việc, một transaction | vì sao không "lưu xong rồi publish" | **xong** |
-| 3 | Nhất quán sau cùng có mã trạng thái | 404 ngay sau publish là thiết kế | **xong** |
-| 4 | Port & Adapter, và luật chiều phụ thuộc | vì sao 278 test chạy 2 giây | **xong** |
+| 3 | Eventual consistency có mã trạng thái | 404 ngay sau publish là thiết kế | **xong** |
+| 4 | Port & Adapter, và luật chiều phụ thuộc | vì sao 266 test chạy 2 giây (278 lúc dựng, 266 từ 06/10 — đếm `--- PASS` cấp cao nhất, không DSN) | **xong** |
 | 5 | Điểm không thể quay đầu | luật nghiệp vụ có tiền thật đằng sau | **xong** |
 | 6 | Báo giá là một bức ảnh, và đối soát | `variance` trả lời câu hỏi kinh doanh | **xong** |
 | 7 | Màn hình cần bốn context: đừng JOIN | read model dựng bằng event | **xong** |
@@ -333,7 +339,7 @@ Trước khi render bất cứ thứ gì, đếm lại số:
 
 ```bash
 cd learn
-./scripts/verify-numbers.sh        # 12 con số của GO_USAGE vs repo Go thật
+./scripts/verify-numbers.sh        # 32 con số của GO_USAGE vs repo Go thật
 ```
 
 Kết quả xuất ra `out/`, chia theo mùa và tập:
@@ -358,10 +364,13 @@ tua cả video.
 
 ## 11. Việc còn lại
 
-**Cả 24 tập đã dựng xong.** Mỗi tập một video và một bản in A3, cùng nằm trong
-`out/<mùa>/<tập>/`. Tất cả đã qua bốn cửa kiểm ở §12. Từ 06/10 có **trang học**
-(`hub/`, `npm run hub`) để đi hết lộ trình mà không mở Studio — xem `README.md` và
-`HUB-PLAN.md`. Bảng dưới là thứ `scripts/verify-hub.py` đối chiếu với `spec.ts`.
+**Cả 30 tập đã dựng xong** (24 ngày 17/09, sáu tập 11–16 ngày 06/10). Mỗi tập một video và một bản in A3, cùng nằm trong
+`out/<mùa>/<tập>/`. Tất cả đã qua bốn cửa kiểm ở §12. Ngoài 30 tập còn **hai bản in tra cứu không có video**
+(`cheatsheet/go-plate-syntax.html` R.1, `go-plate-toolchain.html` R.2 → `out/mua1-go/ban-in-*`) và **ba bài tập**
+viết trong `docs/HOC.md` — phần của roadmap.sh mà video không dạy được, lý do ở `PLAN-BO-SUNG.md` §6–§7. Từ 06/10 có **trang học**
+(`hub/`, `npm run hub`, shadcn hai cột: danh sách bài trái, bài đang xem phải) để đi hết lộ trình mà không mở
+Studio — xem `README.md`, `HUB-PLAN.md` và `HUB-REDESIGN-PLAN.md` (bảng từ: thuật ngữ giữ tiếng Anh, nên vài
+tên tập đổi cùng ngày: Anemic model · Repository là một port · Eventual consistency). Bảng dưới là thứ `scripts/verify-hub.py` đối chiếu với `spec.ts`.
 
 | Tập | Tên | Cảnh | Dài |
 |---|---|---|---|
@@ -375,15 +384,21 @@ tua cả video.
 | MÙA 1 · 8 | slice, map và ba cái bẫy | 5 | 1:16 |
 | MÙA 1 · 9 | defer, panic, recover | 5 | 1:17 |
 | MÙA 1 · 10 | Đồng thời: goroutine, mutex, channel | 5 | 1:17 |
-| MÙA 2 · 1 | Mô hình thiếu máu | 4 | 0:58 |
+| MÙA 1 · 11 | Closure: hàm nhận hàm làm tham số | 6 | 1:33 |
+| MÙA 1 · 12 | interface rỗng và type switch | 6 | 1:33 |
+| MÙA 1 · 13 | Generics: hai chỗ duy nhất trong repo | 6 | 1:35 |
+| MÙA 1 · 14 | select, ticker, và dừng một việc đang chạy | 6 | 1:36 |
+| MÙA 1 · 15 | struct tag, JSON, và đường ra khỏi domain | 6 | 1:35 |
+| MÙA 1 · 16 | Vì sao toàn bộ test chạy dưới hai giây | 7 | 1:53 |
+| MÙA 2 · 1 | Anemic model | 4 | 0:58 |
 | MÙA 2 · 2 | Value Object và Entity | 3 | 0:43 |
 | MÙA 2 · 3 | Aggregate và invariant | 3 | 0:44 |
-| MÙA 2 · 4 | Repository là cổng | 3 | 0:43 |
+| MÙA 2 · 4 | Repository là một port | 3 | 0:43 |
 | MÙA 2 · 5 | Bounded Context | 3 | 0:44 |
 | MÙA 2 · 6 | Domain Event | 3 | 0:44 |
 | MÙA 3 · 1 | Vì sao project Go này bị chia làm năm? | 11 | 2:45 |
 | MÙA 3 · 2 | Outbox: hai việc, một transaction | 3 | 0:43 |
-| MÙA 3 · 3 | Nhất quán sau cùng có mã trạng thái | 3 | 0:43 |
+| MÙA 3 · 3 | Eventual consistency có mã trạng thái | 3 | 0:43 |
 | MÙA 3 · 4 | Port & Adapter, và luật chiều phụ thuộc | 3 | 0:43 |
 | MÙA 3 · 5 | Điểm không thể quay đầu | 3 | 0:44 |
 | MÙA 3 · 6 | Báo giá là một bức ảnh, và đối soát | 2 | 0:28 |
@@ -407,9 +422,9 @@ lỗi hình lọt qua cả hai. Bốn lệnh này thì bắt được:
 
 ```bash
 cd learn
-./scripts/verify-numbers.sh        # 12 con số GO_USAGE vs repo Go thật
+./scripts/verify-numbers.sh        # 32 con số GO_USAGE vs repo Go thật
 python3 scripts/verify-snippets.py # 30 snippet: mọi dòng code có thật trong file nó khai
-python3 scripts/check-overflow.py  # 110 cảnh: không cảnh nào tràn khung
+python3 scripts/check-overflow.py  # 147 cảnh: không cảnh nào tràn khung
 python3 scripts/verify-hub.py      # cửa thứ năm (06/10): recap.ts, anchors, roadmap, 17 câu HOC, bảng §11
 # và sau khi render: mọi mp4 phải có đúng 1 track âm thanh
 for f in out/*/*/video.mp4; do

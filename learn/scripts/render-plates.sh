@@ -27,6 +27,14 @@ render go-ep07.html       mua1-go/ep07-embedding
 render go-ep08.html       mua1-go/ep08-slice-map
 render go-ep09.html       mua1-go/ep09-defer-panic
 render go-ep10.html       mua1-go/ep10-dong-thoi
+render go-ep11.html       mua1-go/ep11-closure
+render go-ep12.html       mua1-go/ep12-type-switch
+render go-ep13.html       mua1-go/ep13-generics
+render go-ep14.html       mua1-go/ep14-select
+render go-ep15.html       mua1-go/ep15-struct-tag
+render go-ep16.html       mua1-go/ep16-testing
+render go-plate-syntax.html    mua1-go/ban-in-cu-phap
+render go-plate-toolchain.html mua1-go/ban-in-toolchain
 
 render ddd-ep01.html      mua2-ddd/ep01-thieu-mau
 render ddd-ep02.html      mua2-ddd/ep02-value-object

@@ -1,20 +1,20 @@
 import { SEASONS, componentFor } from "../../src/videos";
 import { totalFrames, type EpisodeSpec } from "../../src/videos/registry";
 import { BEAT, FPS } from "../../src/design/tokens";
-import { PLANNED } from "../../src/data/roadmap";
+import type { Progress } from "./progress";
 
 /**
  * The series as the hub sees it: SEASONS flattened, each episode knowing its
- * season, its number, its length and where its plate lives. Everything here is
- * DERIVED from the specs — the hub never keeps a second list of episodes
- * (HUB-PLAN §3.3), so a new spec.ts shows up on the map by itself.
+ * season, its number, its length and where its cheatsheet lives. Everything
+ * here is DERIVED from the specs — the hub never keeps a second list of
+ * episodes (HUB-PLAN §3.3), so a new spec.ts shows up in the sidebar by itself.
  */
-export type SeasonInfo = { index: number; folder: string; label: string; short: string };
+export type SeasonInfo = { index: number; folder: string; label: string; short: string; blurb: string };
 
 export const SEASON_INFO: readonly SeasonInfo[] = [
-  { index: 0, folder: "Mua1-Go", label: "Mùa 1 · Go cho người viết PHP", short: "Go" },
-  { index: 1, folder: "Mua2-DDD", label: "Mùa 2 · DDD, bằng ví dụ Symfony", short: "DDD" },
-  { index: 2, folder: "Mua3-Portage", label: "Mùa 3 · Vì sao Portage trông như vậy", short: "Portage" },
+  { index: 0, folder: "Mua1-Go", label: "Mùa 1 · Go", short: "Go", blurb: "Go cho người viết PHP" },
+  { index: 1, folder: "Mua2-DDD", label: "Mùa 2 · DDD", short: "DDD", blurb: "DDD, bằng ví dụ Symfony đã quen" },
+  { index: 2, folder: "Mua3-Portage", label: "Mùa 3 · Portage", short: "Portage", blurb: "Vì sao project thật này trông như vậy" },
 ];
 
 export type Episode = {
@@ -74,11 +74,18 @@ export const EPISODES: readonly Episode[] = SEASONS.flatMap((season, si) =>
 
 export const byId = (id: string): Episode | undefined => EPISODES.find((e) => e.id === id);
 
-/** Episodes planned in PLAN-BO-SUNG but not built, shown dimmed after season 1. */
-export const PLANNED_EPISODES = Object.entries(PLANNED).map(([key, title]) => ({ key, title }));
-
 export const mmss = (seconds: number): string =>
   `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+
+/** "Đã thuộc": every interview question of the episode was last graded "nhớ". */
+export const isConfident = (e: Episode, quiz: Progress["quiz"]): boolean => {
+  const g = quiz[e.id] ?? {};
+  return e.spec.recap.asked.length > 0 && e.spec.recap.asked.every((_, i) => g[String(i)]?.grade === "nho");
+};
+
+/** What "#/" opens: the first unwatched episode, else the first not yet learned, else the first. */
+export const nextEpisode = (p: Progress): Episode =>
+  EPISODES.find((e) => !p.watched[e.id]) ?? EPISODES.find((e) => !isConfident(e, p.quiz)) ?? EPISODES[0]!;
 
 /** Episode components, built once per spec: buildEpisode returns a new component each call. */
 const built = new Map<string, React.FC>();

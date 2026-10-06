@@ -28,7 +28,7 @@ const EDGES: FlowEdge[] = [
 ];
 
 export const A2Where: React.FC = () => (
-  <Stage eyebrow="MÙA 2 · TẬP 1 · CẢNH 2" source="mô hình thiếu máu: dữ liệu một nơi, luật ở bốn nơi">
+  <Stage eyebrow="MÙA 2 · TẬP 1 · CẢNH 2" source="anemic model: dữ liệu một nơi, luật ở bốn nơi">
     <Cues items={[{ at: 20, sound: "appear" }, { at: 190, sound: "crack", volume: 0.2 }, { at: 280, sound: "land", volume: 0.24 }]} />
     <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
       <Headline delay={4} size={56}>

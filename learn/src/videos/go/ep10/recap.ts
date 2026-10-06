@@ -18,5 +18,5 @@ export const RECAP = {
     "Channel không có bộ đệm khác channel có bộ đệm ở chỗ nào?",
     "Deadlock trong Go xảy ra kiểu gì?",
   ],
-  next: { label: "MÙA 2 · TẬP 1", text: "Mô hình thiếu máu: entity toàn getter setter, và luật nghiệp vụ rơi mất ở đâu." },
+  next: { label: "MÙA 2 · TẬP 1", text: "Anemic model: entity toàn getter setter, và luật nghiệp vụ rơi mất ở đâu." },
 } as const satisfies Recap;

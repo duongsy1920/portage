@@ -5,7 +5,7 @@ import { Bullets } from "../../../../components/Bullets";
 import { CodeCard } from "../../../../components/CodeCard";
 import { TermCard } from "../../../../components/TermCard";
 import { Cues } from "../../../../components/Sfx";
-import { SNIPPETS } from "../../../../data/portage";
+import { SNIPPETS, REPO } from "../../../../data/portage";
 import { COLOR } from "../../../../design/tokens";
 
 /**
@@ -51,7 +51,7 @@ export const D2Guard: React.FC = () => (
                   {
                     at: 380,
                     tag: "đổi lại được gì",
-                    text: "Domain test được mà không cần database — 278 test chạy dưới 2 giây.",
+                    text: `Domain test được mà không cần database — ${REPO.testsNoDocker} test chạy dưới 2 giây.`,
                     accent: COLOR.go,
                   },
                 ]}

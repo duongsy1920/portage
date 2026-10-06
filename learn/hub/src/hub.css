@@ -1,179 +1,158 @@
-/* ── Afterimage, carried over from cheatsheet/plate.css and src/design/tokens.ts.
-   One visual language for video, plate and hub: the learner should never feel
-   they changed worlds. The values are the plate's; only the layout is new. ── */
+@import "tailwindcss";
+@import "tw-animate-css";
 
-@font-face { font-family: "Mono"; src: url("../../cheatsheet/fonts/JetBrainsMono-Regular.ttf"); font-weight: 400; font-display: swap; }
-@font-face { font-family: "Mono"; src: url("../../cheatsheet/fonts/JetBrainsMono-Bold.ttf"); font-weight: 700; font-display: swap; }
-@font-face { font-family: "Sans"; src: url("../../cheatsheet/fonts/WorkSans-Regular.ttf"); font-weight: 400; font-display: swap; }
-@font-face { font-family: "Sans"; src: url("../../cheatsheet/fonts/WorkSans-Bold.ttf"); font-weight: 700; font-display: swap; }
-@font-face { font-family: "Clinical"; src: url("../../cheatsheet/fonts/Jura-Light.ttf"); font-weight: 300; font-display: swap; }
+@custom-variant dark (&:is(.dark *));
 
+/* ── Fonts: Be Vietnam Pro for text (drawn for Vietnamese diacritics — the same
+   choice as web/ and design-system/portage/MASTER.md §3), JetBrains Mono for
+   code so a snippet on the page looks like the same snippet in the video. Both
+   self-hosted from learn/public/fonts (OFL). ── */
+@font-face { font-family: "Be Vietnam Pro"; font-weight: 400; font-display: swap; src: url("/fonts/be-vietnam-pro-vietnamese-400-normal.woff2") format("woff2"); unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB; }
+@font-face { font-family: "Be Vietnam Pro"; font-weight: 400; font-display: swap; src: url("/fonts/be-vietnam-pro-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "Be Vietnam Pro"; font-weight: 500; font-display: swap; src: url("/fonts/be-vietnam-pro-vietnamese-500-normal.woff2") format("woff2"); unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB; }
+@font-face { font-family: "Be Vietnam Pro"; font-weight: 500; font-display: swap; src: url("/fonts/be-vietnam-pro-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "Be Vietnam Pro"; font-weight: 600; font-display: swap; src: url("/fonts/be-vietnam-pro-vietnamese-600-normal.woff2") format("woff2"); unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB; }
+@font-face { font-family: "Be Vietnam Pro"; font-weight: 600; font-display: swap; src: url("/fonts/be-vietnam-pro-latin-600-normal.woff2") format("woff2"); }
+@font-face { font-family: "Be Vietnam Pro"; font-weight: 700; font-display: swap; src: url("/fonts/be-vietnam-pro-vietnamese-700-normal.woff2") format("woff2"); unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB; }
+@font-face { font-family: "Be Vietnam Pro"; font-weight: 700; font-display: swap; src: url("/fonts/be-vietnam-pro-latin-700-normal.woff2") format("woff2"); }
+@font-face { font-family: "JetBrains Mono"; font-weight: 400; font-display: swap; src: url("/fonts/JetBrainsMono-Regular.ttf") format("truetype"); }
+@font-face { font-family: "JetBrains Mono"; font-weight: 700; font-display: swap; src: url("/fonts/JetBrainsMono-Bold.ttf") format("truetype"); }
+
+/* ── shadcn/ui theme, base color zinc (the CLI's own values), light then dark. ── */
 :root {
-  --bg: #080B10; --lift: #0E141C; --surface: #141C26; --hi: #1B2632;
-  --line: #243243; --lineHi: #35485E;
-  --text: #E8EFF6; --dim: #93A4B8; --faint: #5C6E85;
-  --go: #00ADD8; --php: #B39DFF; --ok: #4ADE80; --danger: #FF6B6B; --money: #F2B33D;
-  --ordering: #9D7CD8;
-  --gutter: 16px;
-  --max: 1200px;
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.141 0.005 285.823);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.141 0.005 285.823);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.141 0.005 285.823);
+  --primary: oklch(0.21 0.006 285.885);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.967 0.001 286.375);
+  --secondary-foreground: oklch(0.21 0.006 285.885);
+  --muted: oklch(0.967 0.001 286.375);
+  --muted-foreground: oklch(0.552 0.016 285.938);
+  --accent: oklch(0.967 0.001 286.375);
+  --accent-foreground: oklch(0.21 0.006 285.885);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.92 0.004 286.32);
+  --input: oklch(0.92 0.004 286.32);
+  --ring: oklch(0.705 0.015 286.067);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.141 0.005 285.823);
+  --sidebar-primary: oklch(0.21 0.006 285.885);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.967 0.001 286.375);
+  --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
+  --sidebar-border: oklch(0.92 0.004 286.32);
+  --sidebar-ring: oklch(0.705 0.015 286.067);
+  /* the one semantic colour the page adds: "đã thuộc" (Tailwind emerald-600 / emerald-400) */
+  --done: oklch(0.596 0.145 163.225);
 }
 
-/* The scenes assume Root.tsx's rule: no ligatures, ever. The hub plays the same scenes. */
-* { font-variant-ligatures: none; font-feature-settings: "liga" 0, "calt" 0; box-sizing: border-box; }
-html { background: var(--bg); color: var(--text); font-family: "Sans", system-ui, sans-serif; font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
-body { margin: 0; min-height: 100vh; }
-a { color: inherit; }
-button { font: inherit; color: inherit; }
-code, .mono { font-family: "Mono", ui-monospace, monospace; }
-.clinical { font-family: "Clinical"; font-weight: 300; letter-spacing: .2em; font-size: 11px; color: var(--faint); text-transform: uppercase; }
+.dark {
+  --background: oklch(0.141 0.005 285.823);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.21 0.006 285.885);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.21 0.006 285.885);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.92 0.004 286.32);
+  --primary-foreground: oklch(0.21 0.006 285.885);
+  --secondary: oklch(0.274 0.006 286.033);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.274 0.006 286.033);
+  --muted-foreground: oklch(0.705 0.015 286.067);
+  --accent: oklch(0.274 0.006 286.033);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.552 0.016 285.938);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.21 0.006 285.885);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.274 0.006 286.033);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.552 0.016 285.938);
+  --done: oklch(0.765 0.177 163.223);
+}
 
-/* A ruled ground, faintly: the plate sits on graph paper. */
-.ground { position: fixed; inset: 0; z-index: -1;
-  background-image: linear-gradient(var(--lift) 1px, transparent 1px), linear-gradient(90deg, var(--lift) 1px, transparent 1px);
-  background-size: 53px 53px; opacity: .55; pointer-events: none; }
+@theme inline {
+  --font-sans: "Be Vietnam Pro", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-done: var(--done);
+}
 
-.wrap { max-width: var(--max); margin: 0 auto; padding: 0 var(--gutter); }
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    /* The scenes assume Root.tsx's rule: no ligatures, ever. The hub plays the same scenes. */
+    font-variant-ligatures: none;
+    font-feature-settings: "liga" 0, "calt" 0;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+}
 
-/* ── top bar ── */
-.top { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 22px 0 14px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
-.top .brand { font-family: "Mono"; font-weight: 700; font-size: 18px; letter-spacing: -.01em; text-decoration: none; }
-.top .brand em { font-style: normal; color: var(--go); }
-.top nav { display: flex; gap: 6px; flex-wrap: wrap; }
-.top nav a { text-decoration: none; padding: 6px 12px; border-radius: 3px; border: 1px solid transparent; color: var(--dim); font-size: 14px; }
-.top nav a[aria-current="page"] { border-color: var(--lineHi); color: var(--text); background: var(--surface); }
-.top nav a:hover, .top nav a:focus-visible { color: var(--text); outline: none; border-color: var(--go); }
-
-h1 { font-family: "Mono"; font-weight: 700; font-size: clamp(22px, 3vw, 32px); letter-spacing: -.012em; line-height: 1.1; margin: 28px 0 8px; }
-h1 em { font-style: normal; color: var(--go); }
-h2 { font-family: "Mono"; font-weight: 700; font-size: 18px; margin: 34px 0 12px; }
-.sub { color: var(--dim); font-size: 15px; margin: 0 0 20px; }
-.rule { height: 1px; background: var(--line); margin: 24px 0; }
-
-/* ── the one card shape ── */
-.card { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--accent, var(--go)); border-radius: 3px; padding: 18px 20px; }
-.card.next { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; --accent: var(--money); }
-.card.next .k { font-family: "Clinical"; font-weight: 300; letter-spacing: .2em; font-size: 11px; color: var(--money); text-transform: uppercase; }
-.card.next .t { font-family: "Mono"; font-weight: 700; font-size: 17px; }
-.card.next .m { color: var(--dim); font-size: 14px; }
-.card.next .go { margin-left: auto; }
-
-.btn { display: inline-block; padding: 8px 14px; border-radius: 3px; border: 1px solid var(--lineHi); background: var(--hi); color: var(--text); text-decoration: none; font-size: 14px; cursor: pointer; }
-.btn:hover, .btn:focus-visible { border-color: var(--go); outline: none; }
-.btn.primary { background: var(--go); color: #041018; border-color: var(--go); font-weight: 700; }
-.btn.ghost { background: transparent; }
-.btn:disabled { opacity: .45; cursor: default; }
-.btn-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-
-/* ── season rows on the map ── */
-.season { margin: 18px 0 6px; }
-.season .head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
-.season .head .name { font-family: "Mono"; font-weight: 700; font-size: 15px; }
-.season .head .count { color: var(--faint); font-size: 13px; }
-.dots { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 0; padding: 0; list-style: none; }
-.dot { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 64px; text-decoration: none; color: var(--dim); font-size: 11px; text-align: center; }
-.dot .n { font-family: "Mono"; font-weight: 700; font-size: 13px; width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--lineHi); display: grid; place-items: center; color: var(--faint); background: var(--bg); transition: transform .15s; }
-.dot.watched .n { border-color: var(--go); color: var(--go); }
-.dot.confident .n { border-color: var(--go); background: var(--go); color: #041018; }
-.dot.next .n { border-color: var(--money); color: var(--money); box-shadow: 0 0 0 3px rgba(242, 179, 61, .18); }
-.dot.planned { opacity: .45; }
-.dot.planned .n { border-style: dashed; }
-.dot:hover .n, .dot:focus-visible .n { transform: translateY(-2px); }
-.dot:focus-visible { outline: none; }
-.dot:focus-visible .n { border-color: var(--text); }
-.dot .t { max-width: 64px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.legend { display: flex; gap: 16px; flex-wrap: wrap; color: var(--faint); font-size: 12px; margin-top: 14px; }
-.legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--lineHi); margin-right: 6px; vertical-align: -1px; }
-.legend .w::before { border-color: var(--go); }
-.legend .c::before { border-color: var(--go); background: var(--go); }
-.legend .x::before { border-color: var(--money); }
-.legend .p::before { border-style: dashed; }
-
-/* ── sessions (HOC.md) ── */
-.sessions { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
-.session { --accent: var(--lineHi); }
-.session .k { font-family: "Clinical"; font-weight: 300; letter-spacing: .2em; font-size: 10.5px; color: var(--faint); text-transform: uppercase; }
-.session .t { font-family: "Mono"; font-weight: 700; font-size: 14px; margin: 4px 0 6px; }
-.session .g { color: var(--dim); font-size: 13.5px; }
-.session ul { margin: 8px 0 0; padding-left: 18px; font-size: 13px; color: var(--dim); }
-.session .eps { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
-.chip { display: inline-block; padding: 2px 8px; border-radius: 3px; border: 1px solid var(--line); font-family: "Mono"; font-size: 12px; color: var(--dim); text-decoration: none; }
-.chip.watched { border-color: var(--go); color: var(--go); }
-.chip:hover, .chip:focus-visible { border-color: var(--text); color: var(--text); outline: none; }
-
-/* ── episode page ── */
-.ep-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
-.ep-head .k { font-family: "Clinical"; font-weight: 300; letter-spacing: .2em; font-size: 11px; color: var(--go); text-transform: uppercase; }
-.ep-layout { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); align-items: start; }
-@media (min-width: 1024px) { .ep-layout { grid-template-columns: minmax(0, 1fr) 300px; } }
-.player { border: 1px solid var(--line); border-radius: 3px; overflow: hidden; background: #000; }
-.scenes { margin: 0; padding: 0; list-style: none; border: 1px solid var(--line); border-radius: 3px; background: var(--surface); }
-.scenes li { border-top: 1px solid var(--line); }
-.scenes li:first-child { border-top: 0; }
-.scenes button { width: 100%; text-align: left; background: none; border: 0; padding: 10px 14px; display: flex; gap: 10px; align-items: baseline; cursor: pointer; }
-.scenes button:hover, .scenes button:focus-visible { background: var(--hi); outline: none; }
-.scenes li.now button { border-left: 3px solid var(--go); padding-left: 11px; }
-.scenes .t { flex: 1; font-size: 14px; }
-.scenes .at { font-family: "Mono"; font-size: 12px; color: var(--faint); }
-.tabs { display: flex; gap: 4px; margin: 18px 0 12px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
-.tabs button { background: none; border: 0; border-bottom: 2px solid transparent; padding: 8px 12px; color: var(--dim); cursor: pointer; font-size: 14px; }
-.tabs button[aria-selected="true"] { color: var(--text); border-bottom-color: var(--go); }
-.tabs button:focus-visible { outline: none; color: var(--text); }
-.plate-frame { position: relative; width: 100%; overflow: hidden; border: 1px solid var(--line); border-radius: 3px; background: var(--bg); }
+/* ── The two things utilities cannot say: the A3 plate scaled into its box, and the player's frame. ── */
+.plate-frame { position: relative; width: 100%; overflow: hidden; }
 .plate-frame iframe { position: absolute; left: 0; top: 0; width: 1587px; height: 1123px; border: 0; transform-origin: 0 0; }
 
-.anchor { --accent: var(--go); margin-bottom: 12px; }
-.anchor .p { font-family: "Mono"; font-size: 13px; color: var(--dim); display: flex; gap: 10px; flex-wrap: wrap; align-items: baseline; }
-.anchor .p a { color: var(--go); }
-.anchor pre { margin: 10px 0 0; padding: 12px 14px; background: var(--bg); border: 1px solid var(--line); border-radius: 3px; overflow-x: auto; font-size: 13px; line-height: 1.55; }
-.anchor.php { --accent: var(--php); }
-.figure { display: inline-flex; gap: 10px; align-items: baseline; margin: 0 16px 10px 0; }
-.figure .n { font-family: "Mono"; font-weight: 700; font-size: 26px; color: var(--go); }
-.figure .l { font-family: "Clinical"; font-weight: 300; letter-spacing: .14em; font-size: 10.5px; color: var(--faint); text-transform: uppercase; }
+/* Keyboard users see one focus style everywhere; the components bring their own ring, plain links do not. */
+a:focus-visible { @apply rounded-sm outline-2 outline-offset-2 outline-ring; }
 
-.points { counter-reset: p; margin: 0; padding: 0; list-style: none; }
-.points li { display: flex; gap: 14px; padding: 8px 0; border-top: 1px solid var(--line); }
-.points li::before { counter-increment: p; content: counter(p, decimal-leading-zero); font-family: "Mono"; font-weight: 700; color: var(--go); flex: none; }
-.ask { --accent: var(--money); margin-top: 14px; }
-.ask .q { display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; padding: 10px 0; border-top: 1px solid var(--line); }
-.ask .q:first-of-type { border-top: 0; }
-.ask .q .text { flex: 1 1 320px; }
-.grade { display: flex; gap: 6px; }
-.grade button { padding: 4px 10px; border-radius: 3px; border: 1px solid var(--lineHi); background: transparent; color: var(--dim); cursor: pointer; font-size: 13px; }
-.grade button:hover, .grade button:focus-visible { color: var(--text); border-color: var(--text); outline: none; }
-.grade button.on.nho { border-color: var(--ok); color: var(--ok); }
-.grade button.on.mo-ho { border-color: var(--money); color: var(--money); }
-.grade button.on.chua { border-color: var(--danger); color: var(--danger); }
-.hint { color: var(--faint); font-size: 13px; }
-.ok { color: var(--ok); } .warn { color: var(--money); } .bad { color: var(--danger); }
-
-/* ── review ── */
-.review-card { --accent: var(--money); font-size: 18px; line-height: 1.5; min-height: 120px; }
-.review-card .from { font-family: "Clinical"; font-weight: 300; letter-spacing: .2em; font-size: 10.5px; color: var(--faint); text-transform: uppercase; margin-bottom: 8px; }
-.review-card .hints { margin-top: 12px; }
-
-/* ── roadmap ── */
-.filters { display: flex; gap: 6px; flex-wrap: wrap; margin: 12px 0; }
-.filters button { padding: 5px 10px; border-radius: 3px; border: 1px solid var(--lineHi); background: transparent; color: var(--dim); cursor: pointer; font-size: 13px; }
-.filters button[aria-pressed="true"] { color: var(--text); background: var(--surface); border-color: var(--text); }
-table.road { width: 100%; border-collapse: collapse; font-size: 14px; }
-table.road th { text-align: left; font-family: "Clinical"; font-weight: 300; letter-spacing: .16em; font-size: 10.5px; color: var(--faint); text-transform: uppercase; padding: 8px 6px; border-bottom: 1px solid var(--lineHi); }
-table.road td { padding: 8px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
-table.road td.g { color: var(--faint); font-size: 12px; white-space: nowrap; }
-table.road td.note { color: var(--dim); font-size: 13px; }
-.tag { display: inline-block; padding: 1px 7px; border-radius: 3px; font-family: "Mono"; font-size: 11.5px; border: 1px solid; white-space: nowrap; }
-.tag.taught { color: var(--go); } .tag.planned { color: var(--money); } .tag.plate { color: var(--php); } .tag.exercise { color: var(--ok); } .tag.dropped { color: var(--faint); }
-@media (max-width: 640px) { table.road td.g { display: none; } table.road th.g { display: none; } }
-
-footer.foot { margin: 48px 0 24px; color: var(--faint); font-size: 12.5px; display: flex; gap: 14px; flex-wrap: wrap; }
-footer.foot a { color: var(--dim); }
-
-/* ── motion: on by default, off when asked ── */
-@media (prefers-reduced-motion: no-preference) {
-  .dot .n { animation: dot-in .35s ease both; animation-delay: calc(var(--i, 0) * 25ms); }
-  @keyframes dot-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-  .card.next { animation: rise .4s ease both; }
-  @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-  .review-card { animation: flip .3s ease both; }
-  @keyframes flip { from { opacity: 0; transform: rotateX(-12deg); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }
-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }

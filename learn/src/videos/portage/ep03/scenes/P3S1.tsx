@@ -16,7 +16,7 @@ import { COLOR, SAFE } from "../../../../design/tokens";
 const NODES: FlowNode[] = [
   { id: "post", label: "POST /products", sub: "201 — đã tạo", x: 0, y: 40, w: 400, h: 100, color: COLOR.ok, at: 20 },
   { id: "ob", label: "outbox", sub: "event nằm đây, chưa ai đọc", x: 560, y: 40, w: 400, h: 100, color: COLOR.money, at: 80 },
-  { id: "get", label: "GET /products/{id}", sub: "404 — chưa có trong bảng đọc", x: 1120, y: 0, w: 430, h: 92, color: COLOR.danger, at: 150 },
+  { id: "get", label: "GET /products/{id}", sub: "404 — chưa có trong read model", x: 1120, y: 0, w: 430, h: 92, color: COLOR.danger, at: 150 },
   { id: "relay", label: "relay chạy (200ms)", sub: "một bước riêng, không tự động", x: 1120, y: 128, w: 430, h: 92, color: COLOR.go, at: 220 },
   { id: "ok", label: "GET lần hai: 200", x: 1620, y: 60, w: 60, h: 60, color: COLOR.ok, at: 300 },
 ];
@@ -52,7 +52,7 @@ export const P3S1: React.FC = () => (
 
       <div style={{ marginBottom: 26 }}>
         <Callout delay={330} accent={COLOR.go}>
-          Bảng đọc chỉ đầy sau khi relay chạy. Nên 404 ở đây không có nghĩa là “không có”,
+          Read model chỉ đầy sau khi relay chạy. Nên 404 ở đây không có nghĩa là “không có”,
           mà là “chưa tới”. Khác nhau, và mã trạng thái phải nói được sự khác nhau đó.
         </Callout>
       </div>

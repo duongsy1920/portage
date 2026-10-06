@@ -13,7 +13,7 @@ import { D3Recap } from "./scenes/D3Recap";
  */
 export const DDD_EP04 = {
   id: "Ddd-Ep04-Repository",
-  title: "Repository là cổng",
+  title: "Repository là một port",
   scenePrefix: "Ddd-Ep04-S",
   outDir: "mua2-ddd/ep04-repository",
   recap: RECAP,

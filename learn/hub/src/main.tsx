@@ -1,13 +1,14 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import "./hub.css";
-import { useRoute, href, type Route } from "./router";
-import { ProgressProvider } from "./store";
-import { MapPage } from "./pages/MapPage";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { useRoute } from "./router";
+import { ProgressProvider, useProgress } from "./store";
+import { Shell } from "./components/Shell";
 import { EpisodePage } from "./pages/EpisodePage";
 import { ReviewPage } from "./pages/ReviewPage";
 import { RoadmapPage } from "./pages/RoadmapPage";
-import { VERIFIED } from "../../src/data/meta";
+import { byId, nextEpisode } from "./catalog";
 
 /**
  * staticFile() in a scene resolves "sfx/ding.wav" to "/sfx/ding.wav" — the
@@ -22,48 +23,25 @@ const SOUNDS = ["mouse-click", "switch", "whoosh", "whip", "ding", "bone-crack",
   src: `${import.meta.env.BASE_URL}sfx/${s}.wav`,
 }));
 
-const NAV: { route: Route; label: string }[] = [
-  { route: { page: "map" }, label: "Bản đồ" },
-  { route: { page: "review" }, label: "Ôn tập" },
-  { route: { page: "roadmap" }, label: "roadmap.sh" },
-];
-
 const App: React.FC = () => {
   const route = useRoute();
+  const { progress } = useProgress();
+  // "#/" is "continue": the next episode to watch, chosen from progress.
+  const current = route.page === "home" ? nextEpisode(progress) : route.page === "episode" ? byId(route.id) : undefined;
   return (
-    <>
-      <div className="ground" aria-hidden="true" />
-      <div className="wrap">
-        <header className="top">
-          <a className="brand" href={href({ page: "map" })}>
-            Học <em>Go</em> · Portage
-          </a>
-          <nav aria-label="Trang">
-            {NAV.map((n) => (
-              <a key={n.label} href={href(n.route)} aria-current={route.page === n.route.page ? "page" : undefined}>
-                {n.label}
-              </a>
-            ))}
-          </nav>
-        </header>
-        <main>
-          {route.page === "map" ? <MapPage /> : null}
-          {route.page === "episode" ? <EpisodePage id={route.id} /> : null}
-          {route.page === "review" ? <ReviewPage /> : null}
-          {route.page === "roadmap" ? <RoadmapPage /> : null}
-        </main>
-        <footer className="foot">
-          <span>Video và bản in dựng bằng Remotion từ chính code của Portage.</span>
-          <a href={`${VERIFIED.repo}/tree/${VERIFIED.commit}/learn`}>Nguồn trên GitHub ↗</a>
-          <span>Số và snippet kiểm lần cuối: {VERIFIED.date}.</span>
-        </footer>
-      </div>
-    </>
+    <Shell route={route} currentId={current?.id}>
+      {route.page === "home" ? <EpisodePage id={current!.id} continuing /> : null}
+      {route.page === "episode" ? <EpisodePage id={route.id} /> : null}
+      {route.page === "review" ? <ReviewPage /> : null}
+      {route.page === "roadmap" ? <RoadmapPage /> : null}
+    </Shell>
   );
 };
 
 createRoot(document.getElementById("root")!).render(
   <ProgressProvider>
-    <App />
+    <TooltipProvider delayDuration={300}>
+      <App />
+    </TooltipProvider>
   </ProgressProvider>,
 );

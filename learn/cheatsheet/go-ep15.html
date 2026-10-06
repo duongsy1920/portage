@@ -1,0 +1,127 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Afterimage Plate 1.15 — struct tag, JSON, Published Language</title>
+<link rel="stylesheet" href="plate.css">
+<style>
+  .specimens { margin-top: 40px; }
+  .spec { display: flex; gap: 22px; align-items: flex-start; }
+  .spec + .spec { margin-top: 30px; }
+  .gutter { width: 128px; flex: none; text-align: right; padding-top: 10px; }
+  .gutter .id { font-family: "Mono"; font-weight: 700; font-size: 13px; letter-spacing: .12em; }
+  .gutter .cap { font-family: "Clinical"; font-weight: 300; font-size: 10.5px; letter-spacing: .18em; color: var(--faint); margin-top: 5px; text-transform: uppercase; }
+  .terms { display: flex; gap: 22px; margin-top: 34px; }
+</style>
+
+<div class="ground"></div>
+
+<header>
+  <div>
+    <h1>364 tag json.<em> 0 trong domain.</em></h1>
+    <div class="sub">Tag là cơ chế. Ranh giới mới là bài học: thứ đi ra khỏi domain luôn là một struct khác, viết cho người nhận.</div>
+  </div>
+  <div class="plateno">
+    <div class="clinical">Afterimage · Plate 1.15</div>
+    <div class="sys" style="font-size:12px;color:var(--go)">MÙA 1 · TẬP 15</div>
+    <div class="clinical">struct tag · JSON</div>
+  </div>
+</header>
+<div class="rule"></div>
+
+<section class="specimens">
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--go)">1.15 · A</div>
+      <div class="cap">đọc một tag</div>
+    </div>
+    <svg width="1297" height="118" viewBox="0 0 1297 118" fill="none">
+      <text x="0" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#5C6E85">contracts/ordering_v1.go:18 — MỘT CHUỖI ĐỨNG SAU KIỂU; COMPILER KHÔNG ĐỌC, encoding/json ĐỌC BẰNG REFLECTION</text>
+
+      <text x="0" y="56" font-family="Mono" font-weight="700" font-size="26" fill="#00ADD8">Total</text>
+      <text x="110" y="56" font-family="Mono" font-weight="700" font-size="26" fill="#F2B33D">MoneyV1</text>
+      <text x="270" y="56" font-family="Mono" font-weight="700" font-size="26" fill="#4ADE80">`json:"total"`</text>
+
+      <path d="M34 66 L 34 86" stroke="#00ADD8" stroke-width="1.4"/>
+      <text x="0" y="102" font-family="Sans" font-size="12" fill="#00ADD8">tên field, chữ hoa: thấy được từ package khác</text>
+      <path d="M330 66 L 330 86" stroke="#4ADE80" stroke-width="1.4"/>
+      <text x="300" y="102" font-family="Sans" font-size="12" fill="#4ADE80">key trong JSON; không tag thì key là "Total"; gõ sai tag vẫn biên dịch</text>
+
+      <rect x="760" y="30" width="537" height="78" rx="3" fill="#141C26" stroke="#35485E"/>
+      <text x="776" y="52" font-family="Mono" font-size="12.5" fill="#93A4B8">`json:"x,omitempty"`   bỏ key khi giá trị rỗng</text>
+      <text x="776" y="74" font-family="Mono" font-size="12.5" fill="#93A4B8">`json:"-"`             không bao giờ xuất field này</text>
+      <text x="776" y="96" font-family="Sans" font-size="12" fill="#B39DFF">bên Symfony: #[SerializedName('total')], #[Ignore] — cũng đọc lúc chạy</text>
+    </svg>
+  </div>
+
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--money)">1.15 · B</div>
+      <div class="cap">hai cửa ra, một cửa vào</div>
+    </div>
+    <svg width="1297" height="166" viewBox="0 0 1297 166" fill="none">
+      <defs>
+        <marker id="ah" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="9" refX="10" refY="4.5" orient="auto"><path d="M0,0 L11,4.5 L0,9 z" fill="#35485E"/></marker>
+      </defs>
+      <text x="0" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#F2B33D">DOMAIN KHÔNG BIẾT JSON LÀ GÌ — encoding/json Ở 6 FILE, TẤT CẢ NGOÀI DOMAIN</text>
+
+      <rect x="0" y="40" width="300" height="100" rx="3" fill="#141C26" stroke="#9D7CD8"/>
+      <text x="150" y="66" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13.5" fill="#9D7CD8">ordering.OrderPlaced</text>
+      <text x="150" y="88" text-anchor="middle" font-family="Mono" font-size="12.5" fill="#93A4B8">Total shared.Money</text>
+      <text x="150" y="110" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">kiểu thật, 0 tag</text>
+      <text x="150" y="130" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#5C6E85">internal/domain</text>
+
+      <path d="M306 70 L 370 50" stroke="#35485E" stroke-width="1.6" marker-end="url(#ah)"/>
+      <path d="M306 110 L 370 130" stroke="#35485E" stroke-width="1.6" marker-end="url(#ah)"/>
+
+      <rect x="376" y="24" width="420" height="52" rx="3" fill="#141C26" stroke="#F2B33D"/>
+      <text x="392" y="46" font-family="Mono" font-weight="700" font-size="13" fill="#F2B33D">contracts.OrderPlacedV1 — Total MoneyV1 `json:"total"`</text>
+      <text x="392" y="66" font-family="Sans" font-size="11.5" fill="#93A4B8">cửa ra 1: outbox → context khác. Codec viết key tay (tập 12).</text>
+
+      <rect x="376" y="104" width="420" height="52" rx="3" fill="#141C26" stroke="#4ADE80"/>
+      <text x="392" y="126" font-family="Mono" font-weight="700" font-size="13" fill="#4ADE80">moneyView — Amount string `json:"amount"`</text>
+      <text x="392" y="146" font-family="Sans" font-size="11.5" fill="#93A4B8">cửa ra 2: HTTP → màn hình. Tiền là chuỗi "150.00", không float.</text>
+
+      <path d="M802 50 L 866 50" stroke="#35485E" stroke-width="1.6" marker-end="url(#ah)"/>
+
+      <rect x="872" y="24" width="425" height="52" rx="3" fill="#141C26" stroke="#00ADD8"/>
+      <text x="888" y="46" font-family="Mono" font-weight="700" font-size="13" fill="#00ADD8">OnOrderPlaced(ctx, m contracts.OrderPlacedV1)</text>
+      <text x="888" y="66" font-family="Sans" font-size="11.5" fill="#93A4B8">cửa vào: ParseOrderID, moneyFrom — Parse ngược về domain</text>
+
+      <rect x="872" y="104" width="425" height="52" rx="3" fill="rgba(255,107,107,.07)" stroke="#FF6B6B"/>
+      <text x="888" y="126" font-family="Sans" font-weight="700" font-size="12.5" fill="#FF6B6B">Vì sao không json.Marshal thẳng domain?</text>
+      <text x="888" y="146" font-family="Sans" font-size="11.5" fill="#93A4B8">đổi tên field = đổi contract trên dây, mà vẫn biên dịch</text>
+    </svg>
+  </div>
+</section>
+
+<section class="terms">
+  <div class="term" style="--accent: var(--ok)">
+    <div class="w">struct tag</div>
+    <div class="d">Chuỗi thô sau kiểu của field. Compiler bỏ qua; thư viện đọc bằng reflection lúc chạy để biết tên key, bỏ field, …</div>
+    <div class="s"><b>bên Symfony</b>Attribute trên property: #[SerializedName], #[Ignore], #[Groups]. Cùng là metadata, khác cú pháp.</div>
+  </div>
+  <div class="term" style="--accent: var(--money)">
+    <div class="w">Published Language</div>
+    <div class="d">Hình dạng dữ liệu đi qua ranh giới context: chỉ kiểu nguyên thuỷ và V1 khác, không bao giờ kiểu domain. Đổi nghĩa là kiểu mới.</div>
+    <div class="s"><b>bên Symfony</b>Một package Messages/DTO đánh version dùng chung giữa các bundle.</div>
+  </div>
+  <div class="term" style="--accent: var(--go)">
+    <div class="w">V1 trong tên</div>
+    <div class="d">Thêm field có mặc định: vẫn V1, người đọc cũ bỏ qua. Đổi nghĩa một field: V2 mới, V1 vẫn sống cho tới khi không ai đọc.</div>
+    <div class="s"><b>bên Symfony</b>Cùng ý với version trong tên message của Messenger khi có nhiều consumer.</div>
+  </div>
+</section>
+
+<div class="rule" style="margin-top:34px"></div>
+<footer>
+  <div class="counts">
+    <div class="count"><div class="n" style="color:var(--go)">364</div><div class="l">tag json, code chạy thật</div></div>
+    <div class="count"><div class="n" style="color:var(--money)">26</div><div class="l">kiểu V1 trong contracts</div></div>
+    <div class="count"><div class="n" style="color:var(--ok)">6</div><div class="l">file import encoding/json</div></div>
+    <div class="count"><div class="n" style="color:var(--faint)">0</div><div class="l">tag trong internal/domain</div></div>
+  </div>
+  <div class="ask">
+    <div class="h">Phỏng vấn sẽ hỏi</div>
+    <div class="q">Struct tag là gì, ai đọc nó, và nó khác annotation của PHP ở chỗ nào?<br>Vì sao không json.Marshal thẳng struct của domain?<br>Published Language là gì, và version trong tên kiểu để làm gì?</div>
+  </div>
+</footer>
+</html>

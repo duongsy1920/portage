@@ -1,0 +1,131 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Afterimage Plate R.1 — Cú pháp Go còn lại</title>
+<link rel="stylesheet" href="plate.css">
+<style>
+  /* A reference plate, not an episode: a grid of specimens, each one thing to look up. */
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 32px; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--accent, var(--go)); border-radius: 3px; padding: 16px 18px 14px; }
+  .card .w { font-family: "Mono"; font-weight: 700; font-size: 14px; color: var(--accent, var(--go)); }
+  .card .code { font-family: "Mono"; font-size: 12.5px; line-height: 1.6; color: var(--text); margin-top: 8px; white-space: pre; }
+  .card .d { font-size: 12.5px; line-height: 1.5; color: var(--dim); margin-top: 8px; }
+  .card .s { font-family: "Clinical"; font-weight: 300; font-size: 9.5px; letter-spacing: .16em; color: var(--faint); margin-top: 8px; text-transform: uppercase; }
+  .card .s b { color: var(--php); font-weight: 300; }
+</style>
+
+<div class="ground"></div>
+
+<header>
+  <div>
+    <h1>Cú pháp Go<em> còn lại.</em></h1>
+    <div class="sub">Những mục roadmap.sh nhắc tới mà kể thành chuyện thì nhạt — tra cứu là đủ. Neo vào repo ở chỗ có; nói rõ ở chỗ không có.</div>
+  </div>
+  <div class="plateno">
+    <div class="clinical">Afterimage · Plate R.1</div>
+    <div class="sys" style="font-size:12px;color:var(--go)">BẢN IN TRA CỨU</div>
+    <div class="clinical">PLAN-BO-SUNG §6</div>
+  </div>
+</header>
+<div class="rule"></div>
+
+<section class="grid">
+  <div class="card" style="--accent: var(--go)">
+    <div class="w">const · iota</div>
+    <div class="code">const (
+    A = iota  // 0
+    B         // 1
+)</div>
+    <div class="d">iota đếm từ 0 trong một khối const. Repo <b>không dùng</b>: enum là chuỗi có tên (GoodsClass = "branded") để đọc được trong database.</div>
+    <div class="s">repo: 0 chỗ · <b>bên symfony</b> enum Foo: string</div>
+  </div>
+
+  <div class="card" style="--accent: var(--money)">
+    <div class="w">scope · shadowing</div>
+    <div class="code">if err := f(); err != nil {
+    return err   // err này chỉ sống trong if
+}
+x, err := g()    // err MỚI nếu x mới</div>
+    <div class="d">Biến khai trong if/for/switch sống trong khối đó. := trong khối con tạo biến mới che biến ngoài — đọc kỹ khi thấy err gán mà không thấy dùng.</div>
+    <div class="s">repo: postgres.go:84 if _, nested := … · <b>bên symfony</b> không có block scope</div>
+  </div>
+
+  <div class="card" style="--accent: var(--ok)">
+    <div class="w">rune · string literal</div>
+    <div class="code">s := "à"        // 2 byte, 1 rune
+for _, r := range s { … }  // duyệt rune
+raw := `SELECT …`         // thô, nhiều dòng</div>
+    <div class="d">Chuỗi là byte; range cho rune. Dấu nháy ngược: không escape, xuống dòng được — SQL trong repo viết vậy.</div>
+    <div class="s">repo: decimal.go:75 for _, r := range s · migrate.go:47 · <b>bên symfony</b> mb_str_split</div>
+  </div>
+
+  <div class="card" style="--accent: var(--go)">
+    <div class="w">type conversion</div>
+    <div class="code">int64(n)          // số ↔ số
+string(bytes)     // bytes ↔ chuỗi
+Money(x)          // chỉ khi cùng cấu trúc nền</div>
+    <div class="d">Luôn tường minh, không có ép ngầm. Từ any về kiểu thì không phải conversion mà là assertion x.(T) — tập 12.</div>
+    <div class="s">repo: ratecard.go time.Duration(q.TTLHours) * time.Hour</div>
+  </div>
+
+  <div class="card" style="--accent: var(--money)">
+    <div class="w">for · for range</div>
+    <div class="code">for i := 0; i < n; i++ { … }
+for i := range 4 { … }       // Go 1.22
+for i, v := range xs { … }   // slice
+for k, v := range m { … }    // map, thứ tự ngẫu nhiên</div>
+    <div class="d">Một từ khoá cho mọi vòng lặp; không có while. Map duyệt ngẫu nhiên có chủ ý — tập 8.</div>
+    <div class="s">repo: postgres_test.go:109 for i := range starters</div>
+  </div>
+
+  <div class="card" style="--accent: var(--ok)">
+    <div class="w">if · switch</div>
+    <div class="code">if v, ok := m[k]; ok { … }   // câu lệnh khởi tạo
+switch {
+case x < 0: …    // không fallthrough
+case x == 0: …
+}</div>
+    <div class="d">switch không cần biểu thức: mỗi case một điều kiện. Không rơi xuống case sau trừ khi viết fallthrough.</div>
+    <div class="s">repo: policy.go:73 switch { case d.SalesTax.PPM() &lt; 0: …</div>
+  </div>
+
+  <div class="card" style="--accent: var(--go)">
+    <div class="w">break · continue · goto</div>
+    <div class="code">outer:
+for … { for … { continue outer } }</div>
+    <div class="d">break/continue có nhãn để thoát vòng ngoài. goto có nhưng gần như không ai viết — repo: 0.</div>
+    <div class="s">repo: 0 goto · 0 nhãn</div>
+  </div>
+
+  <div class="card" style="--accent: var(--money)">
+    <div class="w">variadic</div>
+    <div class="code">func Sum(first Money, rest ...Money)
+Sum(a, b, c)
+Sum(a, xs...)     // trải slice</div>
+    <div class="d">Tham số cuối ...T là một slice. Repo bắt một tham số đầu để không gọi được Sum() rỗng — tổng luôn có currency, không có Money zero lọt ra.</div>
+    <div class="s">repo: money.go:226 · reactor.go:66 · <b>bên symfony</b> ...$rest</div>
+  </div>
+
+  <div class="card" style="--accent: var(--ok)">
+    <div class="w">slice ↔ array</div>
+    <div class="code">a := [3]int{1, 2, 3}
+s := a[:]          // slice nhìn vào mảng
+b := [3]int(s)     // Go 1.20: chép ra mảng</div>
+    <div class="d">Mảng có độ dài trong kiểu, là giá trị (copy khi gán) và so sánh được — nên làm khoá map được, slice thì không. Slice là cửa sổ nhìn vào mảng — tập 8.</div>
+    <div class="s">repo: memory/pricing_repos.go:177 map[[2]Currency]… · http/lanes.go:49 [4]Money</div>
+  </div>
+</section>
+
+<div class="rule" style="margin-top:32px"></div>
+<footer>
+  <div class="counts">
+    <div class="count"><div class="n" style="color:var(--faint)">0</div><div class="l">iota</div></div>
+    <div class="count"><div class="n" style="color:var(--faint)">0</div><div class="l">goto</div></div>
+    <div class="count"><div class="n" style="color:var(--go)">2</div><div class="l">hàm variadic</div></div>
+    <div class="count"><div class="n" style="color:var(--money)">9</div><div class="l">mục tra cứu</div></div>
+  </div>
+  <div class="ask">
+    <div class="h">Khi nào mở bản này</div>
+    <div class="q">Gặp cú pháp lạ trong một file đã đọc được phần còn lại.<br>Trước khi viết vòng lặp hay switch đầu tiên.<br>Không phải để học — để khỏi phải nhớ.</div>
+  </div>
+</footer>
+</html>

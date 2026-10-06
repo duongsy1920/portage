@@ -3,9 +3,20 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="color-scheme" content="dark" />
+    <meta name="color-scheme" content="light dark" />
     <link rel="icon" href="data:," />
     <title>Học Go — từ Symfony sang Go</title>
+    <script>
+      // Theme before first paint, so a dark-mode learner never sees a white flash.
+      // "learn.hub.theme" is "light" | "dark"; anything else means "follow the OS".
+      (function () {
+        try {
+          var t = localStorage.getItem("learn.hub.theme");
+          var dark = t === "dark" || (t !== "light" && matchMedia("(prefers-color-scheme: dark)").matches);
+          if (dark) document.documentElement.classList.add("dark");
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

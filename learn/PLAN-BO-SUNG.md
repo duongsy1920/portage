@@ -269,11 +269,11 @@ vừa là build tooling). Không làm tròn cho đẹp.
    thêm `channelsRead` vào `verify-numbers.sh`.~~ — **đã làm 06/10/2026**, cùng trang học:
    `src/data/roadmap.ts` (101 mục, mỗi mục một nhãn) + `scripts/roadmap-gap.py` (mục "đã dạy"
    phải có từ khoá trên hình của tập nó trỏ tới).
-3. Dựng T11 → T16, mỗi tập đủ bốn cửa kiểm ở `CURRICULUM.md` §12.
-4. Hai bản in nhóm B.
-5. Ba bài tập nhóm C, viết vào `docs/HOC.md`.
-6. Cập nhật `CURRICULUM.md`: Mùa 1 từ 10 lên 16 tập, và thêm mục "đối chiếu với
-   roadmap.sh" trỏ về file này.
+3. ~~Dựng T11 → T16, mỗi tập đủ bốn cửa kiểm ở `CURRICULUM.md` §12.~~ — **đã làm 06/10/2026**, sáu tập, mỗi tập một bản in; con số đếm lại lúc dựng (InTx 38 chỗ, không phải 37; tag json 364 trong code chạy thật; 16 bảng test, không phải 0) đều có lệnh trong `verify-numbers.sh`.
+4. ~~Hai bản in nhóm B.~~ — **đã làm 06/10/2026**: `cheatsheet/go-plate-syntax.html` (R.1) và `go-plate-toolchain.html` (R.2), render vào `out/mua1-go/ban-in-*`; iota trong repo là **0** (bản đầu đếm một chữ trong comment); rune 5 chỗ đều là comment, vòng `for _, r := range` thật ở `decimal.go`; và mảng cố định **có** trong code — `map[[2]Currency]` làm khoá map ở `memory/pricing_repos.go:177` là ví dụ hay hơn bất kỳ ví dụ bịa nào.
+5. ~~Ba bài tập nhóm C, viết vào `docs/HOC.md`.~~ — **đã làm 06/10/2026**, mục "Ba bài tập chỉ làm được bằng tay" trước phần tự kiểm tra.
+6. ~~Cập nhật `CURRICULUM.md`: Mùa 1 từ 10 lên 16 tập, và thêm mục "đối chiếu với
+   roadmap.sh" trỏ về file này.~~ — **đã làm 06/10/2026**; bảng đối chiếu sống ở trang học (`#/roadmap`, dữ liệu `src/data/roadmap.ts`, kiểm bằng `scripts/roadmap-gap.py`).
 
 **Ước lượng:** sáu tập video là phần nặng nhất. Hai bản in và ba bài tập nhẹ hơn
 nhiều vì đã có sẵn khuôn.

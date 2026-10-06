@@ -6,7 +6,12 @@
 > `recap.ts` với 24/24 ảnh cảnh giống hệt trước (D4), 101 mục roadmap gõ từ PDF 06/09/2025 vào
 > `src/data/roadmap.ts` và `scripts/roadmap-gap.py` chạy lại được (D5 — con số 84 cũ không tái tạo
 > được vì script đã mất; 101 là số đếm được, và khác là bình thường, xem §4.4). Cách dùng:
-> `README.md`. Phần dưới giữ nguyên làm hồ sơ của quyết định.
+> `README.md`. Sáu tập T11–T16 mà bản đồ từng hiện mờ đã dựng cùng ngày — không còn chấm "đã lên kế hoạch".
+> Phần dưới giữ nguyên làm hồ sơ của quyết định.
+>
+> **Làm lại cùng ngày 06/10 (chiều)** theo `HUB-REDESIGN-PLAN.md`: shadcn/ui + Tailwind v4, danh sách bài
+> bên trái và bài đang xem bên phải, không còn trang bản đồ, và bảng từ mới ("bản in" → cheatsheet, "neo
+> vào code" → code trong repo, "cảnh" → đoạn, "tự tin" → đã thuộc). §4.2 (Afterimage cho trang) vì thế không còn đúng.
 
 ---
 
@@ -28,7 +33,7 @@
 |---|---|---|
 | 24 tập video: Mùa 1 Go (10), Mùa 2 DDD (6), Mùa 3 Portage (8) | `learn/src/videos/{go,ddd,portage}/ep*/spec.ts` | mỗi tập là một composition Remotion; danh sách theo thứ tự dạy ở `SEASONS` trong `src/videos/index.ts` |
 | mp4 | `learn/out/…` | **không vào git**, và máy Windows này chưa render. Muốn xem phải render trước |
-| 24 bản in A3 | `learn/cheatsheet/*.html` + `plate.css` + `fonts/` | HTML tĩnh, font tự host, khổ cố định 1587×1123 px |
+| 24 bản in A3 (06/10: 30 tập + 2 bản tra cứu) | `learn/cheatsheet/*.html` + `plate.css` + `fonts/` | HTML tĩnh, font tự host, khổ cố định 1587×1123 px |
 | Màn "Nhớ lại" cuối mỗi tập: 4 ý, 3 câu phỏng vấn, tập sau | `src/videos/*/ep*/scenes/*Recap.tsx` | dữ liệu **viết thẳng trong TSX**, không nằm ở chỗ nào đọc được |
 | Neo vào code thật | `learn/src/data/portage.ts` | mỗi mảnh kèm đường dẫn và số dòng; `verify-snippets.py` canh |
 | Lộ trình buổi 0–9, 17 câu tự kiểm tra | `docs/HOC.md` | Markdown, chưa gắn với tập nào bằng dữ liệu |

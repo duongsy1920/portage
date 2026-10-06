@@ -15,3 +15,6 @@ export const VERIFIED = {
 
 export const sourceURL = (path: string, line?: number): string =>
   `${VERIFIED.repo}/blob/${VERIFIED.commit}/${path}${line ? `#L${line}` : ""}`;
+
+/** A document on main — prose has no line numbers to drift, so it should read as it is today. */
+export const docURL = (path: string): string => `${VERIFIED.repo}/blob/main/${path}`;

@@ -28,9 +28,10 @@ export const REPO = {
   /** Đếm method Handle trong internal/app. */
   useCases: 30,
   /** Đếm dòng === RUN của go test -v. */
-  tests: 312,
-  /** the subset that needs no Docker */
-  testsNoDocker: 278,
+  /** Đếm lại 06/10: `go test ./... -count=1 -v` có PORTAGE_TEST_DSN → 297 PASS + 1 SKIP. */
+  tests: 298,
+  /** the subset that needs no Docker. Đếm lại 06/10: `--- PASS` cấp cao nhất, không DSN; verify-numbers.sh kiểm. */
+  testsNoDocker: 266,
   /** Đếm func TestDecision_ trong domain/decisions_test.go. */
   guards: 7,
   migrations: 13,
@@ -539,6 +540,395 @@ export const GO_SNIPPETS = {
       "}",
     ],
   },
+  // ── Season 1, episodes 11–16 (PLAN-BO-SUNG §5) ────────────────────────────
+
+  /** T11 — the port takes a function; commit and rollback are InTx's business. */
+  inTxPort: {
+    path: "internal/app/ports.go",
+    line: 46,
+    lang: "go",
+    code: [
+      "type UnitOfWork interface {",
+      "    InTx(ctx context.Context,",
+      "         fn func(ctx context.Context) error) error",
+      "}",
+    ],
+  },
+  /** T11 — a closure capturing `id` from the enclosing scope: how a result escapes InTx. */
+  closureResult: {
+    path: "internal/app/catalog/register_merchant.go",
+    line: 31,
+    lang: "go",
+    code: [
+      "func (h *RegisterMerchantHandler) Handle(ctx context.Context,",
+      "    d catalog.MerchantDetails) (catalog.MerchantID, error) {",
+      "    now := h.deps.Clock.Now()",
+      "",
+      "    var id catalog.MerchantID",
+      "    err := h.deps.UoW.InTx(ctx, func(ctx context.Context) error {",
+      "        m, err := catalog.RegisterMerchant(d, now)",
+      "        …",
+      "        id = m.ID()",
+      "        return nil",
+      "    })",
+      "    return id, err",
+      "}",
+    ],
+  },
+  /** T11 — a named return: the deferred function below can overwrite err. */
+  inTxNamed: {
+    path: "internal/adapter/postgres/postgres.go",
+    line: 83,
+    lang: "go",
+    code: [
+      "func (u *UnitOfWork) InTx(ctx context.Context,",
+      "    fn func(ctx context.Context) error) (err error) {",
+      "    …",
+      "    return fn(context.WithValue(ctx, txKey{}, tx))",
+      "}",
+    ],
+  },
+  /** T11 — a closure over `currency` and `at`, written in T-001. */
+  moneyHelper: {
+    path: "internal/adapter/config/ratecard.go",
+    line: 200,
+    lang: "go",
+    code: [
+      "money := func(name, s string) (shared.Money, error) {",
+      "    m, err := shared.ParseMoney(s, currency)",
+      "    if err != nil {",
+      "        return shared.Money{}, field(at(name), err)",
+      "    }",
+      "    return m, nil",
+      "}",
+      'standard, err := money("rates.standard", l.Rates.Standard)',
+    ],
+  },
+
+  /** T12 — two methods make an Event; every event in five contexts satisfies it. */
+  eventInterface: {
+    path: "internal/domain/shared/event.go",
+    line: 26,
+    lang: "go",
+    code: [
+      "type Event interface {",
+      "    EventName() string",
+      "    OccurredAt() time.Time",
+      "}",
+    ],
+  },
+  /** T12 — the payload is a map of any: keys written by hand, never a domain type. */
+  payloadMap: {
+    path: "internal/adapter/eventcodec/codec.go",
+    line: 45,
+    lang: "go",
+    code: ["type m = map[string]any"],
+  },
+  /** T12 — one type switch, 37 cases: the only place an event becomes bytes. */
+  typeSwitch: {
+    path: "internal/adapter/eventcodec/codec.go",
+    line: 70,
+    lang: "go",
+    code: [
+      "func payload(ev shared.Event) (m, error) {",
+      "    switch e := ev.(type) {",
+      "    case catalog.MerchantRegistered:",
+      '        return m{"id": e.ID.String(), "name": e.Name,',
+      '            "site": e.Site.String(), "currency": e.Currency.Code(),',
+      '            "at": ts(e.At)}, nil',
+      "    case catalog.MerchantRenamed:",
+      '        return m{"id": e.ID.String(), "from": e.From, "to": e.To, "at": ts(e.At)}, nil',
+      "    …",
+      "    }",
+      "}",
+    ],
+  },
+  /** T12 — a type assertion with ok: wrong type is a false, not a crash. */
+  assertOk: {
+    path: "internal/platform/wire/subscribe.go",
+    line: 111,
+    lang: "go",
+    code: [
+      "m, ok := msg.(T)",
+      "if !ok {",
+      '    return fmt.Errorf("%s decodes to %T, handler wants %T",',
+      "        e.Name, msg, *new(T))",
+      "}",
+      "return handle(ctx, m)",
+    ],
+  },
+  /** T12/T13 — Decode hands back `any`; the caller must assert. */
+  decodeAny: {
+    path: "internal/adapter/eventcodec/decode.go",
+    line: 55,
+    lang: "go",
+    code: [
+      "func Decode(name string, payload []byte) (any, error) {",
+      "    dec, ok := decoders[name]",
+      "    if !ok {",
+      '        return nil, fmt.Errorf("decode %s: %w", name, ErrNoDecoder)',
+      "    }",
+      "    …",
+      "}",
+    ],
+  },
+
+  /** T13 — the first generic function: a typed handler becomes an untyped listener. */
+  onGeneric: {
+    path: "internal/platform/wire/subscribe.go",
+    line: 105,
+    lang: "go",
+    code: [
+      "func on[T any](handle func(context.Context, T) error) worker.Handler {",
+      "    return func(ctx context.Context, e worker.Entry) error {",
+      "        msg, err := eventcodec.Decode(e.Name, e.Payload)",
+      "        if err != nil {",
+      "            return err",
+      "        }",
+      "        m, ok := msg.(T)",
+      "        if !ok {",
+      '            return fmt.Errorf("%s decodes to %T, handler wants %T", e.Name, msg, *new(T))',
+      "        }",
+      "        return handle(ctx, m)",
+      "    }",
+      "}",
+    ],
+  },
+  /** T13 — the second: JSON into whichever V1 struct T is. */
+  intoGeneric: {
+    path: "internal/adapter/eventcodec/decode.go",
+    line: 66,
+    lang: "go",
+    code: [
+      "func into[T any](payload []byte) (any, error) {",
+      "    var v T",
+      "    if err := json.Unmarshal(payload, &v); err != nil {",
+      "        return nil, err",
+      "    }",
+      "    return v, nil",
+      "}",
+    ],
+  },
+  /** T13 — the type argument written out, because nothing lets Go infer it here. */
+  decoders: {
+    path: "internal/adapter/eventcodec/decode.go",
+    line: 19,
+    lang: "go",
+    code: [
+      "var decoders = map[string]func([]byte) (any, error){",
+      '    "catalog.product_published": into[contracts.ProductPublishedV1],',
+      '    "catalog.product_measured":  into[contracts.ProductMeasuredV1],',
+      "    …",
+      "}",
+    ],
+  },
+
+  /** T14 — the four channel reads of episode 10, in their select. */
+  selectLoop: {
+    path: "internal/worker/worker.go",
+    line: 127,
+    lang: "go",
+    code: [
+      "func (r *Relay) Run(ctx context.Context) error {",
+      "    ticker := time.NewTicker(r.deps.Interval)",
+      "    defer ticker.Stop()",
+      "    for {",
+      "        if _, err := r.RunOnce(ctx); err != nil && ctx.Err() == nil {",
+      '            r.deps.Log.Printf("worker: %v", err)',
+      "        }",
+      "        select {",
+      "        case <-ctx.Done():",
+      "            return ctx.Err()",
+      "        case <-ticker.C:",
+      "        }",
+      "    }",
+      "}",
+    ],
+  },
+  /** T14 — WaitGroup + a closed channel as a starting gun: four goroutines collide on purpose. */
+  raceStart: {
+    path: "internal/adapter/postgres/postgres_test.go",
+    line: 103,
+    lang: "go",
+    code: [
+      "const starters = 4",
+      "var (",
+      "    wg    sync.WaitGroup",
+      "    start = make(chan struct{})",
+      "    errs  = make([]error, starters)",
+      ")",
+      "for i := range starters {",
+      "    wg.Add(1)",
+      "    go func(i int) {",
+      "        defer wg.Done()",
+      "        …",
+      "        <-start",
+      "        errs[i] = postgres.Migrate(ctx, p)",
+      "    }(i)",
+      "}",
+      "close(start)",
+      "wg.Wait()",
+    ],
+  },
+  /** T14 — a buffered channel of one, so the goroutine can finish even if nobody reads. */
+  bufferedDone: {
+    path: "internal/adapter/openai/openai_test.go",
+    line: 120,
+    lang: "go",
+    code: [
+      "done := make(chan error, 1)",
+      "go func() {",
+      "    _, err := c.Extract(context.Background(), url(t))",
+      "    done <- err",
+      "}()",
+      "select {",
+      "case err := <-done:",
+      "    …",
+      "case <-time.After(3 * time.Second):",
+      '    t.Fatal("Extract did not give up — a request with no timeout can hang forever")',
+      "}",
+    ],
+  },
+
+  /** T15 — the contract: tags, primitives, a version in the name. */
+  contractV1: {
+    path: "internal/contracts/ordering_v1.go",
+    line: 11,
+    lang: "go",
+    code: [
+      "type OrderPlacedV1 struct {",
+      '    ID       string    `json:"id"`',
+      '    Quote    string    `json:"quote"`',
+      '    Product  string    `json:"product"`',
+      '    Variant  string    `json:"variant"`',
+      '    Customer string    `json:"customer"`',
+      '    PlacedBy string    `json:"placed_by"`',
+      '    Total    MoneyV1   `json:"total"`',
+      '    Deposit  MoneyV1   `json:"deposit"`',
+      '    At       time.Time `json:"at"`',
+      "}",
+    ],
+  },
+  /** T15 — the same fact in the domain: typed, and not one tag. */
+  domainEvent: {
+    path: "internal/domain/ordering/events.go",
+    line: 12,
+    lang: "go",
+    code: [
+      "type OrderPlaced struct {",
+      "    ID       OrderID",
+      "    Quote    shared.ID",
+      "    Product  shared.ID",
+      "    Variant  shared.ID",
+      "    Customer shared.ID",
+      "    PlacedBy shared.OperatorID",
+      "    Total    shared.Money",
+      "    Deposit  shared.Money",
+      "    At       time.Time",
+      "}",
+    ],
+  },
+  /** T15 — the other exit: a screen's money is text, never a float. */
+  moneyView: {
+    path: "internal/adapter/http/quotes.go",
+    line: 64,
+    lang: "go",
+    code: [
+      "type moneyView struct {",
+      '    Amount   string `json:"amount"`',
+      '    Currency string `json:"currency"`',
+      "}",
+    ],
+  },
+  /** T15 — a consumer reads the contract and parses it back into domain types. */
+  projectorReads: {
+    path: "internal/app/reporting/projector.go",
+    line: 81,
+    lang: "go",
+    code: [
+      "func (p *Projector) OnOrderPlaced(ctx context.Context,",
+      "    m contracts.OrderPlacedV1) error {",
+      "    id, err := ordering.ParseOrderID(m.ID)",
+      "    …",
+      "    total, err := moneyFrom(m.Total)",
+      "    …",
+    ],
+  },
+
+  /** T16 — the fake world: in-memory adapters behind the same ports Postgres implements. */
+  worldFake: {
+    path: "internal/app/pricing/pricing_test.go",
+    line: 19,
+    lang: "go",
+    code: [
+      "type world struct {",
+      "    clock    *clock.Fixed",
+      "    lanes    *memory.LaneRepo",
+      "    quotes   *memory.QuoteRepo",
+      "    listings *memory.ListingRepo",
+      "    profiles *memory.ProfileRepo",
+      "    rates    *memory.ExchangeRates",
+      "    outbox   *memory.Outbox",
+      "    deps     pricingapp.Deps",
+      "}",
+    ],
+  },
+  /** T16 — httptest: a request through the real handler, no port opened. */
+  callHelper: {
+    path: "internal/adapter/http/server_test.go",
+    line: 166,
+    lang: "go",
+    code: [
+      "func (a *api) call(t *testing.T, method, path, body string,",
+      "    headers map[string]string) *httptest.ResponseRecorder {",
+      "    t.Helper()",
+      "    …",
+      "    return a.callAnon(t, method, path, body, headers)",
+      "}",
+      "…",
+      "req := httptest.NewRequest(method, path, strings.NewReader(body))",
+    ],
+  },
+  /** T16 — a table test with keyed rows and t.Run: one row, one name, one failure. */
+  tableTest: {
+    path: "internal/adapter/config/ratecard_test.go",
+    line: 96,
+    lang: "go",
+    code: [
+      "cases := []struct {",
+      "    name string",
+      "    from string",
+      "    to   string",
+      "    file string",
+      "    want string",
+      "}{",
+      '    {name: "deposit over 100 %", from: `deposit: "50"`, to: `deposit: "150"`, want: "quote"},',
+      "    …",
+      "}",
+      "for _, tc := range cases {",
+      "    t.Run(tc.name, func(t *testing.T) {",
+    ],
+  },
+  /** T16 — a decision guard: the rule lives in a test, so breaking it breaks the build. */
+  guardAllowlist: {
+    path: "internal/domain/decisions_test.go",
+    line: 225,
+    lang: "go",
+    code: [
+      "func TestDecision_domainImportsOnlyStdlibAndAllowlist(t *testing.T) {",
+      "    allowed := map[string]bool{",
+      '        "github.com/google/uuid": true,',
+      "    }",
+      "    for _, f := range domainSources(t) {",
+      "        for _, imp := range f.ast.Imports {",
+      "            …",
+      '            t.Errorf("%s imports %q.\\n"+',
+      "                …",
+      "        }",
+      "    }",
+      "}",
+    ],
+  },
 } as const satisfies Record<string, Snippet>;
 
 /** Counts that make the Go lessons concrete rather than abstract. */
@@ -705,4 +1095,44 @@ export const GO_USAGE = {
    * Đếm: lines containing <- , same helper, same exclusions.
    */
   channelsRead: 4,
+
+  // ── Episodes 11–16. Mỗi số kèm lệnh đếm trong scripts/verify-numbers.sh. ──
+  /** T11 — `.InTx(` call sites in shipping code. */
+  inTxCalls: 38,
+  /** T11 — function literals: a `func(` that opens a body on the same line and is not a declaration. */
+  funcLiterals: 114,
+  /** T11 — functions whose last result is a named `err error`. */
+  namedReturns: 4,
+  /** T12 — `case` arms of the one type switch in eventcodec.payload. */
+  typeSwitchCases: 37,
+  /** T12 — `any` / `interface{}` in shipping code. */
+  anyUses: 54,
+  /** T12 — type assertions written with the ok form. */
+  typeAssertOk: 2,
+  /** T13 — generic functions. Two. Said out loud. */
+  generics: 2,
+  /** T14 — `select {` blocks in shipping code. */
+  selects: 2,
+  /** T14 — sync.WaitGroup, tests included (shipping code has none). */
+  waitGroupsInTests: 1,
+  /** T14 — `make(chan` in tests (shipping code declares no channel — channelsDeclared). */
+  chansInTests: 5,
+  /** T15 — `json:"` struct tags in shipping code; zero of them in internal/domain. */
+  jsonTags: 364,
+  /** T15 — shipping files that import encoding/json. */
+  jsonFiles: 6,
+  /** T15 — `…V1 struct` types in internal/contracts. */
+  contractTypes: 26,
+  /** T16 — _test.go files. */
+  testFiles: 67,
+  /** T16 — `func Test…` functions. */
+  testFuncs: 299,
+  /** T16 — t.Run calls (subtests). */
+  subtests: 5,
+  /** T16 — table-driven loops: `for _, tc|c|tt := range`. */
+  tableTests: 16,
+  /** T16 — `func Benchmark…`: none. Said out loud. */
+  benchmarks: 0,
+  /** T16 — test files using httptest. */
+  httptestFiles: 3,
 } as const;

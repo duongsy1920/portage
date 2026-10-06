@@ -12,7 +12,7 @@ import { P3S3 } from "./scenes/P3S3";
  */
 export const EP03 = {
   id: "Ep03-NhatQuan",
-  title: "Nhất quán sau cùng có mã trạng thái",
+  title: "Eventual consistency có mã trạng thái",
   scenePrefix: "Ep03-S",
   outDir: "mua3-portage/ep03-nhat-quan",
   recap: RECAP,

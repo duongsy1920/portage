@@ -1,3 +1,4 @@
+import { REPO } from "../../../data/portage";
 import type { Recap } from "../../registry";
 
 /**
@@ -9,7 +10,7 @@ export const RECAP = {
     { at: 30, text: "Repository là một interface do domain khai báo, không phải một class kế thừa từ ORM." },
     { at: 80, text: "Chiều phụ thuộc bị đảo: adapter biết domain, domain không biết adapter nào tồn tại." },
     { at: 130, text: "Luật vàng: internal/domain chỉ import stdlib và uuid. Có 7 test canh bằng go/ast." },
-    { at: 180, text: "Đổi lại: domain test được mà không cần database — 278 test chạy dưới 2 giây." },
+    { at: 180, text: `Đổi lại: domain test được mà không cần database — ${REPO.testsNoDocker} test chạy dưới 2 giây.` },
   ],
   asked: [
     "Repository trong DDD khác repository của Doctrine ở chỗ nào?",

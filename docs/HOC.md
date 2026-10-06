@@ -219,7 +219,7 @@ WALKTHROUGH §4 và §6.
    Portage   struct nghiệp vụ SẠCH; phần map xuống DB nằm riêng ở adapter/postgres
 ```
 
-Đổi lại được gì? **278 trên 312 test chạy dưới 2 giây, không cần Docker, không cần mạng,
+Đổi lại được gì? **266 trên 298 test chạy dưới 2 giây, không cần Docker, không cần mạng,
 không cần API key.** Đó là lý do bạn sửa được code mà không sợ.
 
 **Làm:**
@@ -446,6 +446,51 @@ Bài học đắt nhất của cả repo gọn trong một câu: **"chạy xanh 
 
 ---
 
+## Ba bài tập chỉ làm được bằng tay — Nhóm C của `learn/PLAN-BO-SUNG.md`
+
+Ba mục của roadmap.sh mà xem video không hiểu được, phải tự chạy mới thấy: quản lý bộ nhớ,
+đọc stack trace, đo hiệu năng. Mỗi bài một lệnh, một câu hỏi, một thứ phải nhìn thấy mới xong.
+
+### (a) Escape analysis trên code thật — Memory Management
+
+```bash
+go build -gcflags='-m' ./internal/domain/shared 2>&1 | grep -E 'money.go' | head -40
+```
+
+Compiler in ra từng quyết định: giá trị nào ở stack, giá trị nào **thoát** ra heap (`escapes to
+heap`), hàm nào được inline. Câu hỏi: `Money` là struct hai field, truyền bằng giá trị (tập 4) —
+có dòng nào nói nó thoát ra heap không? Thường là **không**, và đó là lý do value receiver rẻ.
+Rồi thử với `./internal/domain/ordering`: con trỏ `*CustomerOrder` mà `PlaceOrder` trả về
+**phải** thoát ra heap, vì nó sống lâu hơn hàm tạo ra nó. Xong khi bạn chỉ được dòng
+`&CustomerOrder{...} escapes to heap` và nói được vì sao.
+
+### (b) Đọc một stack trace thật — Stack Traces & Debugging
+
+Thêm tạm vào `internal/domain/shared/money_test.go` một test gọi `NewMoney(5, Currency{})`
+(zero value của Currency là lỗi của lập trình viên, nên quy ước 1 bắt nó `panic` thay vì trả `error`), chạy `go test ./internal/domain/shared
+-run TestTam`, rồi đọc panic **từ trên xuống**: dòng đầu là thông điệp, mỗi cặp dòng sau là một
+khung — hàm nào, file nào, dòng nào — từ chỗ panic ngược về `testing.tRunner`. Câu hỏi: khung
+thứ hai là ai gọi `NewMoney`? Xong khi bạn mở đúng file:dòng của khung đó mà không tìm. Xoá test
+tạm trước khi commit.
+
+### (c) Cắm pprof vào `cmd/api` rồi đo — pprof · trace
+
+Repo chưa có pprof (0 chỗ) — bài này **thêm code**, không chỉ đọc. Trong `cmd/api/main.go`, ở
+chế độ memory, thêm `import _ "net/http/pprof"` và mount `http.DefaultServeMux` ở một cổng riêng
+(ví dụ `:6060`, chỉ khi có cờ `-pprof`). Chạy api, bấm hết 26 bước của `console.html` hai lần,
+rồi:
+
+```bash
+go tool pprof -top http://localhost:6060/debug/pprof/heap | head -20
+go tool pprof -top 'http://localhost:6060/debug/pprof/profile?seconds=10'
+```
+
+Câu hỏi: hàm nào giữ nhiều bộ nhớ nhất, và có phải thứ bạn đoán không? (Thường là adapter bộ
+nhớ với map của nó — tập 1.) Xong khi bạn nói được một con số đo được, không phải một phỏng
+đoán. Giữ cờ `-pprof` nếu thấy có ích; đừng bật mặc định.
+
+---
+
 ## Tự kiểm tra — trả lời không nhìn code
 
 Trả lời trôi chảy 17 câu này là đủ để nói về project trong phỏng vấn.
@@ -490,7 +535,7 @@ Nói **đúng** phần đã làm. Đoạn dưới là sự thật, kiểm chứn
 > context nào đọc bảng của context nào. **Bảy aggregate root**, hai domain service, **hai
 > anti-corruption layer** (một cho API shop, một cho mô hình ngôn ngữ đọc trang web), auth
 > bằng bearer token với port ở tầng biên chứ không ở domain, và **hai read model dựng chỉ
-> bằng event** cho màn hình khách và nhân viên. **312 test**, trong đó 278 chạy dưới 2 giây
+> bằng event** cho màn hình khách và nhân viên. **298 test**, trong đó 266 chạy dưới 2 giây
 > không cần Docker vì domain không import gì ngoài stdlib, và **7 test canh kiến trúc** bằng
 > `go/ast` khiến vi phạm dependency rule là build đỏ. Vòng đời một đơn chạy hết trên **cả**
 > in-memory và Postgres bằng **cùng một test**, và trên **binary thật** bằng một smoke script

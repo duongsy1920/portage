@@ -4,7 +4,7 @@ import { Headline } from "../../../../components/Text";
 import { Bullets } from "../../../../components/Bullets";
 import { CodeCard } from "../../../../components/CodeCard";
 import { Cues } from "../../../../components/Sfx";
-import { GO_SNIPPETS } from "../../../../data/portage";
+import { GO_SNIPPETS, REPO } from "../../../../data/portage";
 import { COLOR } from "../../../../design/tokens";
 
 /**
@@ -48,7 +48,7 @@ export const K4Small: React.FC = () => (
                 {
                   at: 260,
                   tag: "hệ quả đo được",
-                  text: "278 test chạy dưới 2 giây, không cần Docker, vì mọi thứ bẩn đều nằm sau một interface nhỏ.",
+                  text: `${REPO.testsNoDocker} test chạy dưới 2 giây, không cần Docker, vì mọi thứ bẩn đều nằm sau một interface nhỏ.`,
                   accent: COLOR.ok,
                 },
                 {

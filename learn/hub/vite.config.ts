@@ -1,5 +1,6 @@
 import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
 import { createReadStream, cpSync, existsSync, statSync } from "node:fs";
 import { extname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -11,7 +12,7 @@ import { fileURLToPath } from "node:url";
  * Two things make it a little unusual:
  *   - publicDir points at learn/public so the scenes' sound files resolve the
  *     same way they do under Remotion Studio;
- *   - ../cheatsheet (24 static A3 plates + plate.css + fonts) is served at
+ *   - ../cheatsheet (32 static A3 plates + plate.css + fonts) is served at
  *     /cheatsheet/ in dev and copied into dist/ at build, so the hub can show
  *     a plate in an iframe without a second copy of it anywhere.
  */
@@ -50,7 +51,8 @@ export default defineConfig({
   // /portage/ on GitHub Pages. Routing is hash-based for the same reason.
   base: "./",
   publicDir: join(LEARN, "public"),
-  plugins: [react(), plates()],
+  plugins: [react(), tailwindcss(), plates()],
+  resolve: { alias: { "@": resolve(HUB, "src") } },
   server: { port: 5173, fs: { allow: [LEARN] } },
   build: { outDir: join(HUB, "dist"), emptyOutDir: true },
 });

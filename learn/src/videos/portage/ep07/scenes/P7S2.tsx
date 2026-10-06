@@ -37,7 +37,7 @@ const PACKETS: FlowPacket[] = [
 ];
 
 export const P7S2: React.FC = () => (
-  <Stage eyebrow="MÙA 3 · TẬP 7 · CẢNH 2" source="bảng đọc dựng bằng event — CQRS, nhưng không cần gọi tên">
+  <Stage eyebrow="MÙA 3 · TẬP 7 · CẢNH 2" source="read model dựng bằng event — CQRS, nhưng không cần gọi tên">
     <Cues
       items={[
         { at: 20, sound: "appear" },

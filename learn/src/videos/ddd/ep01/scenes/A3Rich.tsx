@@ -34,7 +34,7 @@ export const A3Rich: React.FC = () => (
               <TermCard
                 delay={150}
                 accent={COLOR.go}
-                term="mô hình thiếu máu"
+                term="anemic model"
                 plain="Entity chỉ có getter và setter, còn luật nghiệp vụ nằm rải ở tầng service."
                 symfony="Đúng cái Doctrine và form đẩy bạn tới. Nó chạy được, chỉ là luật không ở cùng dữ liệu."
               />

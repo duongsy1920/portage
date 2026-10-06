@@ -1,0 +1,90 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Afterimage Plate R.2 — Toolchain và standard library</title>
+<link rel="stylesheet" href="plate.css">
+<style>
+  .cols { display: grid; grid-template-columns: 1.05fr 1fr 1.1fr; gap: 20px; margin-top: 32px; }
+  .col h2 { font-family: "Clinical"; font-weight: 300; font-size: 10.5px; letter-spacing: .2em; color: var(--faint); text-transform: uppercase; margin-bottom: 10px; }
+  table { width: 100%; border-collapse: collapse; }
+  td { padding: 7px 6px; border-top: 1px solid var(--line); vertical-align: top; font-size: 12.5px; line-height: 1.45; color: var(--dim); }
+  td.k { font-family: "Mono"; font-weight: 700; font-size: 12.5px; color: var(--text); white-space: nowrap; width: 38%; }
+  td.y { color: var(--ok); } td.n { color: var(--faint); }
+  .pill { display: inline-block; font-family: "Mono"; font-size: 10.5px; padding: 1px 6px; border-radius: 2px; border: 1px solid var(--line); margin-left: 4px; }
+  .pill.y { color: var(--ok); border-color: var(--ok); } .pill.n { color: var(--faint); }
+</style>
+
+<div class="ground"></div>
+
+<header>
+  <div>
+    <h1>Toolchain<em> và standard library.</em></h1>
+    <div class="sub">Lệnh nào, gói nào — và repo này dùng cái nào. Ô xanh là có trong repo, kèm chỗ; ô mờ là không có, và vì sao.</div>
+  </div>
+  <div class="plateno">
+    <div class="clinical">Afterimage · Plate R.2</div>
+    <div class="sys" style="font-size:12px;color:var(--go)">BẢN IN TRA CỨU</div>
+    <div class="clinical">PLAN-BO-SUNG §6</div>
+  </div>
+</header>
+<div class="rule"></div>
+
+<section class="cols">
+  <div class="col">
+    <h2>Lệnh go — chạy từ gốc repo</h2>
+    <table>
+      <tr><td class="k">go run ./cmd/api</td><td>biên dịch vào bộ nhớ rồi chạy; dev</td></tr>
+      <tr><td class="k">go build -o bin/api ./cmd/api</td><td>ra binary; smoke.sh build cả api lẫn worker</td></tr>
+      <tr><td class="k">go install</td><td>build rồi đặt vào $GOBIN; repo không cần</td></tr>
+      <tr><td class="k">gofmt -l . · gofmt -w .</td><td>liệt kê / sửa file chưa format — <span class="pill y">CI</span></td></tr>
+      <tr><td class="k">go vet ./...</td><td>bắt lỗi tĩnh: Printf sai, copy lock… — <span class="pill y">CI</span></td></tr>
+      <tr><td class="k">go test ./... -race -cover</td><td>test + dò đua + độ phủ — <span class="pill y">CI</span> · -count=1 bỏ cache</td></tr>
+      <tr><td class="k">go test -run 'TestX/case'</td><td>một test, một subtest</td></tr>
+      <tr><td class="k">go doc shared.Money</td><td>đọc comment của kiểu ngay trong terminal</td></tr>
+      <tr><td class="k">go clean · go version</td><td>xoá cache build · in bản Go (repo: 1.27)</td></tr>
+    </table>
+  </div>
+
+  <div class="col">
+    <h2>Module · chất lượng · build</h2>
+    <table>
+      <tr><td class="k">go mod init · tidy</td><td>tạo go.mod · dọn require theo import thật — T-001 tidy sau khi thêm yaml</td></tr>
+      <tr><td class="k">go mod vendor</td><td>chép dep vào vendor/; repo không vendor</td></tr>
+      <tr><td class="k">dep trực tiếp</td><td class="y">3: uuid · pgx · yaml.v3 — mỗi cái một lý do ghi ở chỗ import</td></tr>
+      <tr><td class="k">golangci-lint · staticcheck · revive</td><td class="n">không dùng; CI chỉ gofmt + vet + test, và 7 guard go/ast thay cho lint kiến trúc</td></tr>
+      <tr><td class="k">govulncheck ./...</td><td class="n">chưa chạy; đáng thêm vào CI khi có dep thứ tư</td></tr>
+      <tr><td class="k">go generate · //go:build tag</td><td class="n">0 trong repo: không sinh code, không biến thể build</td></tr>
+      <tr><td class="k">GOOS=linux GOARCH=arm64 go build</td><td class="n">biên dịch chéo, một lệnh; chưa cần — chạy một máy</td></tr>
+      <tr><td class="k">//go:embed migrations/*.sql</td><td class="y">1 chỗ: migrate.go:17 — file SQL nằm trong binary</td></tr>
+    </table>
+  </div>
+
+  <div class="col">
+    <h2>Standard library — gói hay gặp</h2>
+    <table>
+      <tr><td class="k">flag</td><td class="y">cmd/api/main.go: -addr, -dsn, -ratecard, -web… 6 chỗ; không CLI framework</td></tr>
+      <tr><td class="k">time</td><td class="y">59 file; Clock là port nên domain không gọi time.Now()</td></tr>
+      <tr><td class="k">encoding/json</td><td class="y">6 file, đều ngoài domain — tập 15</td></tr>
+      <tr><td class="k">os</td><td class="y">4 file: mở file cấu hình, tín hiệu dừng</td></tr>
+      <tr><td class="k">log</td><td class="y">stdlib; không Zap, không Zerolog</td></tr>
+      <tr><td class="k">log/slog</td><td class="n">0 — log có cấu trúc là bước kế nếu cần</td></tr>
+      <tr><td class="k">bufio · regexp</td><td class="n">0 — không đọc dòng, không khớp mẫu</td></tr>
+      <tr><td class="k">io</td><td class="y">config.Parse(io.Reader) — test đưa strings.NewReader</td></tr>
+      <tr><td class="k">context · sync · errors · fmt</td><td class="y">khắp nơi — tập 1, 3, 10</td></tr>
+    </table>
+  </div>
+</section>
+
+<div class="rule" style="margin-top:32px"></div>
+<footer>
+  <div class="counts">
+    <div class="count"><div class="n" style="color:var(--go)">3</div><div class="l">dependency trực tiếp</div></div>
+    <div class="count"><div class="n" style="color:var(--ok)">1</div><div class="l">go:embed</div></div>
+    <div class="count"><div class="n" style="color:var(--money)">59</div><div class="l">file dùng time</div></div>
+    <div class="count"><div class="n" style="color:var(--faint)">0</div><div class="l">linter ngoài — CI: gofmt + vet</div></div>
+  </div>
+  <div class="ask">
+    <div class="h">Khi nào mở bản này</div>
+    <div class="q">Trước khi cài một công cụ: xem repo có cần không đã.<br>Khi phỏng vấn hỏi "go mod tidy làm gì" hay "-race là gì".<br>Số đếm 06/10/2026 — đếm lại bằng grep trước khi tin.</div>
+  </div>
+</footer>
+</html>

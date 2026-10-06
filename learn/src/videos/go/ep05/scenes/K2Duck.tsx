@@ -4,6 +4,7 @@ import { Headline, Callout } from "../../../../components/Text";
 import { FlowBoard, type FlowNode, type FlowEdge } from "../../../../components/Diagram";
 import { Cues } from "../../../../components/Sfx";
 import { COLOR, SAFE } from "../../../../design/tokens";
+import { REPO } from "../../../../data/portage";
 
 /**
  * Scene 2 — who points at whom.
@@ -27,7 +28,7 @@ const EDGES: FlowEdge[] = [
 ];
 
 export const K2Duck: React.FC = () => (
-  <Stage eyebrow="MÙA 1 · TẬP 5 · CẢNH 2" source="đây là lý do 278 test chạy dưới 2 giây">
+  <Stage eyebrow="MÙA 1 · TẬP 5 · CẢNH 2" source={`đây là lý do ${REPO.testsNoDocker} test chạy dưới 2 giây`}>
     <Cues
       items={[
         { at: 20, sound: "appear" },

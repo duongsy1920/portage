@@ -19,7 +19,7 @@ import { A4Recap } from "./scenes/A4Recap";
  */
 export const DDD_EP01 = {
   id: "Ddd-Ep01-ThieuMau",
-  title: "Mô hình thiếu máu",
+  title: "Anemic model",
   scenePrefix: "Ddd-Ep01-S",
   outDir: "mua2-ddd/ep01-thieu-mau",
   recap: RECAP,
@@ -27,7 +27,7 @@ export const DDD_EP01 = {
   scenes: [
     { name: "1 · Luật nằm ở đâu", component: A1Hook, durationInFrames: 340 },
     { name: "2 · Nó rơi thành nhiều bản", component: A2Where, durationInFrames: 480 },
-    { name: "3 · Từ vựng: mô hình thiếu máu", component: A3Rich, durationInFrames: 520 },
+    { name: "3 · Từ vựng: anemic model", component: A3Rich, durationInFrames: 520 },
     { name: "4 · Nhớ lại", component: A4Recap, durationInFrames: 460 },
   ],
 } as const satisfies EpisodeSpec;

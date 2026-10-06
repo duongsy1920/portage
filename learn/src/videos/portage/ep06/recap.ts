@@ -17,5 +17,5 @@ export const RECAP = {
     "Đối soát quote với actual trả lời câu hỏi kinh doanh nào?",
     "Hạn 48 giờ của báo giá để làm gì?",
   ],
-  next: { label: "MÙA 3 · TẬP 7", text: "Màn hình cần bốn context: vì sao không JOIN, và bảng đọc dựng bằng event." },
+  next: { label: "MÙA 3 · TẬP 7", text: "Màn hình cần bốn context: vì sao không JOIN, và read model dựng bằng event." },
 } as const satisfies Recap;

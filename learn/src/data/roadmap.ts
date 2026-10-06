@@ -5,7 +5,7 @@
  *   taught    an episode teaches it — `ref` is the episode id, `keywords`
  *             are words that must appear on that episode's screen
  *             (scripts/roadmap-gap.py checks; a "taught" with no hit is a lie)
- *   planned   PLAN-BO-SUNG §5 — an episode T11–T16 not yet built
+ *   planned   an episode in PLANNED that is not yet built (none since 06/10)
  *   plate     PLAN-BO-SUNG §6 — a reference plate, not a story
  *   exercise  PLAN-BO-SUNG §7 — must be run to be understood
  *   dropped   PLAN-BO-SUNG §8 — on purpose, with the reason
@@ -28,19 +28,22 @@ export type RoadmapItem = {
   note?: string;
 };
 
-export const PLANNED = {
-  T11: "Closure: hàm nhận hàm làm tham số",
-  T12: "interface rỗng và type switch",
-  T13: "Generics: hai chỗ duy nhất trong repo",
-  T14: "select, ticker, và dừng một việc đang chạy",
-  T15: "struct tag, JSON, và đường ra khỏi domain",
-  T16: "Vì sao 278 test chạy dưới hai giây",
-} as const;
+/**
+ * Episodes planned but not built. T11–T16 lived here from 18/09 to 06/10; the
+ * map drew them as dimmed dots. Empty now — add a key when the next plan lands.
+ */
+export const PLANNED: Record<string, string> = {};
 
 export const PLATES = {
   syntax: "Cú pháp Go còn lại",
   toolchain: "Toolchain và standard library",
 } as const;
+
+/** cheatsheet/<file>.html — the two reference plates (PLAN-BO-SUNG §6), built 06/10/2026. */
+export const PLATE_FILES: Record<keyof typeof PLATES, string> = {
+  syntax: "go-plate-syntax",
+  toolchain: "go-plate-toolchain",
+};
 
 export const EXERCISES = {
   escape: "Escape analysis trên code thật",
@@ -48,10 +51,11 @@ export const EXERCISES = {
   pprof: "Cắm pprof vào cmd/api rồi đo",
 } as const;
 
+/** Where the three exercises are written out (PLAN-BO-SUNG §7), as a path in the Go repository. */
+export const EXERCISES_DOC = "docs/HOC.md";
+
 const T = (group: string, name: string, ref: string, keywords: readonly string[], note?: string): RoadmapItem =>
   ({ group, name, status: "taught", ref, keywords, note });
-const P = (group: string, name: string, ref: keyof typeof PLANNED, note?: string): RoadmapItem =>
-  ({ group, name, status: "planned", ref, note });
 const S = (group: string, name: string, ref: keyof typeof PLATES, note?: string): RoadmapItem =>
   ({ group, name, status: "plate", ref, note });
 const X = (group: string, name: string, ref: keyof typeof EXERCISES, note?: string): RoadmapItem =>
@@ -87,7 +91,7 @@ export const ROADMAP: readonly RoadmapItem[] = [
   T("Composite Types", "Maps", "Go-Ep08-SliceMap", ["map"]),
   S("Composite Types", "Comma-Ok Idiom", "syntax", "repo dùng ở shared/currency.go, có chú thích [PHP]; chưa tập nào dạy hẳn"),
   T("Composite Types", "Structs", "Go-Ep02-DocMotDong", ["struct"]),
-  P("Composite Types", "Struct Tags & JSON", "T15"),
+  T("Composite Types", "Struct Tags & JSON", "Go-Ep15-StructTag", ["json", "tag"]),
   T("Composite Types", "Embedding Structs", "Go-Ep07-Embedding", ["Embedding", "nhúng"]),
 
   // ── Control flow ──────────────────────────────────────────────────────────
@@ -99,9 +103,9 @@ export const ROADMAP: readonly RoadmapItem[] = [
   T("Functions", "Functions Basics", "Go-Ep02-DocMotDong", ["func"]),
   S("Functions", "Variadic Functions", "syntax"),
   T("Functions", "Multiple Return Values", "Go-Ep03-LoiLaGiaTri", ["(T, error)", "error)"]),
-  P("Functions", "Anonymous Functions", "T11"),
-  P("Functions", "Closures", "T11"),
-  P("Functions", "Named Return Values", "T11"),
+  T("Functions", "Anonymous Functions", "Go-Ep11-Closure", ["không tên", "func("]),
+  T("Functions", "Closures", "Go-Ep11-Closure", ["closure"]),
+  T("Functions", "Named Return Values", "Go-Ep11-Closure", ["(err error)", "có tên"]),
   T("Functions", "Call by Value", "Go-Ep04-Receiver", ["bản sao", "copy"]),
 
   // ── Pointers ──────────────────────────────────────────────────────────────
@@ -117,17 +121,17 @@ export const ROADMAP: readonly RoadmapItem[] = [
   T("Methods and Interfaces", "Pointer Receivers", "Go-Ep04-Receiver", ["(e *Events)", "*Events"]),
   T("Methods and Interfaces", "Value Receivers", "Go-Ep04-Receiver", ["(m Money)"]),
   T("Methods and Interfaces", "Interfaces Basics", "Go-Ep05-InterfaceNgam", ["interface"]),
-  P("Methods and Interfaces", "Empty Interfaces", "T12"),
+  T("Methods and Interfaces", "Empty Interfaces", "Go-Ep12-TypeSwitch", ["any", "interface{}"]),
   S("Methods and Interfaces", "Embedding Interfaces", "syntax", "tập 7 chỉ dạy embedding struct; nhúng interface là một dòng tra cứu"),
-  P("Methods and Interfaces", "Type Assertions", "T12"),
-  P("Methods and Interfaces", "Type Switch", "T12"),
+  T("Methods and Interfaces", "Type Assertions", "Go-Ep12-TypeSwitch", ["x.(T)", "msg.(T)"]),
+  T("Methods and Interfaces", "Type Switch", "Go-Ep12-TypeSwitch", ["type switch", "(type)"]),
 
   // ── Generics ──────────────────────────────────────────────────────────────
-  P("Generics", "Why Generics?", "T13"),
-  P("Generics", "Generic Functions", "T13"),
-  P("Generics", "Generic Types / Interfaces", "T13"),
-  P("Generics", "Type Constraints", "T13"),
-  P("Generics", "Type Inference", "T13"),
+  T("Generics", "Why Generics?", "Go-Ep13-Generics", ["generic"]),
+  T("Generics", "Generic Functions", "Go-Ep13-Generics", ["on[T", "into[T"]),
+  T("Generics", "Generic Types / Interfaces", "Go-Ep13-Generics", ["T any"], "repo chỉ có hàm generic, không có kiểu generic — nói trong tập"),
+  T("Generics", "Type Constraints", "Go-Ep13-Generics", ["constraint", "comparable"]),
+  T("Generics", "Type Inference", "Go-Ep13-Generics", ["suy", "inference"]),
 
   // ── Error Handling ────────────────────────────────────────────────────────
   T("Error Handling", "Error Handling Basics · `error` interface", "Go-Ep03-LoiLaGiaTri", ["error"]),
@@ -145,29 +149,29 @@ export const ROADMAP: readonly RoadmapItem[] = [
   // ── Concurrency ───────────────────────────────────────────────────────────
   T("Concurrency", "Goroutines", "Go-Ep01-VongDoi", ["goroutine"]),
   T("Concurrency", "Channels", "Go-Ep10-DongThoi", ["channel", "chan"]),
-  P("Concurrency", "Buffered vs Unbuffered", "T14"),
-  P("Concurrency", "Select Statement", "T14", "repo có 4 lần đọc channel, đều trong select — tập 10 đã nói đúng số, T14 dạy cách"),
+  T("Concurrency", "Buffered vs Unbuffered", "Go-Ep14-Select", ["đệm", "make(chan error, 1)"]),
+  T("Concurrency", "Select Statement", "Go-Ep14-Select", ["select"]),
   T("Concurrency", "Worker Pools", "Go-Ep10-DongThoi", ["worker"], "dạy 'ngoài Portage', dán nhãn rõ"),
   T("Concurrency", "`sync` Package · Mutexes", "Go-Ep10-DongThoi", ["sync.Mutex", "khoá"]),
-  P("Concurrency", "WaitGroups", "T14"),
+  T("Concurrency", "WaitGroups", "Go-Ep14-Select", ["WaitGroup"]),
   T("Concurrency", "`context` Package · Deadlines & Cancellations", "Go-Ep01-VongDoi", ["context", "ctx"]),
-  P("Concurrency", "Concurrency Patterns (fan-in, fan-out, pipeline)", "T14", "ngoài Portage"),
+  T("Concurrency", "Concurrency Patterns (fan-in, fan-out, pipeline)", "Go-Ep14-Select", ["fan-out", "fan-in", "pipeline"], "ngoài Portage, dán nhãn rõ"),
   T("Concurrency", "Race Detection", "Go-Ep01-VongDoi", ["race", "-race"]),
 
   // ── Standard Library ──────────────────────────────────────────────────────
   S("Standard Library", "I/O & File Handling · os · bufio", "toolchain"),
   S("Standard Library", "flag · time", "toolchain", "cmd/api dùng flag của stdlib, không CLI framework"),
-  P("Standard Library", "encoding/json", "T15"),
+  T("Standard Library", "encoding/json", "Go-Ep15-StructTag", ["encoding/json", "json.Marshal"]),
   S("Standard Library", "slog · regexp", "toolchain"),
   S("Standard Library", "go:embed", "toolchain", "repo có 1 chỗ dùng"),
 
   // ── Testing ───────────────────────────────────────────────────────────────
-  P("Testing & Benchmarking", "`testing` package basics", "T16"),
-  P("Testing & Benchmarking", "Table-driven Tests", "T16", "repo không có khi viết plan; từ 06/10 có 2 (adapter/config, adapter/http — T-001, T-002)"),
-  P("Testing & Benchmarking", "Mocks and Stubs", "T16", "repo dùng fake thật (adapter bộ nhớ), không mock sinh máy"),
-  P("Testing & Benchmarking", "`httptest` for HTTP Tests", "T16"),
-  P("Testing & Benchmarking", "Benchmarks", "T16", "repo không có Benchmark nào — dạy ngoài Portage"),
-  P("Testing & Benchmarking", "Coverage", "T16"),
+  T("Testing & Benchmarking", "`testing` package basics", "Go-Ep16-Testing", ["testing", "t.Errorf"]),
+  T("Testing & Benchmarking", "Table-driven Tests", "Go-Ep16-Testing", ["bảng", "t.Run"], "16 bảng khi đếm lại 06/10 (plan từng nói 0, vì chỉ đếm `tc`)"),
+  T("Testing & Benchmarking", "Mocks and Stubs", "Go-Ep16-Testing", ["fake", "mock"], "repo dùng fake thật (adapter bộ nhớ), không mock sinh máy"),
+  T("Testing & Benchmarking", "`httptest` for HTTP Tests", "Go-Ep16-Testing", ["httptest"]),
+  T("Testing & Benchmarking", "Benchmarks", "Go-Ep16-Testing", ["Benchmark", "b.N"], "repo có 0 — dạy ngoài Portage, trong bảng so sánh"),
+  T("Testing & Benchmarking", "Coverage", "Go-Ep16-Testing", ["-cover"]),
 
   // ── Ecosystem ─────────────────────────────────────────────────────────────
   D("Ecosystem", "Building CLIs (Cobra, urfave/cli, bubbletea)", "repo không có CLI framework; cmd/api dùng flag"),

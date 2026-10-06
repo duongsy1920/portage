@@ -1,21 +1,17 @@
 import React, { useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { EPISODES } from "../catalog";
-import { HOC_QUIZ } from "../../../src/data/quiz";
 import { href } from "../router";
 import { useProgress } from "../store";
-import { dueAfter, type Grade } from "../progress";
+import { dueAfter, INTERVAL_DAYS, type Grade } from "../progress";
+import { buildCards, dueCards, SITTING, type ReviewCard } from "../review";
+import { HOC_QUIZ } from "../../../src/data/quiz";
 
-/**
- * Review cards: every interview question of every episode watched, plus the
- * 17 questions of HOC.md. A card is due when it has never been graded or its
- * due date has passed. One session is at most ten cards (HUB-PLAN §4.3(c)).
- */
-type Card = { id: string; from: string; q: string; hints: readonly string[]; episode?: string };
-
-const GRADES: { g: Grade; label: string; days: number }[] = [
-  { g: "chua", label: "chưa", days: 1 },
-  { g: "mo-ho", label: "mơ hồ", days: 3 },
-  { g: "nho", label: "nhớ", days: 7 },
+const GRADES: { g: Grade; label: string }[] = [
+  { g: "chua", label: "chưa" },
+  { g: "mo-ho", label: "mơ hồ" },
+  { g: "nho", label: "nhớ" },
 ];
 
 export const ReviewPage: React.FC = () => {
@@ -23,93 +19,87 @@ export const ReviewPage: React.FC = () => {
   const [showHints, setShowHints] = useState(false);
   const [done, setDone] = useState<string[]>([]);
 
-  const cards = useMemo<Card[]>(() => {
-    const out: Card[] = [];
-    for (const e of EPISODES) {
-      if (!progress.watched[e.id]) continue;
-      e.spec.recap.asked.forEach((q, i) =>
-        out.push({ id: `${e.id}#${i}`, from: `${e.label} · ${e.spec.title}`, q, hints: e.spec.recap.points.map((p) => p.text), episode: e.id }),
-      );
-    }
-    for (const q of HOC_QUIZ) out.push({ id: `hoc#${q.n}`, from: `HOC.md · ${q.group} · câu ${q.n}`, q: q.q, hints: [], episode: q.episodes[0] });
-    return out;
-  }, [progress.watched]);
-
-  const now = Date.now();
-  const due = cards.filter((c) => !done.includes(c.id) && (!progress.review[c.id] || Date.parse(progress.review[c.id].due) <= now));
-  const session = due.slice(0, 10);
-  const card = session[0];
+  const cards = useMemo(() => buildCards(progress), [progress]);
+  const due = dueCards(cards, progress).filter((c) => !done.includes(c.id));
+  const sitting = due.slice(0, SITTING);
+  const card = sitting[0];
   const total = cards.length;
   const seen = cards.filter((c) => progress.review[c.id]).length;
+  const nothingWatched = EPISODES.every((e) => !progress.watched[e.id]);
 
-  const grade = (c: Card, g: Grade) => {
+  const grade = (c: ReviewCard, g: Grade) => {
     update((s) => ({ ...s, review: { ...s.review, [c.id]: { due: dueAfter(g), grade: g, at: new Date().toISOString() } } }));
     setDone((d) => [...d, c.id]);
     setShowHints(false);
   };
 
   return (
-    <>
-      <h1>
-        Ôn tập — <em>trả lời không nhìn code</em>
-      </h1>
-      <p className="sub">
-        {total} thẻ: câu phỏng vấn của các tập đã xem, cộng 17 câu của HOC.md. Đã chấm {seen}/{total}. Hôm nay tới hạn: {due.length}
-        {due.length > 10 ? " (một buổi tối đa 10)" : ""}.
+    <div>
+      <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Ôn tập</h1>
+      <p className="mt-1 text-sm text-muted-foreground">Trả lời thành tiếng, không nhìn code, rồi tự chấm.</p>
+      <p className="mt-3 text-sm text-muted-foreground" data-testid="review-summary">
+        {total} câu hỏi: câu phỏng vấn của các bài đã xem, cộng {HOC_QUIZ.length} câu của HOC.md. Đã chấm {seen}/{total}. Hôm nay đến hạn: {due.length}
+        {due.length > SITTING ? ` (một lượt tối đa ${SITTING})` : ""}.
       </p>
 
-      {total === HOC_QUIZ.length && EPISODES.every((e) => !progress.watched[e.id]) ? (
-        <p className="hint">
-          Chưa xem tập nào, nên mới chỉ có 17 câu của HOC.md. <a href={href({ page: "map" })}>Về bản đồ</a> xem tập 1 trước.
+      {nothingWatched ? (
+        <p className="mt-2 text-sm text-muted-foreground">
+          Chưa xem bài nào, nên mới chỉ có {HOC_QUIZ.length} câu của HOC.md.{" "}
+          <a className="underline underline-offset-4" href={href({ page: "home" })}>
+            Xem bài đầu tiên
+          </a>{" "}
+          thì có thêm câu hỏi.
         </p>
       ) : null}
 
       {card ? (
-        <div className="card review-card" key={card.id}>
-          <div className="from">{card.from}</div>
-          <div>{card.q}</div>
-          <div className="hints">
+        <Card className="mt-5" data-testid="review-card" key={card.id}>
+          <CardHeader>
+            <p className="text-xs text-muted-foreground">{card.from}</p>
+            <p className="text-lg leading-snug font-medium">{card.q}</p>
+          </CardHeader>
+          <CardContent>
             {card.hints.length ? (
-              <button className="btn ghost" onClick={() => setShowHints((v) => !v)}>
-                {showHints ? "Ẩn gợi ý" : "Gợi ý (ý nhớ lại của tập)"}
-              </button>
+              <Button variant="outline" size="sm" onClick={() => setShowHints((v) => !v)} aria-expanded={showHints}>
+                {showHints ? "Ẩn ý chính" : "Xem ý chính của bài"}
+              </Button>
             ) : card.episode ? (
-              <a className="btn ghost" href={href({ page: "episode", id: card.episode })}>
-                Xem lại tập liên quan
-              </a>
+              <Button asChild variant="outline" size="sm">
+                <a href={href({ page: "episode", id: card.episode })}>Mở lại bài liên quan</a>
+              </Button>
             ) : (
-              <span className="hint">Câu này chỉ có trong docs — trả lời bằng miệng.</span>
+              <p className="text-xs text-muted-foreground">Câu này chỉ có trong docs, không có video đi kèm.</p>
             )}
             {showHints && card.hints.length ? (
-              <ol className="points" style={{ marginTop: 10, fontSize: 15 }}>
+              <ol className="mt-3 list-decimal space-y-1.5 rounded-lg border bg-muted/40 px-4 py-3 pl-9 text-sm">
                 {card.hints.map((h) => (
                   <li key={h}>{h}</li>
                 ))}
               </ol>
             ) : null}
-          </div>
-          <div className="btn-row" style={{ marginTop: 16 }}>
-            {GRADES.map(({ g, label, days }) => (
-              <button key={g} className="btn" onClick={() => grade(card, g)} title={`quay lại sau ${days} ngày`}>
+          </CardContent>
+          <CardFooter className="flex flex-wrap items-center gap-2">
+            {GRADES.map(({ g, label }) => (
+              <Button key={g} variant="outline" size="sm" onClick={() => grade(card, g)} data-testid={`review-grade-${g}`}>
                 {label}
-              </button>
+                <span className="font-mono text-[11px] font-normal text-muted-foreground">{INTERVAL_DAYS[g]} ngày</span>
+              </Button>
             ))}
-            <span className="hint">
-              còn {session.length - 1} thẻ trong buổi này
-            </span>
-          </div>
-        </div>
+            <span className="ml-auto text-xs text-muted-foreground">còn {sitting.length - 1} câu trong lượt này</span>
+          </CardFooter>
+        </Card>
       ) : (
-        <div className="card">
-          <div className="clinical" style={{ color: "var(--ok)" }}>
-            Hết thẻ tới hạn
-          </div>
-          <div style={{ marginTop: 8 }}>
-            {done.length ? `Vừa chấm ${done.length} thẻ. ` : ""}
-            Thẻ “chưa” quay lại sau 1 ngày, “mơ hồ” sau 3, “nhớ” sau 7. Xem thêm tập mới thì có thêm thẻ.
-          </div>
-        </div>
+        <Card className="mt-5" data-testid="review-card">
+          <CardHeader>
+            <p className="text-lg font-medium">Hết câu đến hạn hôm nay</p>
+          </CardHeader>
+          <CardContent className="text-sm text-muted-foreground">
+            {done.length ? `Vừa chấm ${done.length} câu. ` : ""}
+            Câu “chưa” quay lại sau {INTERVAL_DAYS.chua} ngày, “mơ hồ” sau {INTERVAL_DAYS["mo-ho"]} ngày, “nhớ” sau {INTERVAL_DAYS.nho} ngày. Xem thêm bài mới thì có thêm câu hỏi.
+          </CardContent>
+        </Card>
       )}
-    </>
+      <p className="mt-3 text-xs text-muted-foreground">Số ngày ghi cạnh mỗi nút là lúc câu đó quay lại.</p>
+    </div>
   );
 };

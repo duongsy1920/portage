@@ -1,6 +1,6 @@
 <!doctype html>
 <meta charset="utf-8">
-<title>Afterimage Plate 3.03 — Nhất quán sau cùng</title>
+<title>Afterimage Plate 3.03 — Eventual consistency</title>
 <link rel="stylesheet" href="plate.css">
 <style>
   /* Rhythm of this plate only — the shared language lives in plate.css. */
@@ -18,12 +18,12 @@
 <header>
   <div>
     <h1>404 ngay sau khi tạo<em> là thiết kế.</em></h1>
-    <div class="sub">Bảng đọc chỉ đầy sau khi relay chạy — nên mã trạng thái phải nói được “chưa tới” khác “không có”.</div>
+    <div class="sub">Read model chỉ đầy sau khi relay chạy — nên mã trạng thái phải nói được “chưa tới” khác “không có”.</div>
   </div>
   <div class="plateno">
     <div class="clinical">Afterimage · Plate 3.03</div>
     <div class="sys" style="font-size:12px;color:var(--go)">MÙA 3 · TẬP 3</div>
-    <div class="clinical">Nhất quán sau cùng</div>
+    <div class="clinical">Eventual consistency</div>
   </div>
 </header>
 <div class="rule"></div>
@@ -91,7 +91,7 @@
 
 <section class="terms">
   <div class="term" style="--accent: var(--go)">
-    <div class="w">nhất quán sau cùng</div>
+    <div class="w">eventual consistency</div>
     <div class="d">Ghi xong chưa chắc đọc lại đã thấy. Sẽ thấy, nhưng sau một nhịp.</div>
     <div class="s"><b>bên Symfony</b>Cache của bạn cũng vậy — chỉ là ở đây nó nằm ở trung tâm chứ không ở rìa.</div>
   </div>
@@ -116,7 +116,7 @@
   </div>
   <div class="ask">
     <div class="h">Phỏng vấn sẽ hỏi</div>
-    <div class="q">Nhất quán sau cùng buộc API phải đổi thế nào?<br>Khi nào trả 404 và khi nào trả 409?<br>Client nên xử lý 404 tạm thời kiểu gì?</div>
+    <div class="q">Eventual consistency buộc API phải đổi thế nào?<br>Khi nào trả 404 và khi nào trả 409?<br>Client nên xử lý 404 tạm thời kiểu gì?</div>
   </div>
 </footer>
 </html>

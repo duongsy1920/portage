@@ -16,5 +16,5 @@ export const RECAP = {
     "Invariant là gì, và nó khác validation ở chỗ nào?",
     "Vì sao một transaction chỉ nên đụng một aggregate?",
   ],
-  next: { label: "MÙA 2 · TẬP 4", text: "Repository là cổng: vì sao domain khai interface, còn Postgres cắm vào từ bên ngoài." },
+  next: { label: "MÙA 2 · TẬP 4", text: "Repository là một port: vì sao domain khai interface, còn Postgres cắm vào từ bên ngoài." },
 } as const satisfies Recap;

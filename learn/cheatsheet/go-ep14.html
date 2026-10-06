@@ -1,0 +1,125 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Afterimage Plate 1.14 — select, ticker, dừng</title>
+<link rel="stylesheet" href="plate.css">
+<style>
+  .specimens { margin-top: 40px; }
+  .spec { display: flex; gap: 22px; align-items: flex-start; }
+  .spec + .spec { margin-top: 30px; }
+  .gutter { width: 128px; flex: none; text-align: right; padding-top: 10px; }
+  .gutter .id { font-family: "Mono"; font-weight: 700; font-size: 13px; letter-spacing: .12em; }
+  .gutter .cap { font-family: "Clinical"; font-weight: 300; font-size: 10.5px; letter-spacing: .18em; color: var(--faint); margin-top: 5px; text-transform: uppercase; }
+  .terms { display: flex; gap: 22px; margin-top: 34px; }
+</style>
+
+<div class="ground"></div>
+
+<header>
+  <div>
+    <h1>Đứng chờ hai channel.<em> Cái nào tới trước thì đi.</em></h1>
+    <div class="sub">Bốn lần đọc channel của tập 10, đọc kỹ từng dòng — và hai thứ test đua migrate dùng để ép bốn goroutine đâm nhau.</div>
+  </div>
+  <div class="plateno">
+    <div class="clinical">Afterimage · Plate 1.14</div>
+    <div class="sys" style="font-size:12px;color:var(--go)">MÙA 1 · TẬP 14</div>
+    <div class="clinical">select · ticker · dừng</div>
+  </div>
+</header>
+<div class="rule"></div>
+
+<section class="specimens">
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--go)">1.14 · A</div>
+      <div class="cap">select trong worker</div>
+    </div>
+    <svg width="1297" height="140" viewBox="0 0 1297 140" fill="none">
+      <defs>
+        <marker id="ah" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="9" refX="10" refY="4.5" orient="auto"><path d="M0,0 L11,4.5 L0,9 z" fill="#35485E"/></marker>
+      </defs>
+      <text x="0" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#5C6E85">worker/worker.go:134 · worker/sweep.go:60 — HAI KHỐI, CÙNG MỘT HÌNH: DỪNG, HOẶC NHỊP KẾ</text>
+
+      <rect x="0" y="30" width="420" height="100" rx="3" fill="#141C26" stroke="#00ADD8"/>
+      <text x="20" y="56" font-family="Mono" font-weight="700" font-size="13.5" fill="#00ADD8">select {</text>
+      <text x="20" y="78" font-family="Mono" font-size="13.5" fill="#FF6B6B">case &lt;-ctx.Done(): return ctx.Err()</text>
+      <text x="20" y="100" font-family="Mono" font-size="13.5" fill="#F2B33D">case &lt;-ticker.C:</text>
+      <text x="20" y="122" font-family="Mono" font-weight="700" font-size="13.5" fill="#00ADD8">}</text>
+
+      <path d="M426 68 L 470 58" stroke="#FF6B6B" stroke-width="1.4" marker-end="url(#ah)"/>
+      <path d="M426 96 L 470 106" stroke="#F2B33D" stroke-width="1.4" marker-end="url(#ah)"/>
+
+      <rect x="476" y="30" width="400" height="44" rx="3" fill="rgba(255,107,107,.07)" stroke="#FF6B6B"/>
+      <text x="492" y="48" font-family="Sans" font-weight="700" font-size="12.5" fill="#FF6B6B">ctx.Done() là một channel</text>
+      <text x="492" y="66" font-family="Sans" font-size="11.5" fill="#93A4B8">đóng khi ai đó gọi cancel(); đọc channel đã đóng là nhận ngay</text>
+
+      <rect x="476" y="86" width="400" height="44" rx="3" fill="#141C26" stroke="#F2B33D"/>
+      <text x="492" y="104" font-family="Sans" font-weight="700" font-size="12.5" fill="#F2B33D">ticker.C là một channel</text>
+      <text x="492" y="122" font-family="Sans" font-size="11.5" fill="#93A4B8">mỗi Interval một nhịp; nhận được là tới lượt chạy tiếp</text>
+
+      <rect x="900" y="30" width="397" height="100" rx="3" fill="#141C26" stroke="#35485E"/>
+      <text x="916" y="52" font-family="Sans" font-weight="700" font-size="12.5" fill="#E8EFF6">Dừng một việc đang chạy</text>
+      <text x="916" y="74" font-family="Sans" font-size="11.5" fill="#93A4B8">Không ai gọi Stop(). Người giữ ctx gọi cancel(),</text>
+      <text x="916" y="92" font-family="Sans" font-size="11.5" fill="#93A4B8">select chạy nhánh Done, Run trả ctx.Err().</text>
+      <text x="916" y="116" font-family="Sans" font-size="11.5" fill="#5C6E85">Sweeper chờ một nhịp trước; Relay chạy ngay — vì lúc khởi động relay có hàng sẵn.</text>
+    </svg>
+  </div>
+
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--money)">1.14 · B</div>
+      <div class="cap">WaitGroup · súng lệnh · đệm</div>
+    </div>
+    <svg width="1297" height="144" viewBox="0 0 1297 144" fill="none">
+      <text x="0" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#F2B33D">postgres_test.go:103 · openai_test.go:120 — NĂM CHANNEL TỰ TẠO CỦA REPO, ĐỀU TRONG TEST</text>
+
+      <rect x="0" y="24" width="636" height="112" rx="3" fill="#141C26" stroke="#F2B33D"/>
+      <text x="20" y="48" font-family="Mono" font-size="13" fill="#93A4B8">var wg sync.WaitGroup;  start := make(chan struct{})</text>
+      <text x="20" y="68" font-family="Mono" font-size="13" fill="#93A4B8">for i := range 4 { wg.Add(1); go func(i int) {</text>
+      <text x="20" y="88" font-family="Mono" font-size="13" fill="#93A4B8">    defer wg.Done();  …;  <tspan fill="#F2B33D" font-weight="700">&lt;-start</tspan>;  Migrate() }(i) }</text>
+      <text x="20" y="108" font-family="Mono" font-weight="700" font-size="13" fill="#F2B33D">close(start)</text>
+      <text x="150" y="108" font-family="Mono" font-size="13" fill="#93A4B8">// thả cả bốn cùng lúc</text>
+      <text x="20" y="128" font-family="Mono" font-weight="700" font-size="13" fill="#4ADE80">wg.Wait()</text>
+      <text x="150" y="128" font-family="Mono" font-size="13" fill="#93A4B8">// đứng chờ bộ đếm về 0</text>
+
+      <rect x="661" y="24" width="636" height="112" rx="3" fill="#141C26" stroke="#00ADD8"/>
+      <text x="681" y="48" font-family="Mono" font-weight="700" font-size="13" fill="#00ADD8">done := make(chan error, 1)</text>
+      <text x="681" y="70" font-family="Sans" font-size="12.5" fill="#E8EFF6">Không đệm: gửi đứng chờ có người nhận.</text>
+      <text x="681" y="90" font-family="Sans" font-size="12.5" fill="#E8EFF6">Đệm 1: gửi xong đi luôn, miễn còn chỗ.</text>
+      <text x="681" y="112" font-family="Sans" font-size="12.5" fill="#93A4B8">Test chờ 3 giây rồi bỏ đi. Goroutine về muộn vẫn gửi được,</text>
+      <text x="681" y="130" font-family="Sans" font-size="12.5" fill="#93A4B8">không treo mãi ở done &lt;- err. Không đệm là rò một goroutine.</text>
+    </svg>
+  </div>
+</section>
+
+<section class="terms">
+  <div class="term" style="--accent: var(--go)">
+    <div class="w">select</div>
+    <div class="d">Một khối chờ nhiều channel. Nhánh nào sẵn sàng trước thì chạy; nhiều nhánh cùng sẵn thì chọn ngẫu nhiên; có default thì không chờ.</div>
+    <div class="s"><b>bên Symfony</b>Không có. Gần nhất là stream_select() hay một event loop — ở Go nó là cú pháp.</div>
+  </div>
+  <div class="term" style="--accent: var(--money)">
+    <div class="w">sync.WaitGroup</div>
+    <div class="d">Bộ đếm goroutine: Add(1) trước khi go, Done() khi xong, Wait() đứng chờ về 0. Không có nó, test kết thúc trước goroutine.</div>
+    <div class="s"><b>bên Symfony</b>Không có vì không có goroutine. Gần với Promise\all trong ReactPHP.</div>
+  </div>
+  <div class="term" style="--accent: var(--danger)">
+    <div class="w">chan struct{}</div>
+    <div class="d">Channel không mang dữ liệu, chỉ mang tín hiệu. close() một lần: mọi goroutine đang chờ nhận cùng lúc — súng lệnh.</div>
+    <div class="s"><b>bên Symfony</b>Không có. Ý gần nhất là một event mà nhiều listener cùng nghe.</div>
+  </div>
+</section>
+
+<div class="rule" style="margin-top:34px"></div>
+<footer>
+  <div class="counts">
+    <div class="count"><div class="n" style="color:var(--go)">2</div><div class="l">khối select</div></div>
+    <div class="count"><div class="n" style="color:var(--money)">4</div><div class="l">lần đọc channel</div></div>
+    <div class="count"><div class="n" style="color:var(--ok)">5</div><div class="l">channel tự tạo, đều trong test</div></div>
+    <div class="count"><div class="n" style="color:var(--faint)">0</div><div class="l">fan-out, fan-in, pipeline</div></div>
+  </div>
+  <div class="ask">
+    <div class="h">Phỏng vấn sẽ hỏi</div>
+    <div class="q">select làm gì, và điều gì xảy ra khi hai channel cùng sẵn sàng?<br>Channel có đệm khác không đệm ở chỗ nào, và khi nào cần đệm 1?<br>Fan-in, fan-out, pipeline là gì? Vì sao repo này không có?</div>
+  </div>
+</footer>
+</html>

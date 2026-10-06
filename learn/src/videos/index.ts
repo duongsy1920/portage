@@ -11,6 +11,12 @@ import { GO_EP07 } from "./go/ep07/spec";
 import { GO_EP08 } from "./go/ep08/spec";
 import { GO_EP09 } from "./go/ep09/spec";
 import { GO_EP10 } from "./go/ep10/spec";
+import { GO_EP11 } from "./go/ep11/spec";
+import { GO_EP12 } from "./go/ep12/spec";
+import { GO_EP13 } from "./go/ep13/spec";
+import { GO_EP14 } from "./go/ep14/spec";
+import { GO_EP15 } from "./go/ep15/spec";
+import { GO_EP16 } from "./go/ep16/spec";
 import { DDD_EP01 } from "./ddd/ep01/spec";
 import { DDD_EP02 } from "./ddd/ep02/spec";
 import { DDD_EP03 } from "./ddd/ep03/spec";
@@ -39,7 +45,7 @@ export type Season = { folder: string; specs: readonly EpisodeSpec[] };
 export const SEASONS: readonly Season[] = [
   {
     folder: "Mua1-Go",
-    specs: [GO_EP01, GO_EP02, GO_EP03, GO_EP04, GO_EP05, GO_EP06, GO_EP07, GO_EP08, GO_EP09, GO_EP10],
+    specs: [GO_EP01, GO_EP02, GO_EP03, GO_EP04, GO_EP05, GO_EP06, GO_EP07, GO_EP08, GO_EP09, GO_EP10, GO_EP11, GO_EP12, GO_EP13, GO_EP14, GO_EP15, GO_EP16],
   },
   {
     folder: "Mua2-DDD",

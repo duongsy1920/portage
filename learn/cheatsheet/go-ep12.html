@@ -1,0 +1,128 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Afterimage Plate 1.12 — interface rỗng và type switch</title>
+<link rel="stylesheet" href="plate.css">
+<style>
+  .specimens { margin-top: 40px; }
+  .spec { display: flex; gap: 22px; align-items: flex-start; }
+  .spec + .spec { margin-top: 30px; }
+  .gutter { width: 128px; flex: none; text-align: right; padding-top: 10px; }
+  .gutter .id { font-family: "Mono"; font-weight: 700; font-size: 13px; letter-spacing: .12em; }
+  .gutter .cap { font-family: "Clinical"; font-weight: 300; font-size: 10.5px; letter-spacing: .18em; color: var(--faint); margin-top: 5px; text-transform: uppercase; }
+  .terms { display: flex; gap: 22px; margin-top: 34px; }
+</style>
+
+<div class="ground"></div>
+
+<header>
+  <div>
+    <h1>Hai method<em> là đủ.</em> Rồi 37 loại chui qua<em> một cái cửa.</em></h1>
+    <div class="sub">Interface cho phép quên kiểu thật. Type switch và x.(T) là lúc phải nhớ lại — và cái giá của việc đó.</div>
+  </div>
+  <div class="plateno">
+    <div class="clinical">Afterimage · Plate 1.12</div>
+    <div class="sys" style="font-size:12px;color:var(--go)">MÙA 1 · TẬP 12</div>
+    <div class="clinical">interface rỗng · type switch</div>
+  </div>
+</header>
+<div class="rule"></div>
+
+<section class="specimens">
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--go)">1.12 · A</div>
+      <div class="cap">37 struct, một Event</div>
+    </div>
+    <svg width="1297" height="140" viewBox="0 0 1297 140" fill="none">
+      <defs>
+        <marker id="ah" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="9" refX="10" refY="4.5" orient="auto"><path d="M0,0 L11,4.5 L0,9 z" fill="#35485E"/></marker>
+      </defs>
+      <text x="0" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#5C6E85">shared/event.go:26 → eventcodec/codec.go:70 — QUÊN KIỂU LÚC GHI SỔ, NHỚ LẠI LÚC MÃ HOÁ</text>
+
+      <rect x="0" y="30" width="250" height="30" rx="3" fill="#141C26" stroke="#9D7CD8"/>
+      <text x="125" y="50" text-anchor="middle" font-family="Mono" font-size="12.5" fill="#9D7CD8">ordering.OrderPlaced</text>
+      <rect x="0" y="66" width="250" height="30" rx="3" fill="#141C26" stroke="#4ADE80"/>
+      <text x="125" y="86" text-anchor="middle" font-family="Mono" font-size="12.5" fill="#4ADE80">logistics.ParcelReceived</text>
+      <rect x="0" y="102" width="250" height="30" rx="3" fill="none" stroke="#35485E" stroke-dasharray="5 4"/>
+      <text x="125" y="122" text-anchor="middle" font-family="Mono" font-size="12.5" fill="#5C6E85">… 35 loại nữa</text>
+
+      <path d="M256 81 L 300 81" stroke="#35485E" stroke-width="1.6" marker-end="url(#ah)"/>
+
+      <rect x="306" y="40" width="320" height="82" rx="3" fill="#141C26" stroke="#00ADD8"/>
+      <text x="466" y="64" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13.5" fill="#00ADD8">shared.Event</text>
+      <text x="466" y="86" text-anchor="middle" font-family="Mono" font-size="12.5" fill="#93A4B8">EventName() string</text>
+      <text x="466" y="106" text-anchor="middle" font-family="Mono" font-size="12.5" fill="#93A4B8">OccurredAt() time.Time</text>
+
+      <path d="M632 81 L 676 81" stroke="#35485E" stroke-width="1.6" marker-end="url(#ah)"/>
+
+      <rect x="682" y="40" width="360" height="82" rx="3" fill="#141C26" stroke="#F2B33D"/>
+      <text x="862" y="64" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13.5" fill="#F2B33D">switch e := ev.(type) {</text>
+      <text x="862" y="86" text-anchor="middle" font-family="Mono" font-size="12.5" fill="#93A4B8">case ordering.OrderPlaced: …</text>
+      <text x="862" y="106" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">37 case — thiếu một là test đỏ</text>
+
+      <path d="M1048 81 L 1092 81" stroke="#35485E" stroke-width="1.6" marker-end="url(#ah)"/>
+
+      <rect x="1098" y="40" width="199" height="82" rx="3" fill="#141C26" stroke="#4ADE80"/>
+      <text x="1197" y="70" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13.5" fill="#4ADE80">m{"id": …}</text>
+      <text x="1197" y="96" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">key viết tay → JSON</text>
+    </svg>
+  </div>
+
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--money)">1.12 · B</div>
+      <div class="cap">hai cách hỏi lại kiểu</div>
+    </div>
+    <svg width="1297" height="150" viewBox="0 0 1297 150" fill="none">
+      <text x="0" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#F2B33D">MỌI THỨ ĐÃ BỎ VÀO any PHẢI HỎI LẠI MỚI LẤY RA ĐƯỢC</text>
+
+      <rect x="0" y="24" width="636" height="118" rx="3" fill="#141C26" stroke="#00ADD8"/>
+      <text x="20" y="50" font-family="Mono" font-weight="700" font-size="14" fill="#00ADD8">switch v := x.(type) {</text>
+      <text x="20" y="72" font-family="Mono" font-size="13.5" fill="#93A4B8">case A: … v là A thật</text>
+      <text x="20" y="92" font-family="Mono" font-size="13.5" fill="#93A4B8">case B: … v là B thật</text>
+      <text x="20" y="112" font-family="Mono" font-size="13.5" fill="#93A4B8">}</text>
+      <text x="300" y="72" font-family="Sans" font-size="12.5" fill="#E8EFF6">rẽ nhánh theo kiểu, một lần</text>
+      <text x="300" y="92" font-family="Sans" font-size="12.5" fill="#93A4B8">thay cho chuỗi if ($x instanceof A)</text>
+      <text x="300" y="112" font-family="Sans" font-size="12.5" fill="#93A4B8">compiler biết hết các case</text>
+
+      <rect x="661" y="24" width="636" height="118" rx="3" fill="#141C26" stroke="#F2B33D"/>
+      <text x="681" y="50" font-family="Mono" font-weight="700" font-size="14" fill="#F2B33D">v, ok := x.(T)</text>
+      <text x="681" y="72" font-family="Mono" font-size="13.5" fill="#4ADE80">ok == false  → v là zero value, không panic</text>
+      <text x="681" y="92" font-family="Mono" font-weight="700" font-size="13.5" fill="#FF6B6B">v := x.(T)   → sai kiểu là panic</text>
+      <text x="681" y="118" font-family="Sans" font-size="12.5" fill="#93A4B8">repo: 2 assertion, cả hai có ok — trong worker, panic là chết cả tiến trình</text>
+    </svg>
+  </div>
+</section>
+
+<section class="terms">
+  <div class="term" style="--accent: var(--money)">
+    <div class="w">any</div>
+    <div class="d">Tên mới của interface{}: không đòi method nào, nên kiểu nào cũng thoả. Cái giá: compiler không biết đó là gì nữa.</div>
+    <div class="s"><b>bên Symfony</b>mixed — và cũng vì thế mà phải is_string(), instanceof trước khi dùng.</div>
+  </div>
+  <div class="term" style="--accent: var(--go)">
+    <div class="w">type switch</div>
+    <div class="d">switch v := x.(type): mỗi case một kiểu, trong case v đã mang kiểu đó. Nơi duy nhất repo dùng: mã hoá event.</div>
+    <div class="s"><b>bên Symfony</b>Một chuỗi if … instanceof; hoặc match (true) { $x instanceof A =&gt; … }.</div>
+  </div>
+  <div class="term" style="--accent: var(--danger)">
+    <div class="w">x.(T)</div>
+    <div class="d">Type assertion: hỏi “x có phải T không?”. Có ok thì trả false khi sai; không ok thì panic.</div>
+    <div class="s"><b>bên Symfony</b>Không có ép kiểu đối tượng; gần nhất là assert($x instanceof T) rồi dùng.</div>
+  </div>
+</section>
+
+<div class="rule" style="margin-top:34px"></div>
+<footer>
+  <div class="counts">
+    <div class="count"><div class="n" style="color:var(--money)">54</div><div class="l">chỗ dùng any</div></div>
+    <div class="count"><div class="n" style="color:var(--go)">37</div><div class="l">case trong type switch</div></div>
+    <div class="count"><div class="n" style="color:var(--ok)">2</div><div class="l">assertion, đều có ok</div></div>
+    <div class="count"><div class="n" style="color:var(--faint)">1</div><div class="l">chỗ mã hoá event</div></div>
+  </div>
+  <div class="ask">
+    <div class="h">Phỏng vấn sẽ hỏi</div>
+    <div class="q">Interface rỗng là gì, và vì sao dùng nó là mất kiểm tra lúc biên dịch?<br>Type switch khác chuỗi instanceof ở chỗ nào?<br>Type assertion x.(T) khi sai kiểu thì xảy ra gì, và làm sao tránh panic?</div>
+  </div>
+</footer>
+</html>

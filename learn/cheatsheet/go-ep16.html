@@ -1,0 +1,136 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Afterimage Plate 1.16 — Test dưới hai giây</title>
+<link rel="stylesheet" href="plate.css">
+<style>
+  .specimens { margin-top: 40px; }
+  .spec { display: flex; gap: 22px; align-items: flex-start; }
+  .spec + .spec { margin-top: 30px; }
+  .gutter { width: 128px; flex: none; text-align: right; padding-top: 10px; }
+  .gutter .id { font-family: "Mono"; font-weight: 700; font-size: 13px; letter-spacing: .12em; }
+  .gutter .cap { font-family: "Clinical"; font-weight: 300; font-size: 10.5px; letter-spacing: .18em; color: var(--faint); margin-top: 5px; text-transform: uppercase; }
+  .terms { display: flex; gap: 22px; margin-top: 34px; }
+</style>
+
+<div class="ground"></div>
+
+<header>
+  <div>
+    <h1>266 test,<em> dưới hai giây,</em> không Docker.</h1>
+    <div class="sub">Tập 5 nhìn từ phía test: mỗi port có một adapter chạy trong RAM. Và hai hàng repo chưa có, nói thẳng.</div>
+  </div>
+  <div class="plateno">
+    <div class="clinical">Afterimage · Plate 1.16</div>
+    <div class="sys" style="font-size:12px;color:var(--go)">MÙA 1 · TẬP 16</div>
+    <div class="clinical">Test</div>
+  </div>
+</header>
+<div class="rule"></div>
+
+<section class="specimens">
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--go)">1.16 · A</div>
+      <div class="cap">một port, hai adapter</div>
+    </div>
+    <svg width="1297" height="134" viewBox="0 0 1297 134" fill="none">
+      <defs>
+        <marker id="ah" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="9" refX="10" refY="4.5" orient="auto"><path d="M0,0 L11,4.5 L0,9 z" fill="#35485E"/></marker>
+      </defs>
+      <text x="0" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#5C6E85">app/pricing/pricing_test.go:19 — CÙNG MỘT KHẲNG ĐỊNH, CHẠY TRÊN RAM LÚC DEV VÀ TRÊN POSTGRES Ở CI</text>
+
+      <rect x="0" y="34" width="360" height="92" rx="3" fill="#141C26" stroke="#00ADD8"/>
+      <text x="180" y="60" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13.5" fill="#00ADD8">pricing.LaneRepository</text>
+      <text x="180" y="82" text-anchor="middle" font-family="Mono" font-size="12.5" fill="#93A4B8">ByCode · All · Save</text>
+      <text x="180" y="108" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">port: interface trong domain</text>
+
+      <path d="M366 62 L 430 46" stroke="#35485E" stroke-width="1.6" marker-end="url(#ah)"/>
+      <path d="M366 98 L 430 114" stroke="#35485E" stroke-width="1.6" marker-end="url(#ah)"/>
+
+      <rect x="436" y="30" width="400" height="40" rx="3" fill="#141C26" stroke="#4ADE80"/>
+      <text x="452" y="48" font-family="Mono" font-weight="700" font-size="13" fill="#4ADE80">memory.LaneRepo</text>
+      <text x="452" y="64" font-family="Sans" font-size="11.5" fill="#93A4B8">fake thật trong RAM — mọi unit test chạy trên nó</text>
+      <rect x="436" y="96" width="400" height="40" rx="3" fill="#141C26" stroke="#F2B33D"/>
+      <text x="452" y="114" font-family="Mono" font-weight="700" font-size="13" fill="#F2B33D">postgres.LaneRepo</text>
+      <text x="452" y="130" font-family="Sans" font-size="11.5" fill="#93A4B8">bản thật — 33 test tích hợp, chỉ khi có PORTAGE_TEST_DSN</text>
+
+      <rect x="860" y="30" width="437" height="106" rx="3" fill="#141C26" stroke="#35485E"/>
+      <text x="876" y="52" font-family="Sans" font-weight="700" font-size="12.5" fill="#E8EFF6">Fake, không phải mock</text>
+      <text x="876" y="74" font-family="Sans" font-size="11.5" fill="#93A4B8">Mock kiểm kịch bản: “hàm này được gọi với đối số kia”.</text>
+      <text x="876" y="92" font-family="Sans" font-size="11.5" fill="#93A4B8">Fake kiểm hành vi: lưu rồi tìm lại phải ra, upsert, thứ tự ổn định.</text>
+      <text x="876" y="110" font-family="Sans" font-size="11.5" fill="#93A4B8">Khác nhau ở đâu là adapter sai, không phải test sai.</text>
+      <text x="876" y="128" font-family="Sans" font-size="11.5" fill="#5C6E85">repo: 0 mock sinh máy</text>
+    </svg>
+  </div>
+
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--money)">1.16 · B</div>
+      <div class="cap">bốn công cụ, hai hàng trống</div>
+    </div>
+    <svg width="1297" height="150" viewBox="0 0 1297 150" fill="none">
+      <text x="0" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#F2B33D">GÓI testing — CÁI REPO DÙNG VÀ CÁI REPO CHƯA DÙNG</text>
+
+      <rect x="0" y="24" width="310" height="118" rx="3" fill="#141C26" stroke="#00ADD8"/>
+      <text x="16" y="46" font-family="Mono" font-weight="700" font-size="13" fill="#00ADD8">httptest</text>
+      <text x="16" y="66" font-family="Sans" font-size="11.5" fill="#93A4B8">NewRequest + ResponseRecorder:</text>
+      <text x="16" y="82" font-family="Sans" font-size="11.5" fill="#93A4B8">request đi qua handler thật,</text>
+      <text x="16" y="98" font-family="Sans" font-size="11.5" fill="#93A4B8">cùng cửa auth với curl, không mở cổng.</text>
+      <text x="16" y="124" font-family="Sans" font-size="11.5" fill="#5C6E85">3 file · server_test.go:166</text>
+
+      <rect x="329" y="24" width="310" height="118" rx="3" fill="#141C26" stroke="#F2B33D"/>
+      <text x="345" y="46" font-family="Mono" font-weight="700" font-size="13" fill="#F2B33D">bảng + t.Run</text>
+      <text x="345" y="66" font-family="Sans" font-size="11.5" fill="#93A4B8">slice ca kiểm, mỗi hàng một tên;</text>
+      <text x="345" y="82" font-family="Sans" font-size="11.5" fill="#93A4B8">viết hàng theo tên trường, không theo</text>
+      <text x="345" y="98" font-family="Sans" font-size="11.5" fill="#93A4B8">vị trí — thêm trường là vỡ (đợt 22).</text>
+      <text x="345" y="124" font-family="Sans" font-size="11.5" fill="#5C6E85">16 bảng · 5 t.Run · ratecard_test.go:96</text>
+
+      <rect x="658" y="24" width="310" height="118" rx="3" fill="#141C26" stroke="#FF6B6B"/>
+      <text x="674" y="46" font-family="Mono" font-weight="700" font-size="13" fill="#FF6B6B">guard bằng go/ast</text>
+      <text x="674" y="66" font-family="Sans" font-size="11.5" fill="#93A4B8">test đọc code thay vì chạy code:</text>
+      <text x="674" y="82" font-family="Sans" font-size="11.5" fill="#93A4B8">domain chỉ import stdlib + allowlist,</text>
+      <text x="674" y="98" font-family="Sans" font-size="11.5" fill="#93A4B8">context không import nhau, không float.</text>
+      <text x="674" y="124" font-family="Sans" font-size="11.5" fill="#5C6E85">7 guard · decisions_test.go</text>
+
+      <rect x="987" y="24" width="310" height="118" rx="3" fill="none" stroke="#35485E" stroke-dasharray="5 4"/>
+      <text x="1003" y="46" font-family="Mono" font-weight="700" font-size="13" fill="#5C6E85">chưa có — phỏng vấn vẫn hỏi</text>
+      <text x="1003" y="66" font-family="Mono" font-size="11.5" fill="#93A4B8">func BenchmarkX(b *testing.B)</text>
+      <text x="1003" y="82" font-family="Mono" font-size="11.5" fill="#93A4B8">for range b.N { … }  go test -bench .</text>
+      <text x="1003" y="104" font-family="Mono" font-size="11.5" fill="#93A4B8">go test -cover · go test -race</text>
+      <text x="1003" y="124" font-family="Sans" font-size="11.5" fill="#5C6E85">CI bật -race và -cover; Benchmark: 0</text>
+    </svg>
+  </div>
+</section>
+
+<section class="terms">
+  <div class="term" style="--accent: var(--go)">
+    <div class="w">fake</div>
+    <div class="d">Một cài đặt thật của port, đủ hành vi để dùng, nhưng sống trong bộ nhớ. Không ai dặn trước nó phải trả gì.</div>
+    <div class="s"><b>bên Symfony</b>InMemoryRepository tự viết, thay cho $this-&gt;createMock(Repo::class)-&gt;method('find')-&gt;willReturn(…).</div>
+  </div>
+  <div class="term" style="--accent: var(--money)">
+    <div class="w">t.Run</div>
+    <div class="d">Một subtest có tên bên trong một Test. Đỏ thì báo đúng tên; chạy riêng bằng go test -run 'TestParse/no_lanes'.</div>
+    <div class="s"><b>bên Symfony</b>@dataProvider đặt tên ca bằng key của mảng — cùng ý.</div>
+  </div>
+  <div class="term" style="--accent: var(--danger)">
+    <div class="w">decision guard</div>
+    <div class="d">Một luật kiến trúc viết thành test bằng go/ast. Luật trong docs thì quên; luật trong test thì build đỏ.</div>
+    <div class="s"><b>bên Symfony</b>deptrac, hoặc một ArchUnit-style test — ở đây là thư viện chuẩn, không cần công cụ ngoài.</div>
+  </div>
+</section>
+
+<div class="rule" style="margin-top:34px"></div>
+<footer>
+  <div class="counts">
+    <div class="count"><div class="n" style="color:var(--go)">67</div><div class="l">file _test.go</div></div>
+    <div class="count"><div class="n" style="color:var(--go)">299</div><div class="l">hàm Test</div></div>
+    <div class="count"><div class="n" style="color:var(--ok)">266</div><div class="l">PASS không Docker</div></div>
+    <div class="count"><div class="n" style="color:var(--faint)">0</div><div class="l">Benchmark</div></div>
+  </div>
+  <div class="ask">
+    <div class="h">Phỏng vấn sẽ hỏi</div>
+    <div class="q">Fake khác mock ở chỗ nào, và vì sao repo không dùng mock sinh máy?<br>Table-driven test là gì, và t.Run thêm được gì?<br>Benchmark trong Go viết thế nào, và b.N nghĩa là gì?</div>
+  </div>
+</footer>
+</html>

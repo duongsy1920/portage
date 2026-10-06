@@ -1,0 +1,124 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Afterimage Plate 1.11 — Closure</title>
+<link rel="stylesheet" href="plate.css">
+<style>
+  /* Rhythm of this plate only — the shared language lives in plate.css. */
+  .specimens { margin-top: 40px; }
+  .spec { display: flex; gap: 22px; align-items: flex-start; }
+  .spec + .spec { margin-top: 30px; }
+  .gutter { width: 128px; flex: none; text-align: right; padding-top: 10px; }
+  .gutter .id { font-family: "Mono"; font-weight: 700; font-size: 13px; letter-spacing: .12em; }
+  .gutter .cap { font-family: "Clinical"; font-weight: 300; font-size: 10.5px; letter-spacing: .18em; color: var(--faint); margin-top: 5px; text-transform: uppercase; }
+  .terms { display: flex; gap: 22px; margin-top: 34px; }
+</style>
+
+<div class="ground"></div>
+
+<header>
+  <div>
+    <h1>Tham số thứ hai<em> là một hàm.</em></h1>
+    <div class="sub">InTx nhận hàm thay vì trả transaction: không ai quên commit, vì không có bước commit để quên.</div>
+  </div>
+  <div class="plateno">
+    <div class="clinical">Afterimage · Plate 1.11</div>
+    <div class="sys" style="font-size:12px;color:var(--go)">MÙA 1 · TẬP 11</div>
+    <div class="clinical">Closure</div>
+  </div>
+</header>
+<div class="rule"></div>
+
+<section class="specimens">
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--go)">1.11 · A</div>
+      <div class="cap">hàm nhận hàm</div>
+    </div>
+    <svg width="1297" height="150" viewBox="0 0 1297 150" fill="none">
+      <defs>
+        <marker id="ah" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="9" refX="10" refY="4.5" orient="auto"><path d="M0,0 L11,4.5 L0,9 z" fill="#35485E"/></marker>
+        <marker id="ahg" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="9" refX="10" refY="4.5" orient="auto"><path d="M0,0 L11,4.5 L0,9 z" fill="#4ADE80"/></marker>
+      </defs>
+      <text x="0" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#5C6E85">internal/app/ports.go:46 — NGƯỜI GỌI ĐƯA HÀM VÀO; MỞ, ĐÓNG, LÙI TRANSACTION LÀ VIỆC CỦA InTx</text>
+
+      <rect x="0" y="34" width="380" height="104" rx="3" fill="#141C26" stroke="#00ADD8"/>
+      <text x="20" y="62" font-family="Mono" font-weight="700" font-size="13.5" fill="#00ADD8">err := InTx(ctx, func(ctx) error {</text>
+      <text x="20" y="86" font-family="Mono" font-size="13.5" fill="#E8EFF6">    …  // việc của use case</text>
+      <text x="20" y="110" font-family="Mono" font-weight="700" font-size="13.5" fill="#00ADD8">})</text>
+      <text x="20" y="130" font-family="Sans" font-size="11.5" fill="#93A4B8">hàm bạn viết chạy bên trong khung của InTx</text>
+
+      <path d="M386 86 L 430 86" stroke="#35485E" stroke-width="1.6" marker-end="url(#ah)"/>
+
+      <rect x="436" y="34" width="300" height="104" rx="3" fill="#141C26" stroke="#F2B33D"/>
+      <text x="586" y="62" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13.5" fill="#F2B33D">tx := Begin()</text>
+      <text x="586" y="86" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13.5" fill="#F2B33D">err = fn(ctx)</text>
+      <text x="586" y="110" text-anchor="middle" font-family="Mono" font-size="13.5" fill="#93A4B8">defer func() { … }()</text>
+      <text x="586" y="130" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">postgres.go:83</text>
+
+      <path d="M742 62 L 786 50" stroke="#4ADE80" stroke-width="1.4" marker-end="url(#ahg)"/>
+      <path d="M742 86 L 786 86" stroke="#4ADE80" stroke-width="1.4" marker-end="url(#ahg)"/>
+      <path d="M742 110 L 786 122" stroke="#4ADE80" stroke-width="1.4" marker-end="url(#ahg)"/>
+
+      <rect x="792" y="34" width="505" height="30" rx="3" fill="#141C26" stroke="#4ADE80"/>
+      <text x="1044" y="54" text-anchor="middle" font-family="Sans" font-size="12.5" fill="#4ADE80">fn trả nil → Commit</text>
+      <rect x="792" y="71" width="505" height="30" rx="3" fill="#141C26" stroke="#F2B33D"/>
+      <text x="1044" y="91" text-anchor="middle" font-family="Sans" font-size="12.5" fill="#F2B33D">fn trả lỗi → Rollback, lỗi của fn là lỗi trả ra</text>
+      <rect x="792" y="108" width="505" height="30" rx="3" fill="rgba(255,107,107,.07)" stroke="#FF6B6B"/>
+      <text x="1044" y="128" text-anchor="middle" font-family="Sans" font-size="12.5" fill="#FF6B6B">fn panic → Rollback rồi panic lại (tập 9)</text>
+    </svg>
+  </div>
+
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--money)">1.11 · B</div>
+      <div class="cap">closure bắt biến</div>
+    </div>
+    <svg width="1297" height="134" viewBox="0 0 1297 134" fill="none">
+      <text x="0" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#F2B33D">register_merchant.go:34 — fn CHỈ TRẢ error, NÊN KẾT QUẢ THOÁT RA BẰNG MỘT BIẾN KHAI BÊN NGOÀI</text>
+      <rect x="0" y="24" width="640" height="106" rx="3" fill="#141C26" stroke="#F2B33D"/>
+      <text x="20" y="48" font-family="Mono" font-weight="700" font-size="13.5" fill="#F2B33D">var id catalog.MerchantID</text>
+      <text x="20" y="68" font-family="Mono" font-size="13.5" fill="#93A4B8">err := h.deps.UoW.InTx(ctx, func(ctx context.Context) error {</text>
+      <text x="20" y="88" font-family="Mono" font-size="13.5" fill="#93A4B8">    …</text>
+      <text x="20" y="108" font-family="Mono" font-weight="700" font-size="13.5" fill="#F2B33D">    id = m.ID()</text>
+      <text x="320" y="108" font-family="Mono" font-size="13.5" fill="#93A4B8">})   return id, err</text>
+
+      <text x="680" y="48" font-family="Sans" font-weight="700" font-size="14" fill="#E8EFF6">Khai ngoài, gán trong — cùng một biến.</text>
+      <text x="680" y="72" font-family="Sans" font-size="13" fill="#93A4B8">Go bắt biến tự động và luôn theo tham chiếu. PHP phải viết use (&amp;$id).</text>
+      <text x="680" y="96" font-family="Sans" font-size="13" fill="#93A4B8">Vì sao fn không trả kết quả? Go không có method generic (tập 13),</text>
+      <text x="680" y="116" font-family="Sans" font-size="13" fill="#93A4B8">nên InTx chỉ biết error — còn kiểu kết quả là của từng use case.</text>
+    </svg>
+  </div>
+</section>
+
+<section class="terms">
+  <div class="term" style="--accent: var(--money)">
+    <div class="w">closure</div>
+    <div class="d">Hàm không tên nhìn thấy và sửa được biến của hàm bao quanh — sau khi hàm đó đã chạy tiếp vẫn vậy.</div>
+    <div class="s"><b>bên Symfony</b>function () use (&amp;$x) { … }. Go: không use, mặc định là chính biến đó.</div>
+  </div>
+  <div class="term" style="--accent: var(--go)">
+    <div class="w">hàm nhận hàm</div>
+    <div class="d">Một hàm có tham số là hàm. Cách ép một đoạn code chạy trong khung của hàm khác: transaction, khoá, đo giờ.</div>
+    <div class="s"><b>bên Symfony</b>$em-&gt;wrapInTransaction(fn () =&gt; …) — cùng ý; ở đây là interface, bản RAM không có transaction thật.</div>
+  </div>
+  <div class="term" style="--accent: var(--ok)">
+    <div class="w">(err error)</div>
+    <div class="d">Trả về có tên: kết quả là một biến thật của hàm, nên defer gán err = … là đổi đúng thứ hàm trả.</div>
+    <div class="s"><b>bên Symfony</b>Không có. finally không đổi được giá trị return.</div>
+  </div>
+</section>
+
+<div class="rule" style="margin-top:34px"></div>
+<footer>
+  <div class="counts">
+    <div class="count"><div class="n" style="color:var(--go)">38</div><div class="l">chỗ gọi InTx</div></div>
+    <div class="count"><div class="n" style="color:var(--money)">114</div><div class="l">hàm không tên</div></div>
+    <div class="count"><div class="n" style="color:var(--ok)">4</div><div class="l">hàm trả về có tên</div></div>
+    <div class="count"><div class="n" style="color:var(--faint)">0</div><div class="l">bước commit để quên</div></div>
+  </div>
+  <div class="ask">
+    <div class="h">Phỏng vấn sẽ hỏi</div>
+    <div class="q">Closure là gì, và Go bắt biến ngoài khác PHP use ở chỗ nào?<br>Vì sao một hàm lại nhận hàm làm tham số thay vì trả về một đối tượng?<br>Named return value dùng để làm gì?</div>
+  </div>
+</footer>
+</html>

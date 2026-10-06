@@ -174,8 +174,9 @@ không trên pallet.
 | `docs/UI-NEXT-PLAN.md` | **plan đợt sau, chưa làm**: đưa trí nhớ phiên của màn hình về bảng đọc (migration `0014`), `balance`, hai route đọc; §7 chờ anh chốt |
 | `docs/P10-PLAN.md` | plan gốc của P10 (đã xong, đợt 20) — operator đặt hộ có ghi tên; giữ để thấy cách chốt quyết định |
 | `docs/P9-PLAN.md` | plan gốc của P9 (đã xong hết) — giữ để thấy cách chốt quyết định |
-| `learn/CURRICULUM.md` | **loạt video học, 24 tập**: Mùa 1 Go (10), Mùa 2 DDD (6), Mùa 3 Portage (8). Kèm bốn cửa kiểm ở §12 |
-| `learn/HUB-PLAN.md` | **plan chưa làm**: trang web để đi hết lộ trình học (bản đồ 24 tập, phát tập bằng `@remotion/player`, bản in, tự kiểm tra, đối chiếu roadmap.sh); §8 chờ anh chốt |
+| `learn/CURRICULUM.md` | **loạt video học, 30 tập**: Mùa 1 Go (16), Mùa 2 DDD (6), Mùa 3 Portage (8). Kèm năm cửa kiểm ở §12 |
+| `learn/HUB-PLAN.md` | plan gốc của trang học (**đã làm 06/10**, `learn/hub/`); giữ làm hồ sơ quyết định D1–D5 |
+| `learn/HUB-REDESIGN-PLAN.md` | **làm lại trang học 06/10** theo yêu cầu của anh: shadcn hai cột, bảng từ (thuật ngữ giữ tiếng Anh), số 278 chết → `REPO.testsNoDocker`; D1–D7 có tự phản biện |
 | `docs/UI-GUIDE.md` | **bốn màn hình và bấm gì trên từng cái**: trang khách, trang nhân viên, mô phỏng, bảng kiểm API; 10 nhánh rẽ nên thử; bảng hỏng-thì-xem |
 | `docs/CODING-AGENT.md` | **thiết kế Coding Agent** (đồng nghiệp AI dùng lại được cho mọi project): audit Portage → ai-employees → mô hình → Phase 1. Đã dựng ở `agent/` |
 
@@ -186,10 +187,10 @@ vì sao code hiện tại trông như vậy.
 ## Loạt video học — `learn/`
 
 Thư mục `learn/` là một project Remotion **tách hẳn** khỏi code Go (không import
-gì của nhau). 24 tập, mỗi tập một video và một bản in A3:
+gì của nhau). 30 tập, mỗi tập một video và một bản in A3:
 
 ```
-learn/out/mua1-go/       10 tập — Go cho người viết PHP
+learn/out/mua1-go/       16 tập — Go cho người viết PHP (10 + 6 bổ sung theo roadmap.sh, 06/10)
 learn/out/mua2-ddd/       6 tập — DDD, bằng ví dụ Symfony đã quen
 learn/out/mua3-portage/   8 tập — vì sao project thật này trông như vậy
 ```
@@ -197,21 +198,29 @@ learn/out/mua3-portage/   8 tập — vì sao project thật này trông như v�
 **Thêm một tập** = một `spec.ts` + một `recap.ts` (4 ý · 3 câu phỏng vấn · tập sau) + vài
 cảnh + một dòng trong `src/videos/index.ts`. Không sửa `Root.tsx`, không sửa script nào.
 
+**Ngoài 30 tập** (06/10): hai bản in tra cứu không có video (`cheatsheet/go-plate-syntax.html`,
+`go-plate-toolchain.html` → `out/mua1-go/ban-in-*`) và ba bài tập tự chạy (escape analysis · stack
+trace · pprof) trong `docs/HOC.md` trước phần tự kiểm tra. Bảng đối chiếu 101 mục roadmap.sh:
+`learn/src/data/roadmap.ts` (trang `#/roadmap` của hub), lý do ở `learn/PLAN-BO-SUNG.md`.
+
 **Trang học** (`learn/hub/`, từ 06/10): `cd learn && npm run hub` → `http://localhost:5173/`.
-Bản đồ 24 tập, phát tập bằng `@remotion/player` (không cần mp4), bản in, neo vào code, tự kiểm
-tra, ôn tập 1/3/7 ngày, đối chiếu roadmap.sh. Dữ liệu là của video (`recap.ts`, `anchors`),
-không chép. Thiết kế: `learn/HUB-PLAN.md`. Đăng GitHub Pages: workflow `.github/workflows/hub.yml`
+**shadcn/ui + Tailwind v4 + radix-ui**, bố cục khoá học: danh sách 30 bài bên trái, bài đang xem bên
+phải (player `@remotion/player`, không cần mp4; tab mục lục · cheatsheet · code trong repo · tự kiểm
+tra), ôn tập 1/3/7 ngày, so với roadmap.sh. Dữ liệu là của video (`recap.ts`, `anchors`), không chép.
+**Bảng từ** (06/10, theo yêu cầu của anh): thuật ngữ giữ tiếng Anh (cheatsheet, port, read model,
+anemic model, eventual consistency…), câu dẫn tiếng Việt thường — `learn/HUB-REDESIGN-PLAN.md` §2 D5.
+Plan gốc: `learn/HUB-PLAN.md`. Đăng GitHub Pages: workflow `.github/workflows/hub.yml`
 đã có, anh bật Settings → Pages → Source: GitHub Actions một lần.
 
 **Năm cửa kiểm trước khi báo xong** (`tsc` xanh không chứng minh được gì):
 
 ```bash
 cd learn
-./scripts/verify-numbers.sh        # 12 con số vs repo Go thật
+./scripts/verify-numbers.sh        # 32 con số vs repo Go thật
 python3 scripts/verify-snippets.py # mọi dòng code lên hình có thật trong file nó khai
-python3 scripts/check-overflow.py  # 110 cảnh, không cảnh nào tràn khung
+python3 scripts/check-overflow.py  # 147 cảnh, không cảnh nào tràn khung
 python3 scripts/verify-hub.py      # trang học không nói sai về video
-./scripts/render-plates.sh         # 24 bản in → PNG @2x + PDF A3
+./scripts/render-plates.sh         # 32 bản in (30 tập + 2 tra cứu) → PNG @2x + PDF A3
 ```
 
 Chi tiết: `learn/CURRICULUM.md`.
@@ -238,7 +247,7 @@ và `releases` trong `PROJECT.md`. Đọc `agent/README.md` trước khi gọi.
 ## Lệnh hay dùng
 
 ```bash
-go test ./...                     # 278 test, < 2 giây
+go test ./...                     # 266 test PASS không DSN, < 2 giây (đếm 06/10)
 gofmt -l . && go vet ./...        # phải sạch trước khi báo xong
 
 # Có Postgres (34 test tích hợp)

@@ -1,0 +1,115 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Afterimage Plate 1.13 — Generics</title>
+<link rel="stylesheet" href="plate.css">
+<style>
+  .specimens { margin-top: 40px; }
+  .spec { display: flex; gap: 22px; align-items: flex-start; }
+  .spec + .spec { margin-top: 30px; }
+  .gutter { width: 128px; flex: none; text-align: right; padding-top: 10px; }
+  .gutter .id { font-family: "Mono"; font-weight: 700; font-size: 13px; letter-spacing: .12em; }
+  .gutter .cap { font-family: "Clinical"; font-weight: 300; font-size: 10.5px; letter-spacing: .18em; color: var(--faint); margin-top: 5px; text-transform: uppercase; }
+  .terms { display: flex; gap: 22px; margin-top: 34px; }
+</style>
+
+<div class="ground"></div>
+
+<header>
+  <div>
+    <h1>Đúng<em> 2 hàm generic.</em> Và chỉ cần 2.</h1>
+    <div class="sub">Interface nói về hành vi. Generic giữ nguyên kiểu đi qua một hàm. Hai câu hỏi khác nhau, hai công cụ khác nhau.</div>
+  </div>
+  <div class="plateno">
+    <div class="clinical">Afterimage · Plate 1.13</div>
+    <div class="sys" style="font-size:12px;color:var(--go)">MÙA 1 · TẬP 13</div>
+    <div class="clinical">Generics</div>
+  </div>
+</header>
+<div class="rule"></div>
+
+<section class="specimens">
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--go)">1.13 · A</div>
+      <div class="cap">on[T]: suy T từ tham số</div>
+    </div>
+    <svg width="1297" height="140" viewBox="0 0 1297 140" fill="none">
+      <defs>
+        <marker id="ah" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="9" refX="10" refY="4.5" orient="auto"><path d="M0,0 L11,4.5 L0,9 z" fill="#35485E"/></marker>
+      </defs>
+      <text x="0" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#5C6E85">wire/subscribe.go:105 — MỘT CLOSURE CÓ KIỂU ĐI VÀO, MỘT HANDLER KHÔNG KIỂU ĐI RA</text>
+
+      <rect x="0" y="34" width="400" height="92" rx="3" fill="#141C26" stroke="#4ADE80"/>
+      <text x="20" y="60" font-family="Mono" font-weight="700" font-size="13.5" fill="#4ADE80">lanes.OnLaneDefined</text>
+      <text x="20" y="82" font-family="Mono" font-size="12.5" fill="#93A4B8">func(ctx, contracts.LaneDefinedV1) error</text>
+      <text x="20" y="108" font-family="Sans" font-size="11.5" fill="#93A4B8">handler có kiểu — T = LaneDefinedV1, Go tự suy</text>
+
+      <path d="M406 80 L 450 80" stroke="#35485E" stroke-width="1.6" marker-end="url(#ah)"/>
+
+      <rect x="456" y="34" width="380" height="92" rx="3" fill="#141C26" stroke="#00ADD8"/>
+      <text x="646" y="60" text-anchor="middle" font-family="Mono" font-weight="700" font-size="14" fill="#00ADD8">on[T any](handle)</text>
+      <text x="646" y="82" text-anchor="middle" font-family="Mono" font-size="12.5" fill="#93A4B8">Decode → m, ok := msg.(T) → handle(ctx, m)</text>
+      <text x="646" y="108" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">viết một lần cho mọi T</text>
+
+      <path d="M842 80 L 886 80" stroke="#35485E" stroke-width="1.6" marker-end="url(#ah)"/>
+
+      <rect x="892" y="34" width="405" height="92" rx="3" fill="#141C26" stroke="#F2B33D"/>
+      <text x="1094" y="60" text-anchor="middle" font-family="Mono" font-weight="700" font-size="13.5" fill="#F2B33D">worker.Handler</text>
+      <text x="1094" y="82" text-anchor="middle" font-family="Mono" font-size="12.5" fill="#93A4B8">func(ctx, worker.Entry) error</text>
+      <text x="1094" y="108" text-anchor="middle" font-family="Sans" font-size="11.5" fill="#93A4B8">Bus không cần biết T — 35 dòng Subscribe, 0 adapter tay</text>
+    </svg>
+  </div>
+
+  <div class="spec">
+    <div class="gutter">
+      <div class="id" style="color:var(--money)">1.13 · B</div>
+      <div class="cap">into[T]: ghi rõ T</div>
+    </div>
+    <svg width="1297" height="124" viewBox="0 0 1297 124" fill="none">
+      <text x="0" y="12" font-family="Clinical" font-weight="300" font-size="10" letter-spacing="2.2" fill="#F2B33D">eventcodec/decode.go:66 — THAM SỐ CHỈ LÀ []byte, KHÔNG CÓ GÌ ĐỂ SUY, NÊN GHI RÕ</text>
+      <rect x="0" y="24" width="636" height="92" rx="3" fill="#141C26" stroke="#F2B33D"/>
+      <text x="20" y="50" font-family="Mono" font-weight="700" font-size="13.5" fill="#F2B33D">func into[T any](payload []byte) (any, error) {</text>
+      <text x="20" y="70" font-family="Mono" font-size="13.5" fill="#93A4B8">    var v T                       // zero value của T</text>
+      <text x="20" y="90" font-family="Mono" font-size="13.5" fill="#93A4B8">    json.Unmarshal(payload, &amp;v)   // điền vào</text>
+      <text x="20" y="110" font-family="Mono" font-size="13.5" fill="#93A4B8">    return v, nil                 // trả ra dưới dạng any</text>
+
+      <rect x="661" y="24" width="636" height="92" rx="3" fill="#141C26" stroke="#00ADD8"/>
+      <text x="681" y="50" font-family="Mono" font-size="13.5" fill="#93A4B8">"catalog.product_published":</text>
+      <text x="681" y="70" font-family="Mono" font-weight="700" font-size="13.5" fill="#00ADD8">    into[contracts.ProductPublishedV1],</text>
+      <text x="681" y="96" font-family="Sans" font-size="12.5" fill="#93A4B8">Hai dạng: on(h) suy được T · into[X] phải ghi — đoán được từ tham số.</text>
+    </svg>
+  </div>
+</section>
+
+<section class="terms">
+  <div class="term" style="--accent: var(--go)">
+    <div class="w">[T any]</div>
+    <div class="d">Type parameter: một kiểu để trống trong ngoặc vuông. Hàm viết một lần, mỗi lần gọi điền một kiểu, compiler kiểm như kiểu thật.</div>
+    <div class="s"><b>bên Symfony</b>/** @template T */ — chú thích cho Psalm/PHPStan, không phải cú pháp ngôn ngữ.</div>
+  </div>
+  <div class="term" style="--accent: var(--money)">
+    <div class="w">type inference</div>
+    <div class="d">Go điền T từ tham số nếu có tham số kiểu T. Không có thì phải viết f[X](…). Không bao giờ đoán từ kiểu trả về.</div>
+    <div class="s"><b>bên Symfony</b>Không có; kiểu suy từ docblock và chỉ công cụ ngoài đọc.</div>
+  </div>
+  <div class="term" style="--accent: var(--danger)">
+    <div class="w">constraint</div>
+    <div class="d">Điều kiện cho T: any (gì cũng được) · comparable (so == được, làm key map) · một interface (T phải có method đó).</div>
+    <div class="s"><b>bên Symfony</b>@template T of Foo — lại là chú thích. Go từ chối biên dịch nếu T không thoả.</div>
+  </div>
+</section>
+
+<div class="rule" style="margin-top:34px"></div>
+<footer>
+  <div class="counts">
+    <div class="count"><div class="n" style="color:var(--go)">2</div><div class="l">hàm generic</div></div>
+    <div class="count"><div class="n" style="color:var(--money)">35</div><div class="l">dòng Subscribe dùng on[T]</div></div>
+    <div class="count"><div class="n" style="color:var(--ok)">26</div><div class="l">kiểu V1 đi qua into[T]</div></div>
+    <div class="count"><div class="n" style="color:var(--faint)">0</div><div class="l">generic trong domain</div></div>
+  </div>
+  <div class="ask">
+    <div class="h">Phỏng vấn sẽ hỏi</div>
+    <div class="q">Generics trong Go dùng để làm gì, và khác interface ở chỗ nào?<br>Type inference: khi nào Go tự suy T, khi nào phải ghi rõ?<br>Type constraint là gì? any và comparable khác nhau thế nào?</div>
+  </div>
+</footer>
+</html>

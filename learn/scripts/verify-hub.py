@@ -87,7 +87,22 @@ for ref in taught_refs:
 dups = {n for n in [f"{g}/{nm}" for _, g, nm, _ in items] if [f"{g}/{nm}" for _, g, nm, _ in items].count(n) > 1}
 if dups:
     fail(f"roadmap: mục trùng: {dups}")
-ok(f"{len(items)} mục, {len(taught_refs)} 'đã dạy' đều trỏ tới tập có thật")
+plate_files = dict(re.findall(r'^\s+(\w+): "([a-z0-9-]+)",\s*$', road.split("PLATE_FILES", 1)[1].split("};", 1)[0], re.M))
+plate_keys = set(re.findall(r'^\s+(\w+): "[^"]+",\s*$', road.split("export const PLATES", 1)[1].split("} as const;", 1)[0], re.M))
+render_sh = (LEARN / "scripts/render-plates.sh").read_text()
+for key in sorted(plate_keys):
+    f = plate_files.get(key)
+    if not f:
+        fail(f"roadmap: bản in '{key}' không có file trong PLATE_FILES")
+        continue
+    if not (LEARN / "cheatsheet" / f"{f}.html").exists():
+        fail(f"roadmap: bản in '{key}' trỏ tới cheatsheet/{f}.html không có")
+    if f"render {f}.html" not in render_sh:
+        fail(f"roadmap: cheatsheet/{f}.html không có trong render-plates.sh")
+for ref in [ref for kind, _, _, ref in items if kind == "S"]:
+    if ref not in plate_keys:
+        fail(f"roadmap: 'bản in' trỏ tới khoá không có trong PLATES: {ref}")
+ok(f"{len(items)} mục, {len(taught_refs)} 'đã dạy' đều trỏ tới tập có thật, {len(plate_keys)} bản in tra cứu có file")
 
 print("5. path.ts và quiz.ts trỏ tới tập có thật")
 for name in ("path.ts", "quiz.ts"):

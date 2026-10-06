@@ -16,5 +16,5 @@ export const RECAP = {
     "Vì sao không publish thẳng sau khi lưu?",
     "Làm sao bảo đảm INSERT vào outbox cùng transaction với dữ liệu?",
   ],
-  next: { label: "MÙA 3 · TẬP 3", text: "Nhất quán sau cùng: vì sao 404 ngay sau khi tạo là thiết kế, không phải bug." },
+  next: { label: "MÙA 3 · TẬP 3", text: "Eventual consistency: vì sao 404 ngay sau khi tạo là thiết kế, không phải bug." },
 } as const satisfies Recap;
